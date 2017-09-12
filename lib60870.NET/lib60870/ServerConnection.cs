@@ -21,7 +21,6 @@
 
 using System;
 
-using lib60870;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -30,7 +29,10 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
 
-namespace lib60870
+using lib60870;
+using lib60870.CS101;
+
+namespace lib60870.CS104
 {
 	public class ServerConnection 
 	{

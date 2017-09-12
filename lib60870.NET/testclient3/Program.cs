@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading;
+
 using lib60870;
+using lib60870.CS101;
+using lib60870.CS104;
 
 namespace testclient3
 {

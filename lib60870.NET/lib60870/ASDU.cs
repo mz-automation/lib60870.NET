@@ -24,18 +24,8 @@
 using System;
 using System.Collections.Generic;
 
-namespace lib60870
+namespace lib60870.CS101
 {
-
-	public class ASDUParsingException : Exception
-	{
-	
-
-		public ASDUParsingException (string message) : base(message)
-		{
-		
-		}
-	}
 
 	/// <summary>
 	/// This class represents an application layer message. It contains some generic message information and

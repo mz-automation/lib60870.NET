@@ -1,8 +1,11 @@
 ﻿using System;
-using lib60870;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+
+using lib60870;
+using lib60870.CS101;
+using lib60870.CS104;
 
 namespace multiclientserver
 {

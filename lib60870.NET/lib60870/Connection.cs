@@ -32,7 +32,9 @@ using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 
-namespace lib60870
+using lib60870.CS101;
+
+namespace lib60870.CS104
 {
 	public class ConnectionException : Exception
 	{
@@ -53,6 +55,69 @@ namespace lib60870
 		STARTDT_CON_RECEIVED = 2,
 		STOPDT_CON_RECEIVED = 3,
         CONNECT_FAILED = 4
+	}
+
+	/// <summary>
+	/// Provides some Connection statistics.
+	/// </summary>
+	public class ConnectionStatistics {
+
+		private int sentMsgCounter = 0;
+		private int rcvdMsgCounter = 0;
+		private int rcvdTestFrActCounter = 0;
+		private int rcvdTestFrConCounter = 0;
+
+		internal void Reset () 
+		{
+			sentMsgCounter = 0;
+			rcvdMsgCounter = 0;
+			rcvdTestFrActCounter = 0;
+			rcvdTestFrConCounter = 0;
+		}
+
+		public int SentMsgCounter {
+			get {
+				return this.sentMsgCounter;
+			}
+			internal set {
+				this.sentMsgCounter = value;
+			}
+		}
+
+		public int RcvdMsgCounter {
+			get {
+				return this.rcvdMsgCounter;
+			}
+			internal set {
+				this.rcvdMsgCounter = value;
+			}
+		}
+
+		/// <summary>
+		/// Counter for the TEST_FR_ACT messages received.
+		/// </summary>
+		/// <value>The TEST_FR_ACT counter.</value>
+		public int RcvdTestFrActCounter {
+			get {
+				return this.rcvdTestFrActCounter;
+			}
+			internal set {
+				this.rcvdTestFrActCounter = value;
+			}
+		}
+
+		/// <summary>
+		/// Counter for the TEST_FR_CON messages received.
+		/// </summary>
+		/// <value>The TEST_FR_CON counter.</value>
+		public int RcvdTestFrConCounter {
+			get {
+				return this.rcvdTestFrConCounter;
+			}
+			internal set {
+				this.rcvdTestFrConCounter = value;
+			}
+		}
 	}
 
 	/// <summary>

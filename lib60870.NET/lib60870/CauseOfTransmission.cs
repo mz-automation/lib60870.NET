@@ -28,7 +28,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace lib60870
+namespace lib60870.CS101
 {
 	public enum CauseOfTransmission {
 		PERIODIC = 1, 

@@ -27,7 +27,9 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 
-namespace lib60870
+using lib60870.CS101;
+
+namespace lib60870.CS104
 {
 
 	/// <summary>

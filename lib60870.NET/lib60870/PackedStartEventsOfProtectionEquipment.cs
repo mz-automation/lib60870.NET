@@ -24,7 +24,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace lib60870
+namespace lib60870.CS101
 {
 
 	public class PackedStartEventsOfProtectionEquipment : InformationObject

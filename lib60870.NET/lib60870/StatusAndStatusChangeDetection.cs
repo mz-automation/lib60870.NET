@@ -22,7 +22,7 @@
 using System;
 using System.Text;
 
-namespace lib60870
+namespace lib60870.CS101
 {
 
 	public class StatusAndStatusChangeDetection {

@@ -2,7 +2,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
 
-namespace lib60870
+namespace lib60870.CS104
 {
 	public class TlsSecurityInformation
 	{

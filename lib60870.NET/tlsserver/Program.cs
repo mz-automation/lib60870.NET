@@ -3,10 +3,11 @@ using System.Security.Cryptography.X509Certificates;
 using System.Net.Security;
 using System.Net;
 using System.Security.Authentication;
-using lib60870;
 using System.Threading;
 
-
+using lib60870;
+using lib60870.CS101;
+using lib60870.CS104;
 
 namespace tlsserver
 {

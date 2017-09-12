@@ -23,7 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace lib60870
+namespace lib60870.CS101
 {
 	/// <summary>
 	/// SPE - Start events of protection equipment
