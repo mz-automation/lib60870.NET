@@ -110,11 +110,11 @@ namespace lib60870
         private int numberOfAsduInQueue = 0;
         private int maxQueueSize;
 
-        private ConnectionParameters parameters;
+		private ApplicationLayerParameters parameters;
 
         private Action<string> DebugLog = null;
 
-        public ASDUQueue(int maxQueueSize, ConnectionParameters parameters, Action<string> DebugLog)
+		public ASDUQueue(int maxQueueSize, ApplicationLayerParameters parameters, Action<string> DebugLog)
         {
             enqueuedASDUs = new ASDUQueueEntry[maxQueueSize];
 
@@ -378,7 +378,13 @@ namespace lib60870
 			}
 		}
 
-		private ConnectionParameters parameters = null;
+		private APCIParameters apciParameters;
+		private ApplicationLayerParameters alParameters;
+
+		public ApplicationLayerParameters GetApplicationLayerParameters()
+		{
+			return alParameters;
+		}
 
 		private TlsSecurityInformation securityInfo = null;
 
@@ -390,13 +396,16 @@ namespace lib60870
 		/// </summary>
 		public Server()
 		{
-			this.parameters = new ConnectionParameters ();
+			this.apciParameters = new APCIParameters ();
+			this.alParameters = new ApplicationLayerParameters ();
 		}
 
 
 		public Server (TlsSecurityInformation securityInfo)
 		{
-			this.parameters = new ConnectionParameters ();
+			this.apciParameters = new APCIParameters ();
+			this.alParameters = new ApplicationLayerParameters ();
+
 			this.securityInfo = securityInfo;
 
 			if (securityInfo != null)
@@ -408,12 +417,14 @@ namespace lib60870
 		/// Create a new server using the provided connection parameters.
 		/// </summary>
 		/// <param name="parameters">Connection parameters</param>
-		public Server(ConnectionParameters parameters) {
-			this.parameters = parameters;
+		public Server(APCIParameters apciParameters, ApplicationLayerParameters alParameters) {
+			this.apciParameters = apciParameters;
+			this.alParameters = alParameters;
 		}
 
-		public Server(ConnectionParameters parameters, TlsSecurityInformation securityInfo) {
-			this.parameters = parameters;
+		public Server(APCIParameters apciParameters, ApplicationLayerParameters alParameters, TlsSecurityInformation securityInfo) {
+			this.apciParameters = apciParameters;
+			this.alParameters = alParameters;
 			this.securityInfo = securityInfo;
 
 			if (securityInfo != null)
@@ -538,10 +549,10 @@ namespace lib60870
 		/// Gets the connection parameters.
 		/// </summary>
 		/// <returns>The connection parameters used by the server.</returns>
-		public ConnectionParameters GetConnectionParameters()
-		{
-			return parameters;
-		}
+//		public ConnectionParameters GetConnectionParameters()
+//		{
+//			return parameters;
+//		}
 
 		private void ServerAcceptThread()
 		{
@@ -573,10 +584,10 @@ namespace lib60870
 
 						if (acceptConnection) {
 	                        if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
-								allOpenConnections.Add(new ServerConnection (newSocket, securityInfo, parameters, this, asduQueue, debugOutput));
+								allOpenConnections.Add(new ServerConnection (newSocket, securityInfo, apciParameters, alParameters, this, asduQueue, debugOutput));
 	                        else
-								allOpenConnections.Add(new ServerConnection(newSocket, securityInfo, parameters, this,
-									new ASDUQueue(maxQueueSize, parameters, DebugLog), debugOutput));
+								allOpenConnections.Add(new ServerConnection(newSocket, securityInfo, apciParameters, alParameters, this,
+									new ASDUQueue(maxQueueSize, alParameters, DebugLog), debugOutput));
 
 							//TODO add ConnectionEstablishedHandler
 						}
@@ -632,7 +643,7 @@ namespace lib60870
 			Thread acceptThread = new Thread(ServerAcceptThread);
 
             if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
-                asduQueue = new ASDUQueue(maxQueueSize, parameters, DebugLog);
+				asduQueue = new ASDUQueue(maxQueueSize, alParameters, DebugLog);
 
 			acceptThread.Start ();
 		}

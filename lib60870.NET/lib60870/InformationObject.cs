@@ -29,7 +29,7 @@ namespace lib60870
 	{
 		private int objectAddress;
 
-		internal static int ParseInformationObjectAddress(ConnectionParameters parameters, byte[] msg, int startIndex)
+		internal static int ParseInformationObjectAddress(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
 		{
 			int ioa = msg [startIndex];
 
@@ -42,7 +42,7 @@ namespace lib60870
 			return ioa;
 		}
 
-		internal InformationObject (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSequence)
+		internal InformationObject (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
 		{
 			if (!isSequence)
 				objectAddress = ParseInformationObjectAddress (parameters, msg, startIndex);
@@ -75,7 +75,7 @@ namespace lib60870
 			get;
 		}
 
-		internal virtual void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal virtual void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			if (!isSequence) {
 				frame.SetNextByte ((byte)(objectAddress & 0xff));
 

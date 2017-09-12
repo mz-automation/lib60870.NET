@@ -91,7 +91,7 @@ namespace lib60870
 			this.qos = qos;
 		}
 
-		internal SetpointCommandNormalized (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SetpointCommandNormalized (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
             startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -102,7 +102,7 @@ namespace lib60870
 			this.qos = new SetpointCommandQualifier (msg [startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
             frame.AppendBytes(scaledValue.GetEncodedValue());
@@ -149,7 +149,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal SetpointCommandNormalizedWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SetpointCommandNormalizedWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 			startIndex += parameters.SizeOfIOA + 3; /* skip IOA */
@@ -157,7 +157,7 @@ namespace lib60870
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());
@@ -205,7 +205,7 @@ namespace lib60870
 			this.qos = qos;
 		}
 
-		internal SetpointCommandScaled (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SetpointCommandScaled (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -216,7 +216,7 @@ namespace lib60870
 			this.qos = new SetpointCommandQualifier (msg [startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.scaledValue.GetEncodedValue ());
@@ -257,7 +257,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal SetpointCommandScaledWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SetpointCommandScaledWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 			startIndex += parameters.SizeOfIOA + 3; /* skip IOA */
@@ -265,7 +265,7 @@ namespace lib60870
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());
@@ -313,7 +313,7 @@ namespace lib60870
 			this.qos = qos;
 		}
 
-		internal SetpointCommandShort (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SetpointCommandShort (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -325,7 +325,7 @@ namespace lib60870
 			this.qos = new SetpointCommandQualifier (msg [startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (System.BitConverter.GetBytes (value));
@@ -366,7 +366,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal SetpointCommandShortWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SetpointCommandShortWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 			startIndex += parameters.SizeOfIOA + 5; /* skip IOA + float + QOS*/
@@ -374,7 +374,7 @@ namespace lib60870
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());
@@ -414,7 +414,7 @@ namespace lib60870
 			this.value = bitstring;
 		}
 
-		internal Bitstring32Command (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal Bitstring32Command (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -425,7 +425,7 @@ namespace lib60870
 			value += ((uint)msg [startIndex++] * 0x1000000);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte ((byte) (value % 256));
@@ -467,7 +467,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal Bitstring32CommandWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal Bitstring32CommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 			startIndex += parameters.SizeOfIOA + 4; /* skip IOA + bitstring */
@@ -475,7 +475,7 @@ namespace lib60870
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());

@@ -95,7 +95,7 @@ namespace lib60870
 			this.quality = quality;
 		}
 
-		internal StepPositionInformation (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal StepPositionInformation (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -114,7 +114,7 @@ namespace lib60870
 			quality = new QualityDescriptor (msg[startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			byte vti;
@@ -169,7 +169,7 @@ namespace lib60870
 			Timestamp = timestamp;
 		}
 
-		internal StepPositionWithCP24Time2a (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal StepPositionWithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -181,7 +181,7 @@ namespace lib60870
 			timestamp = new CP24Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
@@ -225,7 +225,7 @@ namespace lib60870
 		}
 
 
-		internal StepPositionWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal StepPositionWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -237,7 +237,7 @@ namespace lib60870
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());

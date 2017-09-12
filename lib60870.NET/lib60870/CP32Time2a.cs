@@ -1,7 +1,7 @@
-/*
- *  CP56Time2a.cs
+﻿/*
+ *  CP32Time2a.cs
  *
- *  Copyright 2016 MZ Automation GmbH
+ *  Copyright 2017 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *
@@ -21,63 +21,67 @@
  *  See COPYING file for the complete license text.
  */
 
+
 using System;
 
 namespace lib60870
 {
-	public class CP56Time2a
-	{
-		private byte[] encodedValue = new byte[7];
 
-		internal CP56Time2a (byte[] msg, int startIndex)
+	public class CP32Time2a
+	{
+		private byte[] encodedValue = new byte[4];
+
+		internal CP32Time2a (byte[] msg, int startIndex)
 		{
-			if (msg.Length < startIndex + 7)
+			if (msg.Length < startIndex + 4)
 				throw new ASDUParsingException ("Message too small for parsing CP56Time2a");
 
-			for (int i = 0; i < 7; i++)
+			for (int i = 0; i < 4; i++)
 				encodedValue [i] = msg [startIndex + i];
 		}
 
-		public CP56Time2a (DateTime time) {
+		public CP32Time2a(int hours, int minutes, int seconds, int milliseconds, bool invalid, bool summertime)
+		{
+			Hour = hours;
+			Minute = minutes;
+			Second = seconds;
+			Millisecond = milliseconds;
+			Invalid = invalid;
+			SummerTime = summertime;
+		}
+
+		public CP32Time2a (DateTime time) {
 			Millisecond = time.Millisecond;
 			Second = time.Second;
-			Year = time.Year % 100;
-			Month = time.Month;
-			DayOfMonth = time.Day;
 			Hour = time.Hour;
 			Minute = time.Minute;
 		}
 
-		public CP56Time2a () {
-			for (int i = 0; i < 7; i++)
+		public CP32Time2a () {
+			for (int i = 0; i < 4; i++)
 				encodedValue [i] = 0;
 		}
 
 		/// <summary>
-		/// Gets the date time.
+		/// Gets the date time added to the reference day.
 		/// </summary>
 		/// <returns>The date time.</returns>
-		/// <param name="startYear">Start year.</param>
-		public DateTime GetDateTime(int startYear)
+		/// <param name="refTime">Datetime representing the reference day</param>
+		public DateTime GetDateTime(DateTime refTime)
 		{
-			int baseYear = (startYear / 100) * 100;
+			DateTime newTime = new DateTime (refTime.Year, refTime.Month, refTime.Day, Hour, Minute, Second, Millisecond);
 
-			if (this.Year < (startYear % 100))
-				baseYear += 100;
-
-			DateTime value = new DateTime (baseYear + this.Year, this.Month, this.DayOfMonth, this.Hour, this.Minute, this.Second, this.Millisecond);
-		
-			return value;
+			return newTime;
 		}
 
 		public DateTime GetDateTime() 
 		{
-			return GetDateTime (1970);
+			return GetDateTime(DateTime.Now);
 		}
 
 
 		/// <summary>
-		/// Gets or sets the millisecond part of the time value
+		/// Gets or sets the millisecond part of the time value (range 0 to 999)
 		/// </summary>
 		/// <value>The millisecond.</value>
 		public int Millisecond {
@@ -142,62 +146,6 @@ namespace lib60870
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the day of week in range from 1 (Monday) until 7 (Sunday)
-		/// </summary>
-		/// <value>The day of week.</value>
-		public int DayOfWeek {
-			get {
-				return ((encodedValue [4] & 0xe0) >> 5);
-			}
-
-			set {
-				encodedValue [4] = (byte)((encodedValue [4] & 0x1f) | ((value & 0x07) << 5));
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the day of month in range 1 to 31.
-		/// </summary>
-		/// <value>The day of month.</value>
-		public int DayOfMonth {
-			get {
-				return (encodedValue [4] & 0x1f);
-			}
-
-			set {
-				encodedValue [4] = (byte)((encodedValue [4] & 0xe0) + (value & 0x1f));
-			}
-		}
-
-		/// <summary>
-		/// Gets the month in range from 1 (January) to 12 (December)
-		/// </summary>
-		/// <value>The month.</value>
-		public int Month {
-			get {
-				return (encodedValue [5] & 0x0f);
-			}
-
-			set {
-				encodedValue [5] = (byte)((encodedValue [5] & 0xf0) + (value & 0x0f));
-			}
-		}
-
-		/// <summary>
-		/// Gets the year in the range 0 to 99
-		/// </summary>
-		/// <value>The year.</value>
-		public int Year {
-			get {
-				return (encodedValue [6] & 0x7f);
-			}
-
-			set {
-				encodedValue [6] = (byte)((encodedValue [6] & 0x80) + (value & 0x7f));
-			}
-		}
-
 		public bool SummerTime {
 			get {
 				return ((encodedValue [3] & 0x80) != 0);
@@ -252,7 +200,7 @@ namespace lib60870
 
 		public override string ToString ()
 		{
-			return string.Format ("[CP56Time2a: Millisecond={0}, Second={1}, Minute={2}, Hour={3}, DayOfWeek={4}, DayOfMonth={5}, Month={6}, Year={7}, SummerTime={8}, Invalid={9} Substituted={10}]", Millisecond, Second, Minute, Hour, DayOfWeek, DayOfMonth, Month, Year, SummerTime, Invalid, Substituted);
+			return string.Format ("[CP32Time2a: Millisecond={0}, Second={1}, Minute={2}, Hour={3}, SummerTime={4}, Invalid={5} Substituted={6}]", Millisecond, Second, Minute, Hour, SummerTime, Invalid, Substituted);
 		}
 
 	}

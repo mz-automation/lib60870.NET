@@ -72,7 +72,7 @@ namespace lib60870
         }
 
 
-        internal EndOfInitialization(ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal EndOfInitialization(ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
             base(parameters, msg, startIndex, false)
         {
             startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -80,7 +80,7 @@ namespace lib60870
             coi = msg[startIndex];
         }
 
-        internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence)
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
 

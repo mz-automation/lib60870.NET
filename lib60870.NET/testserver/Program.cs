@@ -15,7 +15,7 @@ namespace testserver
 		{
 			Console.WriteLine ("Interrogation for group " + qoi);
 
-			ConnectionParameters cp = connection.GetConnectionParameters ();
+			ApplicationLayerParameters cp = connection.GetApplicationLayerParameters ();
 
 			connection.SendACT_CON (asdu, false);
 
@@ -118,7 +118,7 @@ namespace testserver
 
 			server.Start ();
 
-            ASDU newAsdu = new ASDU(server.GetConnectionParameters(), CauseOfTransmission.INITIALIZED, false, false, 0, 1, false);
+            ASDU newAsdu = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.INITIALIZED, false, false, 0, 1, false);
             EndOfInitialization eoi = new EndOfInitialization(0);
             newAsdu.AddInformationObject(eoi);
             server.EnqueueASDU(newAsdu);
@@ -132,7 +132,7 @@ namespace testserver
 					waitTime -= 100;
 				else {
 
-					newAsdu = new ASDU (server.GetConnectionParameters(), CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
+					newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
 
 					newAsdu.AddInformationObject (new MeasuredValueScaled (110, -1, new QualityDescriptor ()));
 				

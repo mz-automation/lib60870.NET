@@ -60,7 +60,7 @@ namespace lib60870
 			}
 		}
 
-		internal SinglePointInformation (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal SinglePointInformation (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -82,7 +82,7 @@ namespace lib60870
 			this.quality = quality;
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			byte val = quality.EncodedValue;
@@ -121,7 +121,7 @@ namespace lib60870
 			}
 		}
 
-		internal SinglePointWithCP24Time2a (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal SinglePointWithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -139,7 +139,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
@@ -175,7 +175,7 @@ namespace lib60870
 			}
 		}
 
-		internal SinglePointWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSequence) :
+		internal SinglePointWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
 		base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
@@ -193,7 +193,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
@@ -241,7 +241,7 @@ namespace lib60870
 			}
 		}
 
-		internal PackedSinglePointWithSCD (ConnectionParameters parameters, byte[] msg, int startIndex, bool isSquence) :
+		internal PackedSinglePointWithSCD (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSquence) :
 			base(parameters, msg, startIndex, isSquence)
 		{
 			if (!isSquence)
@@ -260,7 +260,7 @@ namespace lib60870
 			this.qds = quality;
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (scd.GetEncodedValue ());

@@ -170,15 +170,16 @@ namespace tests
 		//[Ignore("Ignore to save execution time")]
 		public void TestConnectWhileAlreadyConnected()
 		{
-			ConnectionParameters parameters = new ConnectionParameters ();
+			ApplicationLayerParameters parameters = new ApplicationLayerParameters ();
+			APCIParameters apciParameters = new APCIParameters ();
 
-			Server server = new Server (parameters);
+			Server server = new Server (apciParameters, parameters);
 
 			server.SetLocalPort (20213);
 
 			server.Start ();
 
-			Connection connection = new Connection ("127.0.0.1", 20213, parameters);
+			Connection connection = new Connection ("127.0.0.1", 20213, apciParameters, parameters);
 
 			ConnectionException se = null;
 
@@ -214,15 +215,16 @@ namespace tests
 		[Ignore("Ignore to save execution time")]
 		public void TestConnectSameConnectionMultipleTimes()
 		{
-			ConnectionParameters parameters = new ConnectionParameters ();
+			ApplicationLayerParameters parameters = new ApplicationLayerParameters ();
+			APCIParameters apciParameters = new APCIParameters ();
 
-			Server server = new Server (parameters);
+			Server server = new Server (apciParameters, parameters);
 
 			server.SetLocalPort (20213);
 
 			server.Start ();
 
-			Connection connection = new Connection ("127.0.0.1", 20213, parameters);
+			Connection connection = new Connection ("127.0.0.1", 20213, apciParameters, parameters);
 
 			SocketException se = null;
 
@@ -255,7 +257,7 @@ namespace tests
 
 		[Test()]
 		public void TestASDUAddInformationObjects() {
-			ConnectionParameters cp = new ConnectionParameters ();
+			ApplicationLayerParameters cp = new ApplicationLayerParameters ();
 
 			ASDU asdu = new ASDU (cp, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
 
@@ -277,7 +279,7 @@ namespace tests
 
 		[Test()]
 		public void TestASDUAddTooMuchInformationObjects() {
-			ConnectionParameters cp = new ConnectionParameters ();
+			ApplicationLayerParameters cp = new ApplicationLayerParameters ();
 
 			ASDU asdu = new ASDU (cp, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
 
@@ -342,7 +344,7 @@ namespace tests
 
 		[Test()]
 		public void TestASDUAddInformationObjectsInWrongOrderToSequence() {
-			ConnectionParameters cp = new ConnectionParameters ();
+			ApplicationLayerParameters cp = new ApplicationLayerParameters ();
 
 			ASDU asdu = new ASDU (cp, CauseOfTransmission.PERIODIC, false, false, 0, 1, true);
 
@@ -373,7 +375,7 @@ namespace tests
 
 		[Test()]
 		public void TestEncodeASDUsWithManyInformationObjects() {
-			ConnectionParameters cp = new ConnectionParameters ();
+			ApplicationLayerParameters cp = new ApplicationLayerParameters ();
 
 			ASDU asdu = new ASDU (cp, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
 			int addedCounter = 0;
@@ -739,7 +741,7 @@ namespace tests
 		[Test()]
 		public void TestEncodeASDUsWithManyInformationObjectsSequenceOfIO() {
 
-			ConnectionParameters cp = new ConnectionParameters ();
+			ApplicationLayerParameters cp = new ApplicationLayerParameters ();
 
 			ASDU asdu = new ASDU (cp, CauseOfTransmission.PERIODIC, false, false, 0, 1, true);
 			int addedCounter = 0;
@@ -874,18 +876,20 @@ namespace tests
 		[Test()]
 		[Ignore("Ignore to save execution time")]
 		public void TestSendTestFR() {
-			ConnectionParameters clientParameters = new ConnectionParameters ();
-			ConnectionParameters serverParameters = new ConnectionParameters ();
+			ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
+			APCIParameters clientApciParamters = new APCIParameters ();
+			ApplicationLayerParameters serverParameters = new ApplicationLayerParameters ();
+			APCIParameters serverApciParamters = new APCIParameters ();
 
-			clientParameters.T3 = 1;
+			clientApciParamters.T3 = 1;
 
-			Server server = new Server (serverParameters);
+			Server server = new Server (serverApciParamters, serverParameters);
 
 			server.SetLocalPort (20213);
 
 			server.Start ();
 
-			Connection connection = new Connection ("127.0.0.1", 20213, clientParameters);
+			Connection connection = new Connection ("127.0.0.1", 20213, clientApciParamters, clientParameters);
 
 			connection.Connect ();
 
@@ -928,18 +932,20 @@ namespace tests
 		[Test()]
 		[Ignore("Ignore to save execution time")]
 		public void TestSendTestFRTimeoutMaster() {
-			ConnectionParameters clientParameters = new ConnectionParameters ();
-			ConnectionParameters serverParameters = new ConnectionParameters ();
+			ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
+			APCIParameters clientApciParamters = new APCIParameters ();
+			ApplicationLayerParameters serverParameters = new ApplicationLayerParameters ();
+			APCIParameters serverApciParamters = new APCIParameters ();
 
-			clientParameters.T3 = 1;
+			clientApciParamters.T3 = 1;
 
-			Server server = new Server (serverParameters);
+			Server server = new Server (serverApciParamters, serverParameters);
 
 			server.SetLocalPort (20213);
 
 			server.Start ();
 
-			Connection connection = new Connection ("127.0.0.1", 20213, clientParameters);
+			Connection connection = new Connection ("127.0.0.1", 20213, clientApciParamters, clientParameters);
 
 			connection.Connect ();
 
@@ -999,18 +1005,20 @@ namespace tests
 		[Test()]
 		[Ignore("Ignore to save execution time")]
 		public void TestSendTestFRTimeoutSlave() {
-			ConnectionParameters clientParameters = new ConnectionParameters ();
-			ConnectionParameters serverParameters = new ConnectionParameters ();
+			ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
+			APCIParameters clientApciParamters = new APCIParameters ();
+			ApplicationLayerParameters serverParameters = new ApplicationLayerParameters ();
+			APCIParameters serverApciParamters = new APCIParameters ();
 
-			serverParameters.T3 = 1;
+			serverApciParamters.T3 = 1;
 
-			Server server = new Server (serverParameters);
+			Server server = new Server (serverApciParamters, serverParameters);
 
 			server.SetLocalPort (20213);
 
 			server.Start ();
 
-			Connection connection = new Connection ("127.0.0.1", 20213, clientParameters);
+			Connection connection = new Connection ("127.0.0.1", 20213, clientApciParamters, clientParameters);
 
 			connection.DebugOutput = true;
 			connection.SetRawMessageHandler (testSendTestFRTimeoutSlaveRawMessageHandler, null);

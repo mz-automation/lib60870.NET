@@ -66,7 +66,7 @@ namespace lib60870
 				sco |= 0x80;
 		}
 
-		internal SingleCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SingleCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -74,7 +74,7 @@ namespace lib60870
 			sco = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte (sco);
@@ -141,7 +141,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal SingleCommandWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal SingleCommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 			startIndex += parameters.SizeOfIOA + 1; /* skip IOA + SCQ*/
@@ -149,7 +149,7 @@ namespace lib60870
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
@@ -188,7 +188,7 @@ namespace lib60870
 				dcq |= 0x80;
 		}
 
-		internal DoubleCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal DoubleCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -196,7 +196,7 @@ namespace lib60870
 			dcq = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte (dcq);
@@ -249,7 +249,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal DoubleCommandWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal DoubleCommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 			startIndex += parameters.SizeOfIOA + 1; /* skip IOA + DCQ*/
@@ -257,7 +257,7 @@ namespace lib60870
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
@@ -284,7 +284,7 @@ namespace lib60870
 		{
 		}
 
-		internal StepCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal StepCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 		}
@@ -324,7 +324,7 @@ namespace lib60870
 			this.timestamp = timestamp;
 		}
 
-		internal StepCommandWithCP56Time2a (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal StepCommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
 			startIndex += parameters.SizeOfIOA + 1; /* skip IOA + DCQ*/
@@ -332,7 +332,7 @@ namespace lib60870
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());

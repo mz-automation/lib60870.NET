@@ -76,6 +76,7 @@
     <Compile Include="LibraryCommon.cs" />
     <Compile Include="BufferFrame.cs" />
     <Compile Include="TlsSecurityInformation.cs" />
+    <Compile Include="CP32Time2a.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

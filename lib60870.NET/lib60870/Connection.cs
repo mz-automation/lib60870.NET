@@ -133,6 +133,9 @@ namespace lib60870
 		private static int connectionCounter = 0;
 		private int connectionID;
 
+		private APCIParameters apciParameters;
+		private ApplicationLayerParameters alParameters;
+
 		/// <summary>
 		/// Gets or sets a value indicating whether this <see cref="lib60870.Connection"/> use send message queue.
 		/// </summary>
@@ -217,7 +220,7 @@ namespace lib60870
 			socketError = false;
 			lastException = null;
 
-			maxSentASDUs = parameters.K;
+			maxSentASDUs = apciParameters.K;
 			oldestSentASDU = -1;
 			newestSentASDU = -1;
 			sentASDUs = new SentASDU[maxSentASDUs];
@@ -239,11 +242,10 @@ namespace lib60870
 
 		private int connectTimeoutInMs = 1000;
 
-		private ConnectionParameters parameters;
 
-		public ConnectionParameters Parameters {
+		public ApplicationLayerParameters Parameters {
 			get {
-				return this.parameters;
+				return this.alParameters;
 			}
 		}
 
@@ -363,7 +365,7 @@ namespace lib60870
 
 		private int SendIMessage(ASDU asdu) {
 			BufferFrame frame = new BufferFrame(new byte[260], 6); /* reserve space for ACPI */
-			asdu.Encode (frame, parameters);
+			asdu.Encode (frame, alParameters);
 
 			byte[] buffer = frame.GetBuffer ();
 
@@ -512,12 +514,13 @@ namespace lib60870
 			}
 		}
 
-		private void Setup(string hostname, ConnectionParameters parameters, int tcpPort)
+		private void Setup(string hostname, APCIParameters apciParameters, ApplicationLayerParameters alParameters, int tcpPort)
 		{
 			this.hostname = hostname;
-			this.parameters = parameters;
+			this.alParameters = alParameters;
+			this.apciParameters = apciParameters;
 			this.tcpPort = tcpPort;
-			this.connectTimeoutInMs = parameters.T0 * 1000;
+			this.connectTimeoutInMs = apciParameters.T0 * 1000;
 
 			connectionCounter++;
 			connectionID = connectionCounter;
@@ -525,23 +528,23 @@ namespace lib60870
 
 		public Connection (string hostname)
 		{
-			Setup (hostname, new ConnectionParameters(), 2404);
+			Setup (hostname, new APCIParameters(), new ApplicationLayerParameters(), 2404);
 		}
 
 
 		public Connection (string hostname, int tcpPort)
 		{
-			Setup (hostname, new ConnectionParameters(), tcpPort);
+			Setup (hostname,new APCIParameters(), new ApplicationLayerParameters(), tcpPort);
 		}
 
-		public Connection (string hostname, ConnectionParameters parameters)
+		public Connection (string hostname,  APCIParameters apciParameters, ApplicationLayerParameters alParameters)
 		{
-			Setup (hostname, parameters.clone(), 2404);
+			Setup (hostname, apciParameters.Clone(), alParameters.Clone(), 2404);
 		}
 
-		public Connection (string hostname, int tcpPort, ConnectionParameters parameters)
+		public Connection (string hostname, int tcpPort,  APCIParameters apciParameters, ApplicationLayerParameters alParameters)
 		{
-			Setup (hostname, parameters.clone(), tcpPort);
+			Setup (hostname, apciParameters.Clone(), alParameters.Clone(), tcpPort);
 		}
 
 		public void SetTlsSecurity(TlsSecurityInformation securityInfo)
@@ -570,7 +573,7 @@ namespace lib60870
 		/// <exception cref="ConnectionException">description</exception>
 		public void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi) 
 		{
-			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			asdu.AddInformationObject (new InterrogationCommand (0, qoi));
 
@@ -586,7 +589,7 @@ namespace lib60870
 		/// <exception cref="ConnectionException">description</exception>
 		public void SendCounterInterrogationCommand(CauseOfTransmission cot, int ca, byte qcc)
 		{
-			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			asdu.AddInformationObject (new CounterInterrogationCommand(0, qcc));
 
@@ -605,7 +608,7 @@ namespace lib60870
 		/// <exception cref="ConnectionException">description</exception>
 		public void SendReadCommand(int ca, int ioa)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.REQUEST, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.REQUEST, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			asdu.AddInformationObject(new ReadCommand(ioa));
 
@@ -620,7 +623,7 @@ namespace lib60870
 		/// <exception cref="ConnectionException">description</exception>
 		public void SendClockSyncCommand(int ca, CP56Time2a time)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			asdu.AddInformationObject (new ClockSynchronizationCommand (0, time));
 
@@ -637,7 +640,7 @@ namespace lib60870
 		/// <exception cref="ConnectionException">description</exception>
 		public void SendTestCommand(int ca)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			asdu.AddInformationObject (new TestCommand ());
 
@@ -653,7 +656,7 @@ namespace lib60870
         /// <exception cref="ConnectionException">description</exception>
         public void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
         {
-            ASDU asdu = new ASDU(parameters, CauseOfTransmission.ACTIVATION, false, false, (byte)parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU(alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte)alParameters.OriginatorAddress, ca, false);
 
             asdu.AddInformationObject(new TestCommandWithCP56Time2a(tsc, time));
 
@@ -669,7 +672,7 @@ namespace lib60870
         /// <exception cref="ConnectionException">description</exception>
         public void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			asdu.AddInformationObject (new ResetProcessCommand(0, qrp));
 
@@ -686,7 +689,7 @@ namespace lib60870
 		/// <exception cref="ConnectionException">description</exception>
 		public void SendDelayAcquisitionCommand(CauseOfTransmission cot, int ca, CP16Time2a delay)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			asdu.AddInformationObject (new DelayAcquisitionCommand (0, delay));
 
@@ -716,7 +719,7 @@ namespace lib60870
 		[Obsolete("Use function without TypeID instead. TypeID will be derived from sc parameter")]
 		public void SendControlCommand(TypeID typeId, CauseOfTransmission cot, int ca, InformationObject sc) {
 
-			ASDU controlCommand = new ASDU (parameters, cot, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU controlCommand = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			controlCommand.AddInformationObject (sc);
 
@@ -744,7 +747,7 @@ namespace lib60870
 		/// <exception cref="ConnectionException">description</exception>
 		public void SendControlCommand(CauseOfTransmission cot, int ca, InformationObject sc) {
 
-			ASDU controlCommand = new ASDU (parameters, cot, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU controlCommand = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
 			controlCommand.AddInformationObject (sc);
 
@@ -825,7 +828,7 @@ namespace lib60870
 		}
 
 		private void ResetT3Timeout() {
-			nextT3Timeout = (UInt64) SystemUtils.currentTimeMillis () + (UInt64) (parameters.T3 * 1000);
+			nextT3Timeout = (UInt64) SystemUtils.currentTimeMillis () + (UInt64) (apciParameters.T3 * 1000);
 		}
 
 		/// <summary>
@@ -893,7 +896,7 @@ namespace lib60870
 
 		private bool checkConfirmTimeout(long currentTime) 
         {
-            if ((currentTime - lastConfirmationTime) >= (parameters.T2 * 1000))
+			if ((currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000))
                 return true;
             else
                 return false;
@@ -933,7 +936,7 @@ namespace lib60870
 				unconfirmedReceivedIMessages++;
 
 				try {
-					ASDU asdu = new ASDU (parameters, buffer, 6, msgSize);
+					ASDU asdu = new ASDU (alParameters, buffer, 6, msgSize);
 
 					if (asduReceivedHandler != null)
 						asduReceivedHandler (asduReceivedHandlerParameter, asdu);
@@ -1082,7 +1085,7 @@ namespace lib60870
 
 					statistics.SentMsgCounter++;
 					DebugLog("U message T3 timeout");
-					uMessageTimeout = (UInt64)currentTime + (UInt64)(parameters.T1 * 1000);
+					uMessageTimeout = (UInt64)currentTime + (UInt64)(apciParameters.T1 * 1000);
 					outStandingTestFRConMessages++;
 					ResetT3Timeout ();
                     if (sentMessageHandler != null)
@@ -1113,7 +1116,7 @@ namespace lib60870
 			lock (sentASDUs) {
 				if (oldestSentASDU != -1) {
 
-					if (((long)currentTime - sentASDUs [oldestSentASDU].sentTime) >= (parameters.T1 * 1000)) {
+					if (((long)currentTime - sentASDUs [oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000)) {
 						return false;
 					}
 				}
@@ -1288,7 +1291,7 @@ namespace lib60870
 										}
 									}
 
-									if (unconfirmedReceivedIMessages >= parameters.W) {
+									if (unconfirmedReceivedIMessages >= apciParameters.W) {
 										lastConfirmationTime = SystemUtils.currentTimeMillis();
 
 										unconfirmedReceivedIMessages = 0;

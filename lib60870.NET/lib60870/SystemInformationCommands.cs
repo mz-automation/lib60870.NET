@@ -79,7 +79,7 @@ namespace lib60870
 			this.qoi = qoi;
 		}
 
-		internal InterrogationCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal InterrogationCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -87,7 +87,7 @@ namespace lib60870
 			qoi = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte (qoi);
@@ -133,7 +133,7 @@ namespace lib60870
 			this.qcc = qoi;
 		}
 
-		internal CounterInterrogationCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal CounterInterrogationCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -141,7 +141,7 @@ namespace lib60870
 			qcc = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte (qcc);
@@ -172,7 +172,7 @@ namespace lib60870
 		{
 		}
 
-		internal ReadCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal ReadCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 		}
@@ -248,7 +248,7 @@ namespace lib60870
             this.tsc = tsc;
         }
 
-        internal TestCommandWithCP56Time2a(ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal TestCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 		base(parameters, msg, startIndex, false)
 		{
             startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -259,7 +259,7 @@ namespace lib60870
             time = new CP56Time2a(msg, startIndex);
         }
 
-        internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence)
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
 
@@ -301,7 +301,7 @@ namespace lib60870
 		}
 
 
-		internal TestCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal TestCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 		base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -313,7 +313,7 @@ namespace lib60870
 				valid = false;
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte (0xcc);
@@ -355,7 +355,7 @@ namespace lib60870
 			this.newTime = newTime;
 		}
 
-		internal ClockSynchronizationCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal ClockSynchronizationCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -364,7 +364,7 @@ namespace lib60870
 			newTime = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (newTime.GetEncodedValue ());
@@ -409,7 +409,7 @@ namespace lib60870
 			this.qrp = qrp;
 		}
 
-		internal ResetProcessCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal ResetProcessCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -417,7 +417,7 @@ namespace lib60870
 			qrp = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte (qrp);
@@ -459,7 +459,7 @@ namespace lib60870
 			this.delay = delay;
 		}
 
-		internal DelayAcquisitionCommand (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal DelayAcquisitionCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -468,7 +468,7 @@ namespace lib60870
 			delay = new CP16Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (delay.GetEncodedValue ());

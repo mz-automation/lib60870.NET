@@ -67,7 +67,10 @@ namespace lib60870
 		private int outStandingTestFRConMessages = 0;
 
 		private TlsSecurityInformation tlsSecInfo = null;
-		private ConnectionParameters parameters;
+
+		private APCIParameters apciParameters;
+		private ApplicationLayerParameters alParameters;
+
 		private Server server;
 
 		private Queue<ASDU> receivedASDUs = null;
@@ -117,19 +120,20 @@ namespace lib60870
 			DebugLog ("ProcessASDUs exit thread");
 		}
 
-		internal ServerConnection(Socket socket, TlsSecurityInformation tlsSecInfo, ConnectionParameters parameters, Server server, ASDUQueue asduQueue, bool debugOutput) 
+		internal ServerConnection(Socket socket, TlsSecurityInformation tlsSecInfo, APCIParameters apciParameters, ApplicationLayerParameters parameters, Server server, ASDUQueue asduQueue, bool debugOutput) 
 		{
 			connectionsCounter++;
 			connectionID = connectionsCounter;
 
-			this.parameters = parameters;
+			this.apciParameters = apciParameters;
+			this.alParameters = parameters;
 			this.server = server;
             this.asduQueue = asduQueue;
 			this.debugOutput = debugOutput;
 
 			ResetT3Timeout ();
 
-			maxSentASDUs = parameters.K;
+			maxSentASDUs = apciParameters.K;
 			this.sentASDUs = new SentASDU[maxSentASDUs];
 
 			//TODO only needed when connection is activated
@@ -149,13 +153,13 @@ namespace lib60870
 		/// Gets the connection parameters.
 		/// </summary>
 		/// <returns>The connection parameters used by the server.</returns>
-		public ConnectionParameters GetConnectionParameters()
+		public ApplicationLayerParameters GetApplicationLayerParameters()
 		{
-			return parameters;
+			return alParameters;
 		}
 
 		private void ResetT3Timeout() {
-			nextT3Timeout = (UInt64) SystemUtils.currentTimeMillis () + (UInt64) (parameters.T3 * 1000);
+			nextT3Timeout = (UInt64) SystemUtils.currentTimeMillis () + (UInt64) (apciParameters.T3 * 1000);
 		}
 
 		/// <summary>
@@ -431,7 +435,7 @@ namespace lib60870
 
 					BufferFrame frame = new BufferFrame (new byte[256], 6);
 
-					asdu.Encode (frame, parameters);
+					asdu.Encode (frame, alParameters);
 
 					waitingASDUsHighPrio.Enqueue (frame);
 				}
@@ -754,7 +758,7 @@ namespace lib60870
 				if (isActive) {
 
 					try {
-						ASDU asdu = new ASDU (parameters, buffer, 6, msgSize);
+						ASDU asdu = new ASDU (alParameters, buffer, 6, msgSize);
 					
 						// push to handler thread for processing
 						DebugLog ("Enqueue received I-message for processing");
@@ -853,7 +857,7 @@ namespace lib60870
 
 			if (unconfirmedReceivedIMessages > 0) {
 
-				if (((long) currentTime - lastConfirmationTime) >= (parameters.T2 * 1000)) {
+				if (((long) currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000)) {
 
 					lastConfirmationTime = (long) currentTime;
 					unconfirmedReceivedIMessages = 0;
@@ -866,7 +870,7 @@ namespace lib60870
 			
 				if (oldestSentASDU != -1) {
 
-					if (((long)currentTime - sentASDUs [oldestSentASDU].sentTime) >= (parameters.T1 * 1000)) {
+					if (((long)currentTime - sentASDUs [oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000)) {
 
 						PrintSendBuffer ();
 						DebugLog("I message timeout for " + oldestSentASDU + " seqNo: " + sentASDUs[oldestSentASDU].seqNo);
@@ -1005,7 +1009,7 @@ namespace lib60870
 									running = false;
 								}
 
-								if (unconfirmedReceivedIMessages >= parameters.W) {
+								if (unconfirmedReceivedIMessages >= apciParameters.W) {
 									lastConfirmationTime = SystemUtils.currentTimeMillis();
 
 									unconfirmedReceivedIMessages = 0;

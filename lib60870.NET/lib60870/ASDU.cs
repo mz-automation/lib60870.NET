@@ -46,7 +46,7 @@ namespace lib60870
 
 		public const int IEC60870_5_104_MAX_ASDU_LENGTH = 249;
 
-		private ConnectionParameters parameters;
+		private ApplicationLayerParameters parameters;
 
 		private TypeID typeId;
 		private bool hasTypeId;
@@ -65,24 +65,24 @@ namespace lib60870
 		private List<InformationObject> informationObjects = null;
 
 
-		public ASDU(ConnectionParameters parameters, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) 
+		public ASDU(ApplicationLayerParameters parameters, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) 
 			: this(parameters, TypeID.M_SP_NA_1, cot, isTest, isNegative, oa, ca, isSequence) {
 			this.hasTypeId = false;
 		}
 			
 		[Obsolete("use constructor with ConnectionParameters and without TypeID instead")]
 		public ASDU(CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) 
-			: this(new ConnectionParameters(), TypeID.M_SP_NA_1, cot, isTest, isNegative, oa, ca, isSequence) {
+			: this(new ApplicationLayerParameters(), TypeID.M_SP_NA_1, cot, isTest, isNegative, oa, ca, isSequence) {
 			this.hasTypeId = false;
 		}
 
 		[Obsolete("use constructor with ConnectionParameters and without TypeID instead")]
 		public ASDU(TypeID typeId, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) 
-			: this(new ConnectionParameters(), typeId, cot, isTest, isNegative, oa, ca, isSequence) {
+			: this(new ApplicationLayerParameters(), typeId, cot, isTest, isNegative, oa, ca, isSequence) {
 		}
 			
 		[Obsolete("use constructor with ConnectionParameters and without TypeID instead")]
-		public ASDU(ConnectionParameters parameters, TypeID typeId, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) {
+		public ASDU(ApplicationLayerParameters parameters, TypeID typeId, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) {
 			this.parameters = parameters;
 			this.typeId = typeId;
 			this.cot = cot;
@@ -149,7 +149,7 @@ namespace lib60870
 				return false;
 		}
 
-		public ASDU (ConnectionParameters parameters, byte[] msg, int bufPos, int msgLength)
+		public ASDU (ApplicationLayerParameters parameters, byte[] msg, int bufPos, int msgLength)
 		{
 			this.parameters = parameters;
 
@@ -195,7 +195,7 @@ namespace lib60870
 			Buffer.BlockCopy (msg, bufPos, payload, 0, payloadSize);
 		}
 
-		internal void Encode(Frame frame, ConnectionParameters parameters) {
+		internal void Encode(Frame frame, ApplicationLayerParameters parameters) {
 			frame.SetNextByte ((byte)typeId);
 			frame.SetNextByte (vsq);
 

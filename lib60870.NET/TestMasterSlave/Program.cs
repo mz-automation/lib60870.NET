@@ -10,7 +10,7 @@ namespace TestMasterSlave
 		{
 			Console.WriteLine ("Interrogation for group " + qoi);
 
-			ConnectionParameters cp = connection.GetConnectionParameters ();
+			ApplicationLayerParameters cp = connection.GetApplicationLayerParameters ();
 
 			connection.SendACT_CON (asdu, false);
 

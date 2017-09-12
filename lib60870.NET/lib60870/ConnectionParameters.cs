@@ -21,11 +21,98 @@
  *  See COPYING file for the complete license text.
  */
 
+//TODO split in two files
+
 using System;
 
 namespace lib60870
 {
-	public class ConnectionParameters
+	public class ApplicationLayerParameters
+	{
+		private int sizeOfTypeId = 1;
+
+		private int sizeOfVSQ = 1; /* VSQ = variable sturcture qualifier */
+
+		private int sizeOfCOT = 2; /* (parameter b) COT = cause of transmission (1/2) */
+
+		private int originatorAddress = 0;
+
+		private int sizeOfCA = 2; /* (parameter a) CA = common address of ASDUs (1/2) */
+
+		private int sizeOfIOA = 3; /* (parameter c) IOA = information object address (1/2/3) */
+
+		public ApplicationLayerParameters ()
+		{
+		}
+
+		public ApplicationLayerParameters Clone()
+		{
+			ApplicationLayerParameters copy = new ApplicationLayerParameters ();
+
+			copy.sizeOfTypeId = sizeOfTypeId;
+			copy.sizeOfVSQ = sizeOfVSQ;
+			copy.sizeOfCOT = sizeOfCOT;
+			copy.originatorAddress = originatorAddress;
+			copy.sizeOfCA = sizeOfCA;
+			copy.sizeOfIOA = sizeOfIOA;
+
+			return copy;
+		}
+
+		public int SizeOfCOT {
+			get {
+				return this.sizeOfCOT;
+			}
+			set {
+				sizeOfCOT = value;
+			}
+		}
+
+		public int OriginatorAddress {
+			get {
+				return this.originatorAddress;
+			}
+			set {
+				originatorAddress = value;
+			}
+		}
+
+		public int SizeOfCA {
+			get {
+				return this.sizeOfCA;
+			}
+			set {
+				sizeOfCA = value;
+			}
+		}
+
+		public int SizeOfIOA {
+			get {
+				return this.sizeOfIOA;
+			}
+			set {
+				sizeOfIOA = value;
+			}
+		}	
+
+
+		public int SizeOfTypeId {
+			get {
+				return this.sizeOfTypeId;
+			}
+		}
+
+		public int SizeOfVSQ {
+			get {
+				return this.sizeOfVSQ;
+			}
+		}
+	}
+
+	/// <summary>
+	/// Parameters for the CS 104 APCI (Application Protocol Control Information)
+	/// </summary>
+	public class APCIParameters
 	{
 
 		private int k = 12; /* number of unconfirmed APDUs in I format
@@ -46,24 +133,13 @@ namespace lib60870
 
 		private int t3 = 20; /* time until test telegrams in case of idle connection */
 
-		private int sizeOfTypeId = 1;
 
-		private int sizeOfVSQ = 1; /* VSQ = variable sturcture qualifier */
-
-		private int sizeOfCOT = 2; /* (parameter b) COT = cause of transmission (1/2) */
-
-		private int originatorAddress = 0;
-
-		private int sizeOfCA = 2; /* (parameter a) CA = common address of ASDUs (1/2) */
-	
-		private int sizeOfIOA = 3; /* (parameter c) IOA = information object address (1/2/3) */
-
-		public ConnectionParameters ()
+		public APCIParameters ()
 		{
 		}
 
-		public ConnectionParameters clone() {
-			ConnectionParameters copy = new ConnectionParameters();
+		public APCIParameters Clone() {
+			APCIParameters copy = new APCIParameters();
 
 			copy.k = k;
 			copy.w = w;
@@ -71,12 +147,6 @@ namespace lib60870
 			copy.t1 = t1;
 			copy.t2 = t2;
 			copy.t3 = t3;
-			copy.sizeOfTypeId = sizeOfTypeId;
-			copy.sizeOfVSQ = sizeOfVSQ;
-			copy.sizeOfCOT = sizeOfCOT;
-			copy.originatorAddress = originatorAddress;
-			copy.sizeOfCA = sizeOfCA;
-			copy.sizeOfIOA = sizeOfIOA;
 
 			return copy;
 		}
@@ -134,55 +204,5 @@ namespace lib60870
 				t3 = value;
 			}
 		}
-
-		public int SizeOfCOT {
-			get {
-				return this.sizeOfCOT;
-			}
-			set {
-				sizeOfCOT = value;
-			}
-		}
-
-		public int OriginatorAddress {
-			get {
-				return this.originatorAddress;
-			}
-			set {
-				originatorAddress = value;
-			}
-		}
-
-		public int SizeOfCA {
-			get {
-				return this.sizeOfCA;
-			}
-			set {
-				sizeOfCA = value;
-			}
-		}
-
-		public int SizeOfIOA {
-			get {
-				return this.sizeOfIOA;
-			}
-			set {
-				sizeOfIOA = value;
-			}
-		}	
-
-
-		public int SizeOfTypeId {
-			get {
-				return this.sizeOfTypeId;
-			}
-		}
-
-		public int SizeOfVSQ {
-			get {
-				return this.sizeOfVSQ;
-			}
-		}
 	}
 }
-

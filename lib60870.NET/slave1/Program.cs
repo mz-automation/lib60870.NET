@@ -53,7 +53,7 @@ namespace slave1
 						spiObjects [i].Value = !(spiObjects [i].Value);
 
 						if (newAsdu == null)
-							newAsdu = new ASDU (server.GetConnectionParameters(), CauseOfTransmission.PERIODIC, false, false, 1, 1, false);
+							newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 1, 1, false);
 
 						if (newAsdu.AddInformationObject (spiObjects [i]) == false) {
 							server.EnqueueASDU (newAsdu);
@@ -73,7 +73,7 @@ namespace slave1
 						stepPositionObjects [i].Value = (stepPositionObjects [i].Value + 1) % 63;
 
 						if (newAsdu == null)
-							newAsdu = new ASDU (server.GetConnectionParameters (), CauseOfTransmission.PERIODIC, false, false, 1, 1, false);
+							newAsdu = new ASDU (server.GetApplicationLayerParameters (), CauseOfTransmission.PERIODIC, false, false, 1, 1, false);
 
 						if (newAsdu.AddInformationObject (stepPositionObjects [i]) == false) {
 							server.EnqueueASDU (newAsdu);

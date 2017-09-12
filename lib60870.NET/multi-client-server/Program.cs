@@ -27,7 +27,7 @@ namespace multiclientserver
 		{
 			Console.WriteLine ("Interrogation for group " + qoi);
 
-			ConnectionParameters cp = connection.GetConnectionParameters ();
+			ApplicationLayerParameters cp = connection.GetApplicationLayerParameters ();
 
 			connection.SendACT_CON (asdu, false);
 
@@ -143,7 +143,7 @@ namespace multiclientserver
 					waitTime -= 100;
 				else {
 
-					ASDU newAsdu = new ASDU (server.GetConnectionParameters(), CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
+					ASDU newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
 
 					newAsdu.AddInformationObject (new MeasuredValueScaled (110, -1, new QualityDescriptor ()));
 

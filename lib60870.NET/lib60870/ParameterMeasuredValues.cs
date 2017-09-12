@@ -99,7 +99,7 @@ namespace lib60870
             this.qpm = qpm;
         }
 
-		internal ParameterNormalizedValue (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal ParameterNormalizedValue (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -111,7 +111,7 @@ namespace lib60870
 			qpm = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (scaledValue.GetEncodedValue ());
@@ -165,7 +165,7 @@ namespace lib60870
 			this.qpm = qpm;
 		}
 
-		internal ParameterScaledValue (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal ParameterScaledValue (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -177,7 +177,7 @@ namespace lib60870
 			qpm = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (scaledValue.GetEncodedValue ());
@@ -228,7 +228,7 @@ namespace lib60870
 			this.qpm = qpm;
 		}
 
-		internal ParameterFloatValue (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal ParameterFloatValue (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -241,7 +241,7 @@ namespace lib60870
 			qpm = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			byte[] floatEncoded = BitConverter.GetBytes (value);
@@ -297,7 +297,7 @@ namespace lib60870
 			this.qpa = qpa;
 		}
 
-		internal ParameterActivation (ConnectionParameters parameters, byte[] msg, int startIndex) :
+		internal ParameterActivation (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
@@ -306,7 +306,7 @@ namespace lib60870
 			qpa = msg [startIndex++];
 		}
 
-		internal override void Encode(Frame frame, ConnectionParameters parameters, bool isSequence) {
+		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte (qpa);
