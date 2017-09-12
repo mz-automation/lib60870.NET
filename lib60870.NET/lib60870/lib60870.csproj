@@ -86,9 +86,10 @@
     <Compile Include="LinkLayer\SerialTransceiverFT12.cs" />
     <Compile Include="ConnectionException.cs" />
     <Compile Include="BufferFrame.cs" />
-    <Compile Include="CS101\CS101Master.cs" />
     <Compile Include="CS101\CS101Slave.cs" />
     <Compile Include="CS101\Master.cs" />
+    <Compile Include="CS101\CS101MasterBalanced.cs" />
+    <Compile Include="CS101\CS101MasterUnbalanced.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -123,7 +123,7 @@ namespace lib60870.CS104
 	/// <summary>
 	/// A single connection to a CS 104 (IEC 60870-5-104) server
 	/// </summary>
-	public class Connection
+	public class Connection : Master
 	{
 		static byte[] STARTDT_ACT_MSG = new byte[] { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
 
@@ -184,7 +184,6 @@ namespace lib60870.CS104
 		private bool firstIMessageReceived = false;
 		private SocketException lastException;
 
-		private bool debugOutput = false;
 		private static int connectionCounter = 0;
 		private int connectionID;
 
@@ -251,8 +250,7 @@ namespace lib60870.CS104
 				this.autostart = value;
 			}
 		}
-
-
+			
 
 		private void DebugLog(string message)
 		{
@@ -284,15 +282,6 @@ namespace lib60870.CS104
 				waitingToBeSent = new Queue<ASDU> ();
 
 			statistics.Reset ();
-		}
-
-		public bool DebugOutput {
-			get {
-				return this.debugOutput;
-			}
-			set {
-				debugOutput = value;
-			}
 		}
 
 		private int connectTimeoutInMs = 1000;
@@ -602,6 +591,10 @@ namespace lib60870.CS104
 			Setup (hostname, apciParameters.Clone(), alParameters.Clone(), tcpPort);
 		}
 
+		/// <summary>
+		/// Set the security parameters for TLS
+		/// </summary>
+		/// <param name="securityInfo">Security info.</param>
 		public void SetTlsSecurity(TlsSecurityInformation securityInfo)
 		{
 			tlsSecInfo = securityInfo;
@@ -626,7 +619,7 @@ namespace lib60870.CS104
 		/// <param name="ca">Common address</param>
 		/// <param name="qoi">Qualifier of interrogation (20 = station interrogation)</param>
 		/// <exception cref="ConnectionException">description</exception>
-		public void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi) 
+		public override void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi) 
 		{
 			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -642,7 +635,7 @@ namespace lib60870.CS104
 		/// <param name="ca">Common address</param>
 		/// <param name="qcc">Qualifier of counter interrogation command</param>
 		/// <exception cref="ConnectionException">description</exception>
-		public void SendCounterInterrogationCommand(CauseOfTransmission cot, int ca, byte qcc)
+		public override void SendCounterInterrogationCommand(CauseOfTransmission cot, int ca, byte qcc)
 		{
 			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -661,7 +654,7 @@ namespace lib60870.CS104
 		/// <param name="ca">Common address</param>
 		/// <param name="ioa">Information object address</param>
 		/// <exception cref="ConnectionException">description</exception>
-		public void SendReadCommand(int ca, int ioa)
+		public override void SendReadCommand(int ca, int ioa)
 		{
 			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.REQUEST, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -676,7 +669,7 @@ namespace lib60870.CS104
 		/// <param name="ca">Common address</param>
 		/// <param name="time">the new time to set</param>
 		/// <exception cref="ConnectionException">description</exception>
-		public void SendClockSyncCommand(int ca, CP56Time2a time)
+		public override void SendClockSyncCommand(int ca, CP56Time2a time)
 		{
 			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -693,7 +686,7 @@ namespace lib60870.CS104
 		/// 
 		/// <param name="ca">Common address</param>
 		/// <exception cref="ConnectionException">description</exception>
-		public void SendTestCommand(int ca)
+		public override void SendTestCommand(int ca)
 		{
 			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -709,7 +702,7 @@ namespace lib60870.CS104
         /// <param name="tsc">test sequence number</param>
         /// <param name="time">test timestamp</param>
         /// <exception cref="ConnectionException">description</exception>
-        public void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
+		public override void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
         {
 			ASDU asdu = new ASDU(alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte)alParameters.OriginatorAddress, ca, false);
 
@@ -725,7 +718,7 @@ namespace lib60870.CS104
         /// <param name="ca">Common address</param>
         /// <param name="qrp">Qualifier of reset process command</param>
         /// <exception cref="ConnectionException">description</exception>
-        public void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
+		public override void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
 		{
 			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -742,7 +735,7 @@ namespace lib60870.CS104
 		/// <param name="ca">Common address</param>
 		/// <param name="delay">delay for acquisition</param>
 		/// <exception cref="ConnectionException">description</exception>
-		public void SendDelayAcquisitionCommand(CauseOfTransmission cot, int ca, CP16Time2a delay)
+		public override void SendDelayAcquisitionCommand(CauseOfTransmission cot, int ca, CP16Time2a delay)
 		{
 			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -766,41 +759,11 @@ namespace lib60870.CS104
 		/// C_SE_NC_1 -> SetpointCommandShort
 		/// C_BO_NA_1 -> Bitstring32Command
 		/// 
-		/// <param name="typeId">Type ID of the control command</param>
 		/// <param name="cot">Cause of transmission (use ACTIVATION to start a control sequence)</param>
 		/// <param name="ca">Common address</param>
 		/// <param name="sc">Information object of the command</param>
 		/// <exception cref="ConnectionException">description</exception>
-		[Obsolete("Use function without TypeID instead. TypeID will be derived from sc parameter")]
-		public void SendControlCommand(TypeID typeId, CauseOfTransmission cot, int ca, InformationObject sc) {
-
-			ASDU controlCommand = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
-
-			controlCommand.AddInformationObject (sc);
-
-			SendASDUInternal (controlCommand);
-		}
-
-		/// <summary>
-		/// Sends the control command.
-		/// </summary>
-		/// 
-		/// The type ID has to match the type of the InformationObject!
-		/// 
-		/// C_SC_NA_1 -> SingleCommand
-		/// C_DC_NA_1 -> DoubleCommand
-		/// C_RC_NA_1 -> StepCommand
-		/// C_SC_TA_1 -> SingleCommandWithCP56Time2a
-		/// C_SE_NA_1 -> SetpointCommandNormalized
-		/// C_SE_NB_1 -> SetpointCommandScaled
-		/// C_SE_NC_1 -> SetpointCommandShort
-		/// C_BO_NA_1 -> Bitstring32Command
-		/// 
-		/// <param name="cot">Cause of transmission (use ACTIVATION to start a control sequence)</param>
-		/// <param name="ca">Common address</param>
-		/// <param name="sc">Information object of the command</param>
-		/// <exception cref="ConnectionException">description</exception>
-		public void SendControlCommand(CauseOfTransmission cot, int ca, InformationObject sc) {
+		public override void SendControlCommand(CauseOfTransmission cot, int ca, InformationObject sc) {
 
 			ASDU controlCommand = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
 
@@ -813,7 +776,7 @@ namespace lib60870.CS104
 		/// Sends an arbitrary ASDU to the connected slave
 		/// </summary>
 		/// <param name="asdu">The ASDU to send</param>
-		public void SendASDU(ASDU asdu) 
+		public override void SendASDU(ASDU asdu) 
 		{
 			SendASDUInternal (asdu);
 		}
