@@ -9,7 +9,7 @@ namespace TestMasterSlave
 {
 	class MainClass
 	{
-		private static bool interrogationHandler(object parameter, ServerConnection connection, ASDU asdu, byte qoi)
+		private static bool interrogationHandler(object parameter, IASDUSender connection, ASDU asdu, byte qoi)
 		{
 			Console.WriteLine ("Interrogation for group " + qoi);
 
@@ -85,7 +85,8 @@ namespace TestMasterSlave
 			};
 
 			Server server = new Server ();
-			Connection con = new Connection ("127.0.0.1");
+			server.SetLocalPort (2405);
+			Connection con = new Connection ("127.0.0.1", 2405);
 
 			con.DebugOutput = true;
 			server.DebugOutput = true;

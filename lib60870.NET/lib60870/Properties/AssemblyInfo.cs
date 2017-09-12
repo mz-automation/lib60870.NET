@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 // Information about this assembly is defined by the following attributes. 
 // Change them to the values specific to your project.
 [assembly: AssemblyTitle ("lib60870")]
-[assembly: AssemblyDescription("IEC 60870-5-104 protocol library")]
+[assembly: AssemblyDescription("IEC 60870-5-101/104 protocol library")]
 [assembly: AssemblyConfiguration ("")]
 [assembly: AssemblyCompany("MZ Automation GmbH")]
 [assembly: AssemblyProduct("lib60870.NET")]

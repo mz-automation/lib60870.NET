@@ -21,7 +21,7 @@
 
 using System;
 
-namespace lib60870.CS101
+namespace lib60870
 {
 	internal class BufferFrame : Frame {
 
@@ -33,6 +33,22 @@ namespace lib60870.CS101
 			this.buffer = buffer;
 			this.startPos = startPos;
 			this.bufPos = startPos;
+		}
+
+		public BufferFrame Clone()
+		{
+			byte[] newBuffer = new byte[GetMsgSize()];
+
+			int newBufPos = 0;
+
+			for (int i = startPos; i < bufPos; i++) {
+				newBuffer [newBufPos++] = buffer [i];
+			}
+
+			BufferFrame clone = new BufferFrame (newBuffer, 0);
+			clone.bufPos = newBufPos;
+
+			return clone;
 		}
 
 		public override void ResetFrame ()

@@ -33,9 +33,6 @@ namespace lib60870.CS101
 	/// </summary>
 	public class ASDU
 	{
-
-		public const int IEC60870_5_104_MAX_ASDU_LENGTH = 249;
-
 		private ApplicationLayerParameters parameters;
 
 		private TypeID typeId;
@@ -60,19 +57,7 @@ namespace lib60870.CS101
 			this.hasTypeId = false;
 		}
 			
-		[Obsolete("use constructor with ConnectionParameters and without TypeID instead")]
-		public ASDU(CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) 
-			: this(new ApplicationLayerParameters(), TypeID.M_SP_NA_1, cot, isTest, isNegative, oa, ca, isSequence) {
-			this.hasTypeId = false;
-		}
-
-		[Obsolete("use constructor with ConnectionParameters and without TypeID instead")]
-		public ASDU(TypeID typeId, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) 
-			: this(new ApplicationLayerParameters(), typeId, cot, isTest, isNegative, oa, ca, isSequence) {
-		}
-			
-		[Obsolete("use constructor with ConnectionParameters and without TypeID instead")]
-		public ASDU(ApplicationLayerParameters parameters, TypeID typeId, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) {
+		internal ASDU(ApplicationLayerParameters parameters, TypeID typeId, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) {
 			this.parameters = parameters;
 			this.typeId = typeId;
 			this.cot = cot;
@@ -80,7 +65,7 @@ namespace lib60870.CS101
 			this.isNegative = isNegative;
 			this.oa = oa;
 			this.ca = ca;
-			this.spaceLeft = IEC60870_5_104_MAX_ASDU_LENGTH - 
+			this.spaceLeft = parameters.MaxAsduLength - 
 				parameters.SizeOfTypeId - parameters.SizeOfVSQ - parameters.SizeOfCA - parameters.SizeOfCOT;
 
 			if (isSequence)
@@ -231,7 +216,7 @@ namespace lib60870.CS101
 
 		public byte[] AsByteArray()
 		{
-			int expectedSize = IEC60870_5_104_MAX_ASDU_LENGTH - spaceLeft;
+			int expectedSize = parameters.MaxAsduLength - spaceLeft;
 
 			BufferFrame frame = new BufferFrame (new byte[expectedSize], 0);
 

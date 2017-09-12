@@ -7,6 +7,10 @@ using lib60870.CS104;
 
 namespace slave1
 {
+
+	/// <summary>
+	/// This example shows how to handle a large number of information objects
+	/// </summary>
 	class MainClass
 	{
 		static SinglePointInformation[] spiObjects = new SinglePointInformation[400];
@@ -34,9 +38,6 @@ namespace slave1
 
 			server.DebugOutput = true;
 			server.MaxQueueSize = 100;
-
-			//server.SetInterrogationHandler (interrogationHandler, null);
-
 
 			server.Start ();
 

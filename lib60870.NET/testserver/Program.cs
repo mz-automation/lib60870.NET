@@ -14,7 +14,7 @@ namespace testserver
 	
 	class MainClass
 	{
-		private static bool interrogationHandler(object parameter, ServerConnection connection, ASDU asdu, byte qoi)
+		private static bool interrogationHandler(object parameter, IASDUSender connection, ASDU asdu, byte qoi)
 		{
 			Console.WriteLine ("Interrogation for group " + qoi);
 
@@ -79,7 +79,7 @@ namespace testserver
 			return true;
 		}
 
-		private static bool asduHandler(object parameter, ServerConnection connection, ASDU asdu)
+		private static bool asduHandler(object parameter, IASDUSender connection, ASDU asdu)
 		{
 			
 			if (asdu.TypeId == TypeID.C_SC_NA_1) {

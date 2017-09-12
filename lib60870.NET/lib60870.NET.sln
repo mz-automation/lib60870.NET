@@ -25,6 +25,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tlsserver", "tlsserver\tlss
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tlsclient", "tlsclient\tlsclient.csproj", "{D770BDE6-5A88-4F22-9698-011356C4D505}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-master-unbalanced", "cs101_master_unbalanced\cs101-master-unbalanced.csproj", "{7B9B0905-91BE-4D13-849E-44B77E82607B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-master-balanced", "cs101-master-balanced\cs101-master-balanced.csproj", "{302416B2-D0C2-47D8-8386-882E168CA840}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-slave-unbalanced", "cs101-slave-unbalanced\cs101-slave-unbalanced.csproj", "{6CDC09F4-A182-4500-A999-B7AF49724778}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -39,10 +45,22 @@ Global
 		{05875DE2-6036-46E9-A656-BACB47D6E5F5}.Debug|x86.Build.0 = Debug|x86
 		{05875DE2-6036-46E9-A656-BACB47D6E5F5}.Release|x86.ActiveCfg = Release|x86
 		{05875DE2-6036-46E9-A656-BACB47D6E5F5}.Release|x86.Build.0 = Release|x86
+		{302416B2-D0C2-47D8-8386-882E168CA840}.Debug|x86.ActiveCfg = Debug|x86
+		{302416B2-D0C2-47D8-8386-882E168CA840}.Debug|x86.Build.0 = Debug|x86
+		{302416B2-D0C2-47D8-8386-882E168CA840}.Release|x86.ActiveCfg = Release|x86
+		{302416B2-D0C2-47D8-8386-882E168CA840}.Release|x86.Build.0 = Release|x86
 		{608CD6D9-91FC-419F-A0F6-2091E0B6D469}.Debug|x86.ActiveCfg = Debug|x86
 		{608CD6D9-91FC-419F-A0F6-2091E0B6D469}.Debug|x86.Build.0 = Debug|x86
 		{608CD6D9-91FC-419F-A0F6-2091E0B6D469}.Release|x86.ActiveCfg = Release|x86
 		{608CD6D9-91FC-419F-A0F6-2091E0B6D469}.Release|x86.Build.0 = Release|x86
+		{6CDC09F4-A182-4500-A999-B7AF49724778}.Debug|x86.ActiveCfg = Debug|x86
+		{6CDC09F4-A182-4500-A999-B7AF49724778}.Debug|x86.Build.0 = Debug|x86
+		{6CDC09F4-A182-4500-A999-B7AF49724778}.Release|x86.ActiveCfg = Release|x86
+		{6CDC09F4-A182-4500-A999-B7AF49724778}.Release|x86.Build.0 = Release|x86
+		{7B9B0905-91BE-4D13-849E-44B77E82607B}.Debug|x86.ActiveCfg = Debug|x86
+		{7B9B0905-91BE-4D13-849E-44B77E82607B}.Debug|x86.Build.0 = Debug|x86
+		{7B9B0905-91BE-4D13-849E-44B77E82607B}.Release|x86.ActiveCfg = Release|x86
+		{7B9B0905-91BE-4D13-849E-44B77E82607B}.Release|x86.Build.0 = Release|x86
 		{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}.Debug|x86.ActiveCfg = Debug|x86
 		{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}.Debug|x86.Build.0 = Debug|x86
 		{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}.Release|x86.ActiveCfg = Release|x86

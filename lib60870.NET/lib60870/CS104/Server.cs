@@ -31,43 +31,7 @@ using lib60870.CS101;
 
 namespace lib60870.CS104
 {
-
-	/// <summary>
-	/// Handler for interrogation command (C_IC_NA_1 - 100).
-	/// </summary>
-	public delegate bool InterrogationHandler (object parameter, ServerConnection connection, ASDU asdu, byte qoi);
-
-	/// <summary>
-	/// Handler for counter interrogation command (C_CI_NA_1 - 101).
-	/// </summary>
-	public delegate bool CounterInterrogationHandler (object parameter, ServerConnection connection, ASDU asdu, byte qoi);
-
-	/// <summary>
-	/// Handler for read command (C_RD_NA_1 - 102)
-	/// </summary>
-	public delegate bool ReadHandler (object parameter, ServerConnection connection, ASDU asdu, int ioa);
-
-	/// <summary>
-	/// Handler for clock synchronization command (C_CS_NA_1 - 103)
-	/// </summary>
-	public delegate bool ClockSynchronizationHandler (object parameter, ServerConnection connection, ASDU asdu, CP56Time2a newTime);
-
-	/// <summary>
-	/// Handler for reset process command (C_RP_NA_1 - 105)
-	/// </summary>
-	public delegate bool ResetProcessHandler (object parameter, ServerConnection connection, ASDU asdu, byte  qrp);
-
-	/// <summary>
-	/// Handler for delay acquisition command (C_CD_NA:1 - 106)
-	/// </summary>
-	public delegate bool DelayAcquisitionHandler (object parameter, ServerConnection connection, ASDU asdu, CP16Time2a delayTime);
-
-
-	/// <summary>
-	/// Handler for ASDUs that are not handled by other handlers (default handler)
-	/// </summary>
-	public delegate bool ASDUHandler (object parameter, ServerConnection connection, ASDU asdu);
-
+	
 	/// <summary>
 	/// Connection request handler is called when a client tries to connect to the server.
 	/// </summary>
@@ -310,7 +274,7 @@ namespace lib60870.CS104
 	/// This class represents a single IEC 60870-5 server (slave or controlled station). It is also the
 	/// main access to the server API.
 	/// </summary>
-	public class Server {
+	public class Server : CS101.Slave {
 
 		private string localHostname = "0.0.0.0";
 		private int localPort = 2404;
@@ -332,19 +296,7 @@ namespace lib60870.CS104
             get { return serverMode; }
             set { serverMode = value; }
         }
-
-
-        private bool debugOutput = false;
-
-        public bool DebugOutput {
-			get {
-				return this.debugOutput;
-			}
-			set {
-				debugOutput = value;
-			}
-		}
-
+			
 		private void DebugLog(string msg)
 		{
 			if (debugOutput) {
@@ -433,24 +385,6 @@ namespace lib60870.CS104
 				this.localPort = 19998;
 		}
 
-		public InterrogationHandler interrogationHandler = null;
-		public object InterrogationHandlerParameter = null;
-
-		public CounterInterrogationHandler counterInterrogationHandler = null;
-		public object counterInterrogationHandlerParameter = null;
-
-		public ReadHandler readHandler = null;
-		public object readHandlerParameter = null;
-
-		public ClockSynchronizationHandler clockSynchronizationHandler = null;
-		public object clockSynchronizationHandlerParameter = null;
-
-		public ResetProcessHandler resetProcessHandler = null;
-		public object resetProcessHandlerParameter = null;
-
-		public DelayAcquisitionHandler delayAcquisitionHandler = null;
-		public object delayAcquisitionHandlerParameter = null;
-
 		public ConnectionRequestHandler connectionRequestHandler = null;
 		public object connectionRequestHandlerParameter = null;
 
@@ -465,77 +399,6 @@ namespace lib60870.CS104
 			this.connectionRequestHandler = handler;
 			this.connectionRequestHandlerParameter = parameter;
 		}
-
-		/// <summary>
-		/// Sets a callback for interrogaton requests.
-		/// </summary>
-		/// <param name="handler">The interrogation request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetInterrogationHandler(InterrogationHandler handler, object parameter)
-		{
-			this.interrogationHandler = handler;
-			this.InterrogationHandlerParameter = parameter;
-		}
-
-		/// <summary>
-		/// Sets a callback for counter interrogaton requests.
-		/// </summary>
-		/// <param name="handler">The counter interrogation request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetCounterInterrogationHandler(CounterInterrogationHandler handler, object parameter)
-		{
-			this.counterInterrogationHandler = handler;
-			this.counterInterrogationHandlerParameter = parameter;
-		}
-
-		/// <summary>
-		/// Sets a callback for read requests.
-		/// </summary>
-		/// <param name="handler">The read request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetReadHandler(ReadHandler handler, object parameter)
-		{
-			this.readHandler = handler;
-			this.readHandlerParameter = parameter;
-		}
-
-		/// <summary>
-		/// Sets a callback for the clock synchronization request.
-		/// </summary>
-		/// <param name="handler">The clock synchronization request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetClockSynchronizationHandler(ClockSynchronizationHandler handler, object parameter)
-		{
-			this.clockSynchronizationHandler = handler;
-			this.clockSynchronizationHandlerParameter = parameter;
-		}
-
-		public void SetResetProcessHandler(ResetProcessHandler handler, object parameter)
-		{
-			this.resetProcessHandler = handler;
-			this.resetProcessHandlerParameter = parameter;
-		}
-
-		public void SetDelayAcquisitionHandler(DelayAcquisitionHandler handler, object parameter)
-		{
-			this.delayAcquisitionHandler = handler;
-			this.delayAcquisitionHandlerParameter = parameter;
-		}
-
-		public ASDUHandler asduHandler = null;
-		public object asduHandlerParameter = null;
-
-		/// <summary>
-		/// Sets a callback to handle ASDUs (commands, requests) form clients. This callback can be used when
-		/// no other callback handles the message from the client/master.
-		/// </summary>
-		/// <param name="handler">The ASDU callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetASDUHandler(ASDUHandler handler, object parameter)
-		{
-			this.asduHandler = handler;
-			this.asduHandlerParameter = parameter;
-		}
 			
 		/// <summary>
 		/// Gets the number of connected master/client stations.
@@ -546,15 +409,6 @@ namespace lib60870.CS104
 				return this.allOpenConnections.Count;
 			}
 		}
-
-		/// <summary>
-		/// Gets the connection parameters.
-		/// </summary>
-		/// <returns>The connection parameters used by the server.</returns>
-//		public ConnectionParameters GetConnectionParameters()
-//		{
-//			return parameters;
-//		}
 
 		private void ServerAcceptThread()
 		{

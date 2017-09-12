@@ -27,6 +27,8 @@ namespace lib60870.CS101
 {
 	public class ApplicationLayerParameters
 	{
+		public static int IEC60870_5_104_MAX_ASDU_LENGTH = 249;
+
 		private int sizeOfTypeId = 1;
 
 		private int sizeOfVSQ = 1; /* VSQ = variable sturcture qualifier */
@@ -38,6 +40,8 @@ namespace lib60870.CS101
 		private int sizeOfCA = 2; /* (parameter a) CA = common address of ASDUs (1/2) */
 
 		private int sizeOfIOA = 3; /* (parameter c) IOA = information object address (1/2/3) */
+
+		private int maxAsduLength = IEC60870_5_104_MAX_ASDU_LENGTH; /* maximum length of ASDU */
 
 		public ApplicationLayerParameters ()
 		{
@@ -53,6 +57,7 @@ namespace lib60870.CS101
 			copy.originatorAddress = originatorAddress;
 			copy.sizeOfCA = sizeOfCA;
 			copy.sizeOfIOA = sizeOfIOA;
+			copy.maxAsduLength = maxAsduLength;
 
 			return copy;
 		}
@@ -103,6 +108,15 @@ namespace lib60870.CS101
 		public int SizeOfVSQ {
 			get {
 				return this.sizeOfVSQ;
+			}
+		}
+
+		public int MaxAsduLength {
+			get {
+				return this.maxAsduLength;
+			}
+			set {
+				maxAsduLength = value;
 			}
 		}
 	}

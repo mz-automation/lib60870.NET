@@ -36,19 +36,6 @@ using lib60870.CS101;
 
 namespace lib60870.CS104
 {
-	public class ConnectionException : Exception
-	{
-		public ConnectionException(string message)
-			:base(message)
-		{
-		}
-
-		public ConnectionException(string message, Exception e)
-			:base(message, e)
-		{
-		}
-	}
-
 	public enum ConnectionEvent {
 		OPENED = 0,
 		CLOSED = 1,
@@ -133,6 +120,9 @@ namespace lib60870.CS104
 	/// </summary>
 	public delegate bool RawMessageHandler (object parameter, byte[] message, int messageSize);
 
+	/// <summary>
+	/// A single connection to a CS 104 (IEC 60870-5-104) server
+	/// </summary>
 	public class Connection
 	{
 		static byte[] STARTDT_ACT_MSG = new byte[] { 0x68, 0x04, 0x07, 0x00, 0x00, 0x00 };
@@ -172,7 +162,7 @@ namespace lib60870.CS104
 		private UInt64 nextT3Timeout;
 		private int outStandingTestFRConMessages = 0;
 
-		Thread workerThread = null;
+		private Thread workerThread = null;
 
 		private int unconfirmedReceivedIMessages; /* number of unconfirmed messages received */
 		private long lastConfirmationTime; /* timestamp when the last confirmation message was sent */

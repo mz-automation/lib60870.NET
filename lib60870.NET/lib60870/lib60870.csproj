@@ -47,7 +47,6 @@
     <Compile Include="CS101\Bitstring32.cs" />
     <Compile Include="CS101\ASDU.cs" />
     <Compile Include="CS101\BinaryCounterReading.cs" />
-    <Compile Include="CS101\BufferFrame.cs" />
     <Compile Include="CS101\CauseOfTransmission.cs" />
     <Compile Include="CS101\DoublePointInformation.cs" />
     <Compile Include="CS101\EndOfInitialization.cs" />
@@ -80,10 +79,21 @@
     <Compile Include="CS104\Server.cs" />
     <Compile Include="CS104\ServerConnection.cs" />
     <Compile Include="CS104\TlsSecurityInformation.cs" />
+    <Compile Include="CS101\Slave.cs" />
+    <Compile Include="LinkLayer\LinkLayer.cs" />
+    <Compile Include="LinkLayer\PrimaryLinkLayer.cs" />
+    <Compile Include="LinkLayer\SecondaryLinkLayer.cs" />
+    <Compile Include="LinkLayer\SerialTransceiverFT12.cs" />
+    <Compile Include="ConnectionException.cs" />
+    <Compile Include="BufferFrame.cs" />
+    <Compile Include="CS101\CS101Master.cs" />
+    <Compile Include="CS101\CS101Slave.cs" />
+    <Compile Include="CS101\Master.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <Folder Include="CS101\" />
     <Folder Include="CS104\" />
+    <Folder Include="LinkLayer\" />
   </ItemGroup>
 </Project>

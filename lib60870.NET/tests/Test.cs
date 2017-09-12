@@ -1069,7 +1069,7 @@ namespace tests
 			float sendValue = 1.0f;
 			bool hasReceived = false;
 
-			server.SetASDUHandler(delegate(object parameter, ServerConnection con, ASDU asdu) {
+			server.SetASDUHandler(delegate(object parameter, IASDUSender con, ASDU asdu) {
 
 				if (asdu.TypeId == TypeID.C_SE_NA_1) {
 					SetpointCommandNormalized spn = (SetpointCommandNormalized) asdu.GetElement(0);
@@ -1085,7 +1085,7 @@ namespace tests
 			Connection connection = new Connection ("127.0.0.1", 20213);
 			connection.Connect ();
 
-			ASDU newAsdu = new ASDU (CauseOfTransmission.ACTIVATION, false, false, 0, 1, false);
+			ASDU newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.ACTIVATION, false, false, 0, 1, false);
 			newAsdu.AddInformationObject (new SetpointCommandNormalized (100, sendValue, new SetpointCommandQualifier (false, 0)));
 		
 			connection.SendASDU (newAsdu);
