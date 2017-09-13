@@ -1,12 +1,15 @@
-﻿using System;
+using System;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 
 using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
 
-namespace TestMasterSlave
+namespace cs104_server
 {
+	
 	class MainClass
 	{
 		private static bool interrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
@@ -74,9 +77,29 @@ namespace TestMasterSlave
 			return true;
 		}
 
+		private static bool asduHandler(object parameter, IMasterConnection connection, ASDU asdu)
+		{
+			
+			if (asdu.TypeId == TypeID.C_SC_NA_1) {
+				Console.WriteLine ("Single command");
+
+				SingleCommand sc = (SingleCommand)asdu.GetElement (0);
+
+				Console.WriteLine (sc.ToString ());
+			} 
+			else if (asdu.TypeId == TypeID.C_CS_NA_1){
+				
+
+				ClockSynchronizationCommand qsc = (ClockSynchronizationCommand)asdu.GetElement (0);
+
+				Console.WriteLine ("Received clock sync command with time " + qsc.NewTime.ToString());
+			}
+
+			return true;
+		}
+
 		public static void Main (string[] args)
 		{
-
 			bool running = true;
 
 			Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) {
@@ -85,45 +108,43 @@ namespace TestMasterSlave
 			};
 
 			Server server = new Server ();
-			server.SetLocalPort (2405);
-			Connection con = new Connection ("127.0.0.1", 2405);
 
-			con.DebugOutput = true;
 			server.DebugOutput = true;
+
 			server.MaxQueueSize = 10;
+
 			server.SetInterrogationHandler (interrogationHandler, null);
+
+			server.SetASDUHandler (asduHandler, null);
 
 			server.Start ();
 
-			Thread.Sleep (1000);
+            ASDU newAsdu = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.INITIALIZED, false, false, 0, 1, false);
+            EndOfInitialization eoi = new EndOfInitialization(0);
+            newAsdu.AddInformationObject(eoi);
+            server.EnqueueASDU(newAsdu);
 
-			ASDU asdu = new ASDU (con.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
-
-			asdu.AddInformationObject (new ParameterNormalizedValue (102, 0.1f, 0));
-
-			con.Connect ();
-			con.SendTestCommand (1);
-			//con.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
-
-			con.SendASDU (asdu);
-			con.SendASDU (asdu);
-			con.SendASDU (asdu);
-			con.SendASDU (asdu);
-			con.SendASDU (asdu);
-			con.SendASDU (asdu);
-			con.SendASDU (asdu);
-			con.SendASDU (asdu);
+			int waitTime = 1000;
 
 			while (running) {
-				con.SendASDU (asdu);
-				//Thread.Sleep(100);	
+				Thread.Sleep(100);
+
+				if (waitTime > 0)
+					waitTime -= 100;
+				else {
+
+					newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
+
+					newAsdu.AddInformationObject (new MeasuredValueScaled (110, -1, new QualityDescriptor ()));
+				
+					server.EnqueueASDU (newAsdu);
+
+					waitTime = 1000;
+				}
 			}
 
 			Console.WriteLine ("Stop server");
-			con.Close ();
 			server.Stop ();
-
-			
 		}
 	}
 }

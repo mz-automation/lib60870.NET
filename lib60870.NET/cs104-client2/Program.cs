@@ -9,7 +9,7 @@ using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
 
-namespace testclient2
+namespace cs104_client2
 {
 	class MainClass
 	{

@@ -3,29 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "lib60870", "lib60870\lib60870.csproj", "{F604286A-1AFC-4355-8C2C-A998CFCEE979}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testlib", "testlib\testlib.csproj", "{DAEA188F-6E13-4161-82F2-3BDC19F3DAA0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-client1", "cs104-client1\cs104-client1.csproj", "{608CD6D9-91FC-419F-A0F6-2091E0B6D469}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testclient", "testclient\testclient.csproj", "{608CD6D9-91FC-419F-A0F6-2091E0B6D469}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testserver", "testserver\testserver.csproj", "{04DB887E-3123-4C21-8B39-11168D1F5198}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-server", "cs104-server\cs104-server.csproj", "{04DB887E-3123-4C21-8B39-11168D1F5198}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests", "tests\tests.csproj", "{E366CDDD-E2FF-4275-9975-5C309671BAF7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testclient2", "testclient2\testclient2.csproj", "{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-client2", "cs104-client2\cs104-client2.csproj", "{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMasterSlave", "TestMasterSlave\TestMasterSlave.csproj", "{7D9193D5-E114-4E8D-BF85-59A08CCDDC3E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "slave1", "slave1\slave1.csproj", "{C48F029B-D26C-47E9-9958-994543664DB7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-server2", "cs104-server2\cs104-server2.csproj", "{C48F029B-D26C-47E9-9958-994543664DB7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-multi-client-server", "cs104-multi-client-server\cs104-multi-client-server.csproj", "{F19997DD-3182-46C0-9776-E23AC6C5ACBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testclient3", "testclient3\testclient3.csproj", "{05875DE2-6036-46E9-A656-BACB47D6E5F5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-client3", "cs104-client3\cs104-client3.csproj", "{05875DE2-6036-46E9-A656-BACB47D6E5F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-tls-server", "tlsserver\cs104-tls-server.csproj", "{CB566E9F-4814-40AD-ACA2-BDB598D7C174}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-tls-server", "cs104-tls-server\cs104-tls-server.csproj", "{CB566E9F-4814-40AD-ACA2-BDB598D7C174}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-tls-client", "tlsclient\cs104-tls-client.csproj", "{D770BDE6-5A88-4F22-9698-011356C4D505}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-tls-client", "cs104-tls-client\cs104-tls-client.csproj", "{D770BDE6-5A88-4F22-9698-011356C4D505}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-master-unbalanced", "cs101_master_unbalanced\cs101-master-unbalanced.csproj", "{7B9B0905-91BE-4D13-849E-44B77E82607B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-master-unbalanced", "cs101-master-unbalanced\cs101-master-unbalanced.csproj", "{7B9B0905-91BE-4D13-849E-44B77E82607B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-master-balanced", "cs101-master-balanced\cs101-master-balanced.csproj", "{302416B2-D0C2-47D8-8386-882E168CA840}"
 EndProject
@@ -65,10 +61,6 @@ Global
 		{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}.Debug|x86.Build.0 = Debug|x86
 		{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}.Release|x86.ActiveCfg = Release|x86
 		{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}.Release|x86.Build.0 = Release|x86
-		{7D9193D5-E114-4E8D-BF85-59A08CCDDC3E}.Debug|x86.ActiveCfg = Debug|x86
-		{7D9193D5-E114-4E8D-BF85-59A08CCDDC3E}.Debug|x86.Build.0 = Debug|x86
-		{7D9193D5-E114-4E8D-BF85-59A08CCDDC3E}.Release|x86.ActiveCfg = Release|x86
-		{7D9193D5-E114-4E8D-BF85-59A08CCDDC3E}.Release|x86.Build.0 = Release|x86
 		{C48F029B-D26C-47E9-9958-994543664DB7}.Debug|x86.ActiveCfg = Debug|x86
 		{C48F029B-D26C-47E9-9958-994543664DB7}.Debug|x86.Build.0 = Debug|x86
 		{C48F029B-D26C-47E9-9958-994543664DB7}.Release|x86.ActiveCfg = Release|x86
@@ -81,10 +73,6 @@ Global
 		{D770BDE6-5A88-4F22-9698-011356C4D505}.Debug|x86.Build.0 = Debug|x86
 		{D770BDE6-5A88-4F22-9698-011356C4D505}.Release|x86.ActiveCfg = Release|x86
 		{D770BDE6-5A88-4F22-9698-011356C4D505}.Release|x86.Build.0 = Release|x86
-		{DAEA188F-6E13-4161-82F2-3BDC19F3DAA0}.Debug|x86.ActiveCfg = Debug|x86
-		{DAEA188F-6E13-4161-82F2-3BDC19F3DAA0}.Debug|x86.Build.0 = Debug|x86
-		{DAEA188F-6E13-4161-82F2-3BDC19F3DAA0}.Release|x86.ActiveCfg = Release|x86
-		{DAEA188F-6E13-4161-82F2-3BDC19F3DAA0}.Release|x86.Build.0 = Release|x86
 		{E366CDDD-E2FF-4275-9975-5C309671BAF7}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{E366CDDD-E2FF-4275-9975-5C309671BAF7}.Debug|x86.Build.0 = Debug|Any CPU
 		{E366CDDD-E2FF-4275-9975-5C309671BAF7}.Release|x86.ActiveCfg = Release|Any CPU

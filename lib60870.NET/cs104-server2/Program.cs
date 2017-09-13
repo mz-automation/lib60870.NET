@@ -5,7 +5,7 @@ using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
 
-namespace slave1
+namespace cs104_server2
 {
 
 	/// <summary>

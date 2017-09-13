@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Threading;
 
 using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
 
-namespace testclient3
+namespace cs104_client1
 {
 	class MainClass
 	{
@@ -42,7 +42,7 @@ namespace testclient3
 					Console.WriteLine ("   " + val.Quality.ToString ());
 				}
 			} else if (asdu.TypeId == TypeID.M_ME_TE_1) {
-
+			
 				for (int i = 0; i < asdu.NumberOfElements; i++) {
 
 					var msv = (MeasuredValueScaledWithCP56Time2a)asdu.GetElement (i);
@@ -116,7 +116,6 @@ namespace testclient3
 		{
 			Console.WriteLine ("Using lib60870.NET version " + LibraryCommon.GetLibraryVersionString ());
 
-			//Connection con = new Connection ("10.0.4.6");
 			Connection con = new Connection ("127.0.0.1");
 
 			con.DebugOutput = true;
@@ -124,20 +123,46 @@ namespace testclient3
 			con.SetASDUReceivedHandler (asduReceivedHandler, null);
 			con.SetConnectionHandler (ConnectionHandler, null);
 
-			bool running = true;
+			con.Connect ();
 
-			Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) {
-				e.Cancel = true;
-				running = false;
-			};
+			Thread.Sleep (5000);
+
+			con.SendTestCommand (1);
+
+			con.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, QualifierOfInterrogation.STATION);
+
+			Thread.Sleep (5000);
+
+			con.SendControlCommand (CauseOfTransmission.ACTIVATION, 1, new SingleCommand (5000, true, false, 0));
+
+			con.SendControlCommand (CauseOfTransmission.ACTIVATION, 1, new DoubleCommand (5001, DoubleCommand.ON, false, 0));
+
+			con.SendControlCommand (CauseOfTransmission.ACTIVATION, 1, new StepCommand (5002, StepCommandValue.HIGHER, false, 0));
+
+			con.SendControlCommand (CauseOfTransmission.ACTIVATION, 1, 
+			                        new SingleCommandWithCP56Time2a (5000, false, false, 0, new CP56Time2a (DateTime.Now)));
+
+			/* Synchronize clock of the controlled station */
+			con.SendClockSyncCommand (1 /* CA */, new CP56Time2a (DateTime.Now)); 
+
+
+			Console.WriteLine ("CLOSE");
+
+			con.Close ();
+
+			Console.WriteLine ("RECONNECT");
 
 			con.Connect ();
 
-			while (running) {
-				Thread.Sleep(100);
-			}
+			Thread.Sleep (5000);
+
+
+			Console.WriteLine ("CLOSE 2");
 
 			con.Close ();
+
+			Console.WriteLine("Press any key to terminate...");
+			Console.ReadKey();
 		}
 	}
 }
