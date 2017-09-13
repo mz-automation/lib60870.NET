@@ -7,7 +7,7 @@ using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
 
-namespace multiclientserver
+namespace cs104_multi_client_server
 {
 
 	class MainClass
