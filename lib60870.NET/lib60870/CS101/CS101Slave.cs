@@ -31,7 +31,7 @@ namespace lib60870
 {
 	namespace CS101 {
 
-		public class CS101Slave : Slave, ISecondaryApplicationLayer, IASDUSender
+		public class CS101Slave : Slave, ISecondaryApplicationLayer, IMasterConnection
 		{
 
 			private void DebugLog(string msg)
@@ -46,11 +46,11 @@ namespace lib60870
 			 * IASDUSender
 			 ********************************************/
 
-			void IASDUSender.SendASDU(ASDU asdu) {
+			void IMasterConnection.SendASDU(ASDU asdu) {
 				SendASDU (asdu);
 			}
 
-			void IASDUSender.SendACT_CON(ASDU asdu, bool negative) 
+			void IMasterConnection.SendACT_CON(ASDU asdu, bool negative) 
 			{
 				asdu.Cot = CauseOfTransmission.ACTIVATION_CON;
 				asdu.IsNegative = negative;
@@ -58,7 +58,7 @@ namespace lib60870
 				SendASDU (asdu);
 			}
 
-			void IASDUSender.SendACT_TERM(ASDU asdu) 
+			void IMasterConnection.SendACT_TERM(ASDU asdu) 
 			{
 				asdu.Cot = CauseOfTransmission.ACTIVATION_TERMINATION;
 				asdu.IsNegative = false;
@@ -66,7 +66,7 @@ namespace lib60870
 				SendASDU (asdu);
 			}
 
-			ApplicationLayerParameters IASDUSender.GetApplicationLayerParameters()
+			ApplicationLayerParameters IMasterConnection.GetApplicationLayerParameters()
 			{
 				return parameters;
 			}

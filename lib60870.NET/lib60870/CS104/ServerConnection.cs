@@ -34,7 +34,7 @@ using lib60870.CS101;
 
 namespace lib60870.CS104
 {
-	internal class ServerConnection : IASDUSender
+	internal class ServerConnection : IMasterConnection
 	{
 		private static int connectionsCounter = 0;
 

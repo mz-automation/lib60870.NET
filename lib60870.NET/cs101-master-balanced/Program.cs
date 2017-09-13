@@ -113,18 +113,17 @@ namespace cs101_master_balanced
 
 			// Setup serial port
 			SerialPort port = new SerialPort ();
-			port.PortName = "/dev/ttyUSB1";
+			port.PortName = "/dev/ttyUSB2";
 			port.BaudRate = 19200;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
+			port.Open ();
+			port.DiscardInBuffer ();
 
 			// Setup balanced CS101 master
 			CS101MasterBalanced master = new CS101MasterBalanced (port);
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
-
-			port.Open ();
-			port.DiscardInBuffer ();
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 

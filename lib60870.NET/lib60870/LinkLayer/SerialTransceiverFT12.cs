@@ -23,6 +23,7 @@
 
 using System;
 using System.IO.Ports;
+using System.IO;
 
 namespace lib60870.linklayer
 {
@@ -33,7 +34,8 @@ namespace lib60870.linklayer
 	/// </summary>
 	internal class SerialTransceiverFT12 {
 
-		private SerialPort port;
+		private Stream serialStream = null;
+		private SerialPort port = null;
 
 		private Action<string> DebugLog;
 
@@ -48,13 +50,17 @@ namespace lib60870.linklayer
 
 		public SerialTransceiverFT12(SerialPort port, LinkLayerParameters linkLayerParameters, Action<string> debugLog) {
 			this.port = port;
+			this.serialStream = port.BaseStream;
 			this.DebugLog = debugLog;
 			this.linkLayerParameters = linkLayerParameters;
 		}
 
 		public int BaudRate {
 			get {
-				return port.BaudRate;
+				if (port != null)
+					return port.BaudRate;
+				else
+					return 10000000;
 			}
 		}
 
@@ -77,7 +83,7 @@ namespace lib60870.linklayer
 		public void SendMessage(byte[] msg, int msgSize) {
 			DebugLog("SEND " + BitConverter.ToString (msg, 0, msgSize));
 
-			port.Write (msg, 0, msgSize);
+			serialStream.Write (msg, 0, msgSize);
 		}
 
 		// read the next block of the message
@@ -88,7 +94,7 @@ namespace lib60870.linklayer
 
 			try {
 
-				while ((readByte = port.ReadByte ()) != -1) {
+				while ((readByte = serialStream.ReadByte ()) != -1) {
 					buffer[startIndex++] = (byte) readByte;
 
 					readBytes++;
@@ -109,19 +115,19 @@ namespace lib60870.linklayer
 			// NOTE: there is some basic decoding required to determine message start/end
 			//       and synchronization failures.
 
-			port.ReadTimeout = messageTimeout;
+			serialStream.ReadTimeout = messageTimeout;
 
 			try {
 
-				int read = port.ReadByte ();
+				int read = serialStream.ReadByte ();
 
 				if (read != -1) {
 
 					if (read == 0x68) {
 
-						port.ReadTimeout = characterTimeout;
+						serialStream.ReadTimeout = characterTimeout;
 
-						int msgSize = port.ReadByte ();
+						int msgSize = serialStream.ReadByte ();
 
 						if (msgSize != -1) {
 
@@ -144,11 +150,12 @@ namespace lib60870.linklayer
 						}
 						else {
 							DebugLog("RECV: SYNC ERROR 1!");
-							port.DiscardInBuffer();
+							//port.DiscardInBuffer();
+							serialStream.Flush();
 						}
 					}
 					else if (read == 0x10) {
-						port.ReadTimeout = characterTimeout;
+						serialStream.ReadTimeout = characterTimeout;
 
 						buffer [0] = 0x10;
 
@@ -174,7 +181,8 @@ namespace lib60870.linklayer
 					}
 					else {
 						DebugLog("RECV: SYNC ERROR 2! value = " + read);
-						port.DiscardInBuffer();
+						//port.DiscardInBuffer();
+						serialStream.Flush();
 					}
 				}
 

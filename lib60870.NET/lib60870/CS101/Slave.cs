@@ -25,9 +25,9 @@ using System;
 namespace lib60870.CS101
 {
 	/// <summary>
-	/// Provides functions to be used in Slave callbacks
+	/// Provides functions to be used in Slave callbacks to send data back to the master
 	/// </summary>
-	public interface IASDUSender 
+	public interface IMasterConnection 
 	{
 		void SendASDU (ASDU asdu);
 
@@ -41,38 +41,38 @@ namespace lib60870.CS101
 	/// <summary>
 	/// Handler for interrogation command (C_IC_NA_1 - 100).
 	/// </summary>
-	public delegate bool InterrogationHandler (object parameter, IASDUSender connection, ASDU asdu, byte qoi);
+	public delegate bool InterrogationHandler (object parameter, IMasterConnection connection, ASDU asdu, byte qoi);
 
 	/// <summary>
 	/// Handler for counter interrogation command (C_CI_NA_1 - 101).
 	/// </summary>
-	public delegate bool CounterInterrogationHandler (object parameter, IASDUSender connection, ASDU asdu, byte qoi);
+	public delegate bool CounterInterrogationHandler (object parameter, IMasterConnection connection, ASDU asdu, byte qoi);
 
 	/// <summary>
 	/// Handler for read command (C_RD_NA_1 - 102)
 	/// </summary>
-	public delegate bool ReadHandler (object parameter, IASDUSender connection, ASDU asdu, int ioa);
+	public delegate bool ReadHandler (object parameter, IMasterConnection connection, ASDU asdu, int ioa);
 
 	/// <summary>
 	/// Handler for clock synchronization command (C_CS_NA_1 - 103)
 	/// </summary>
-	public delegate bool ClockSynchronizationHandler (object parameter, IASDUSender connection, ASDU asdu, CP56Time2a newTime);
+	public delegate bool ClockSynchronizationHandler (object parameter, IMasterConnection connection, ASDU asdu, CP56Time2a newTime);
 
 	/// <summary>
 	/// Handler for reset process command (C_RP_NA_1 - 105)
 	/// </summary>
-	public delegate bool ResetProcessHandler (object parameter, IASDUSender connection, ASDU asdu, byte  qrp);
+	public delegate bool ResetProcessHandler (object parameter, IMasterConnection connection, ASDU asdu, byte  qrp);
 
 	/// <summary>
 	/// Handler for delay acquisition command (C_CD_NA:1 - 106)
 	/// </summary>
-	public delegate bool DelayAcquisitionHandler (object parameter, IASDUSender connection, ASDU asdu, CP16Time2a delayTime);
+	public delegate bool DelayAcquisitionHandler (object parameter, IMasterConnection connection, ASDU asdu, CP16Time2a delayTime);
 
 
 	/// <summary>
 	/// Handler for ASDUs that are not handled by other handlers (default handler)
 	/// </summary>
-	public delegate bool ASDUHandler (object parameter, IASDUSender connection, ASDU asdu);
+	public delegate bool ASDUHandler (object parameter, IMasterConnection connection, ASDU asdu);
 
 	public class Slave {
 

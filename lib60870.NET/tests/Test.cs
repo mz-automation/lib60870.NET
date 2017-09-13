@@ -1069,7 +1069,7 @@ namespace tests
 			float sendValue = 1.0f;
 			bool hasReceived = false;
 
-			server.SetASDUHandler(delegate(object parameter, IASDUSender con, ASDU asdu) {
+			server.SetASDUHandler(delegate(object parameter, IMasterConnection con, ASDU asdu) {
 
 				if (asdu.TypeId == TypeID.C_SE_NA_1) {
 					SetpointCommandNormalized spn = (SetpointCommandNormalized) asdu.GetElement(0);

@@ -116,14 +116,13 @@ namespace cs101_master_unbalanced
 			port.BaudRate = 19200;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
+			port.Open ();
+			port.DiscardInBuffer ();
 
 			/* unbalanced mode allows multiple slaves on a single serial line */
 			CS101MasterUnbalanced master = new CS101MasterUnbalanced(port);
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
-
-			port.Open ();
-			port.DiscardInBuffer ();
 
 			master.AddSlave (1);
 			//master.AddSlave (2);

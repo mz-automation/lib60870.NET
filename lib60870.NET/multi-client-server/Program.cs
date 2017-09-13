@@ -26,7 +26,7 @@ namespace multiclientserver
 				return false;
 		}
 
-		private static bool interrogationHandler(object parameter, IASDUSender connection, ASDU asdu, byte qoi)
+		private static bool interrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
 		{
 			Console.WriteLine ("Interrogation for group " + qoi);
 
@@ -91,7 +91,7 @@ namespace multiclientserver
 			return true;
 		}
 
-		private static bool asduHandler(object parameter, IASDUSender connection, ASDU asdu)
+		private static bool asduHandler(object parameter, IMasterConnection connection, ASDU asdu)
 		{
 
 			if (asdu.TypeId == TypeID.C_SC_NA_1) {

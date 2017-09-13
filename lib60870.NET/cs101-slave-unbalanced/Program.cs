@@ -30,7 +30,7 @@ namespace cs101_slave_unbalanced {
 
 	public class CS101TestSlave {
 
-		private static bool myInterrogationHandler(object parameter, IASDUSender connection, ASDU asdu, byte qoi)
+		private static bool myInterrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
 		{
 			Console.WriteLine("Interrogation for group " + qoi);
 
@@ -84,6 +84,7 @@ namespace cs101_slave_unbalanced {
 			port.BaudRate = 19200;
 			port.Parity = Parity.None;
 			port.Handshake = Handshake.None;
+			port.Open ();
 
 			CS101Slave slave = new CS101Slave (port);
 			slave.DebugOutput = false;
@@ -98,8 +99,6 @@ namespace cs101_slave_unbalanced {
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 			Int16 measuredValue = 0;
-
-			port.Open ();
 
 			while (running) {
 
