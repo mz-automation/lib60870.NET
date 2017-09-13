@@ -128,11 +128,29 @@ namespace lib60870.linklayer
 
 		private bool dir; /* ONLY for balanced link layer */
 
+		private RawMessageHandler receivedRawMessageHandler = null;
+		private object receivedRawMessageHandlerParameter = null;
+
+		private RawMessageHandler sentRawMessageHandler = null;
+		private object sentRawMessageHandlerParameter = null;
+
 		public LinkLayer(byte[] buffer, LinkLayerParameters parameters, SerialTransceiverFT12 transceiver, Action<string> debugLog) {
 			this.buffer = buffer;
 			this.linkLayerParameters = parameters;
 			this.transceiver = transceiver;
 			this.DebugLog = debugLog;
+		}
+
+		public void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
+		{
+			receivedRawMessageHandler = handler;
+			receivedRawMessageHandlerParameter = parameter;
+		}
+
+		public void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
+		{
+			sentRawMessageHandler = handler;
+			sentRawMessageHandlerParameter = parameter;
 		}
 
 		internal int GetBroadcastAddress() 
@@ -205,6 +223,9 @@ namespace lib60870.linklayer
 
 		public void SendSingleCharACK()
 		{
+			if (sentRawMessageHandler != null)
+				sentRawMessageHandler (sentRawMessageHandlerParameter, SINGLE_CHAR_ACK, 1);
+
 			transceiver.SendMessage (SINGLE_CHAR_ACK, 1);
 		}
 
@@ -257,6 +278,8 @@ namespace lib60870.linklayer
 
 			buffer [bufPos++] = 0x16; /* END */
 
+			if (sentRawMessageHandler != null)
+				sentRawMessageHandler (sentRawMessageHandlerParameter, buffer, bufPos);
 
 			transceiver.SendMessage(buffer, bufPos);
 		}
@@ -314,6 +337,9 @@ namespace lib60870.linklayer
 
 			buffer [bufPos++] = 0x16; /* END */
 
+			if (sentRawMessageHandler != null)
+				sentRawMessageHandler (sentRawMessageHandlerParameter, buffer, bufPos);
+
 			transceiver.SendMessage (buffer, bufPos);
 		}
 
@@ -366,6 +392,9 @@ namespace lib60870.linklayer
 			buffer [bufPos++] = checksum;
 
 			buffer [bufPos++] = 0x16; /* END */
+
+			if (sentRawMessageHandler != null)
+				sentRawMessageHandler (sentRawMessageHandlerParameter, buffer, bufPos);
 
 			transceiver.SendMessage (buffer, bufPos);
 		}
@@ -605,18 +634,27 @@ namespace lib60870.linklayer
 
 		void HandleMessageAction(byte[] msg, int msgSize)
 		{
-			DebugLog("RECV " + BitConverter.ToString (msg, 0, msgSize));
+			DebugLog ("RECV " + BitConverter.ToString (msg, 0, msgSize));
 
-			if (linkLayerMode == LinkLayerMode.BALANCED)
-				HandleMessageBalancedAndPrimaryUnbalanced (buffer, msgSize);
-			else {
-				if (secondaryLinkLayer != null)
-					ParseHeaderSecondaryUnbalanced (buffer, msgSize);
-				else if (primaryLinkLayer != null)
+			bool handleMessage = true;
+
+			if (receivedRawMessageHandler != null)
+				handleMessage = receivedRawMessageHandler (receivedRawMessageHandlerParameter, msg, msgSize);
+
+			if (handleMessage) {
+
+				if (linkLayerMode == LinkLayerMode.BALANCED)
 					HandleMessageBalancedAndPrimaryUnbalanced (buffer, msgSize);
-				else
-					DebugLog ("ERROR: Neither primary nor secondary link layer available!");
-			}
+				else {
+					if (secondaryLinkLayer != null)
+						ParseHeaderSecondaryUnbalanced (buffer, msgSize);
+					else if (primaryLinkLayer != null)
+						HandleMessageBalancedAndPrimaryUnbalanced (buffer, msgSize);
+					else
+						DebugLog ("ERROR: Neither primary nor secondary link layer available!");
+				}
+			} else
+				DebugLog ("Message ignored because of raw message handler");
 		}
 
 

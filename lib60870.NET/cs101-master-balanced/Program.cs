@@ -30,6 +30,13 @@ namespace cs101_master_balanced
 	class MainClass
 	{
 
+		private static bool rcvdRawMessageHandler (object parameter, byte[] message, int messageSize)
+		{
+			Console.WriteLine ("RECV " + BitConverter.ToString (message, 0, messageSize));
+
+			return true;
+		}
+
 		private static void linkLayerStateChanged (object parameter, lib60870.linklayer.LinkLayerState newState)
 		{
 			Console.WriteLine ("LL state event: " + newState.ToString ());
@@ -68,6 +75,7 @@ namespace cs101_master_balanced
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
+			master.SetReceivedRawMessageHandler (rcvdRawMessageHandler, null);
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 

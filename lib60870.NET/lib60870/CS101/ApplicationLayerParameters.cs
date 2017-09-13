@@ -71,7 +71,7 @@ namespace lib60870.CS101
 			}
 		}
 
-		public int OriginatorAddress {
+		public int OA {
 			get {
 				return this.originatorAddress;
 			}

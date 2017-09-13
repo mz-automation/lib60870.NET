@@ -119,6 +119,16 @@ namespace lib60870.CS101
 			primaryLinkLayer.SetLinkLayerStateChanged (handler, parameter);
 		}
 
+		public void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
+		{
+			linkLayer.SetReceivedRawMessageHandler (handler, parameter);
+		}
+
+		public void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
+		{
+			linkLayer.SetSentRawMessageHandler (handler, parameter);
+		}
+
 		private void EnqueueUserData(ASDU asdu)
 		{
 			lock (userDataQueue) {
@@ -216,7 +226,7 @@ namespace lib60870.CS101
 
 		public override void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi) 
 		{
-			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
 
 			asdu.AddInformationObject (new InterrogationCommand (0, qoi));
 
@@ -225,7 +235,7 @@ namespace lib60870.CS101
 
 		public override void SendCounterInterrogationCommand(CauseOfTransmission cot, int ca, byte qcc)
 		{
-			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
 
 			asdu.AddInformationObject (new CounterInterrogationCommand(0, qcc));
 
@@ -234,7 +244,7 @@ namespace lib60870.CS101
 
 		public override void SendReadCommand(int ca, int ioa)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.REQUEST, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.REQUEST, false, false, (byte) parameters.OA, ca, false);
 
 			asdu.AddInformationObject(new ReadCommand(ioa));
 
@@ -243,7 +253,7 @@ namespace lib60870.CS101
 
 		public override void SendClockSyncCommand(int ca, CP56Time2a time)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
 
 			asdu.AddInformationObject (new ClockSynchronizationCommand (0, time));
 
@@ -252,7 +262,7 @@ namespace lib60870.CS101
 
 		public override void SendTestCommand(int ca)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
 
 			asdu.AddInformationObject (new TestCommand ());
 
@@ -261,7 +271,7 @@ namespace lib60870.CS101
 
 		public override void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
 		{
-			ASDU asdu = new ASDU(parameters, CauseOfTransmission.ACTIVATION, false, false, (byte)parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU(parameters, CauseOfTransmission.ACTIVATION, false, false, (byte)parameters.OA, ca, false);
 
 			asdu.AddInformationObject(new TestCommandWithCP56Time2a(tsc, time));
 
@@ -270,7 +280,7 @@ namespace lib60870.CS101
 
 		public override void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
 
 			asdu.AddInformationObject (new ResetProcessCommand(0, qrp));
 
@@ -279,7 +289,7 @@ namespace lib60870.CS101
 
 		public override void SendDelayAcquisitionCommand(CauseOfTransmission cot, int ca, CP16Time2a delay)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
 
 			asdu.AddInformationObject (new DelayAcquisitionCommand (0, delay));
 
@@ -288,7 +298,7 @@ namespace lib60870.CS101
 
 		public override void SendControlCommand(CauseOfTransmission cot, int ca, InformationObject sc)
 		{
-			ASDU controlCommand = new ASDU (parameters, cot, false, false, (byte) parameters.OriginatorAddress, ca, false);
+			ASDU controlCommand = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
 
 			controlCommand.AddInformationObject (sc);
 

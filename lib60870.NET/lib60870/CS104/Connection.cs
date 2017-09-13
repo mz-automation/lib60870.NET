@@ -115,12 +115,6 @@ namespace lib60870.CS104
 	public delegate void ConnectionHandler (object parameter, ConnectionEvent connectionEvent);
 
 	/// <summary>
-	/// Raw message handler. Can be used to access the raw message.
-	/// Returns true when message should be handled by the protocol stack, false, otherwise.
-	/// </summary>
-	public delegate bool RawMessageHandler (object parameter, byte[] message, int messageSize);
-
-	/// <summary>
 	/// A single connection to a CS 104 (IEC 60870-5-104) server
 	/// </summary>
 	public class Connection : Master
@@ -621,7 +615,7 @@ namespace lib60870.CS104
 		/// <exception cref="ConnectionException">description</exception>
 		public override void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi) 
 		{
-			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new InterrogationCommand (0, qoi));
 
@@ -637,7 +631,7 @@ namespace lib60870.CS104
 		/// <exception cref="ConnectionException">description</exception>
 		public override void SendCounterInterrogationCommand(CauseOfTransmission cot, int ca, byte qcc)
 		{
-			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, cot, false, false, (byte) alParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new CounterInterrogationCommand(0, qcc));
 
@@ -656,7 +650,7 @@ namespace lib60870.CS104
 		/// <exception cref="ConnectionException">description</exception>
 		public override void SendReadCommand(int ca, int ioa)
 		{
-			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.REQUEST, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.REQUEST, false, false, (byte) alParameters.OA, ca, false);
 
 			asdu.AddInformationObject(new ReadCommand(ioa));
 
@@ -671,7 +665,7 @@ namespace lib60870.CS104
 		/// <exception cref="ConnectionException">description</exception>
 		public override void SendClockSyncCommand(int ca, CP56Time2a time)
 		{
-			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new ClockSynchronizationCommand (0, time));
 
@@ -688,7 +682,7 @@ namespace lib60870.CS104
 		/// <exception cref="ConnectionException">description</exception>
 		public override void SendTestCommand(int ca)
 		{
-			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new TestCommand ());
 
@@ -704,7 +698,7 @@ namespace lib60870.CS104
         /// <exception cref="ConnectionException">description</exception>
 		public override void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
         {
-			ASDU asdu = new ASDU(alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte)alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU(alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte)alParameters.OA, ca, false);
 
             asdu.AddInformationObject(new TestCommandWithCP56Time2a(tsc, time));
 
@@ -720,7 +714,7 @@ namespace lib60870.CS104
         /// <exception cref="ConnectionException">description</exception>
 		public override void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
 		{
-			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new ResetProcessCommand(0, qrp));
 
@@ -737,7 +731,7 @@ namespace lib60870.CS104
 		/// <exception cref="ConnectionException">description</exception>
 		public override void SendDelayAcquisitionCommand(CauseOfTransmission cot, int ca, CP16Time2a delay)
 		{
-			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU asdu = new ASDU (alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) alParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new DelayAcquisitionCommand (0, delay));
 
@@ -765,7 +759,7 @@ namespace lib60870.CS104
 		/// <exception cref="ConnectionException">description</exception>
 		public override void SendControlCommand(CauseOfTransmission cot, int ca, InformationObject sc) {
 
-			ASDU controlCommand = new ASDU (alParameters, cot, false, false, (byte) alParameters.OriginatorAddress, ca, false);
+			ASDU controlCommand = new ASDU (alParameters, cot, false, false, (byte) alParameters.OA, ca, false);
 
 			controlCommand.AddInformationObject (sc);
 
