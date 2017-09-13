@@ -60,12 +60,12 @@ namespace lib60870.CS101
 			}
 		}
 
-		public int Address {
+		public int OwnAddress {
 			get {
-				return linkLayer.LinkLayerAddress;
+				return linkLayer.OwnAddress;
 			}
 			set {
-				linkLayer.LinkLayerAddress = value;
+				linkLayer.OwnAddress = value;
 			}
 		}
 
@@ -103,7 +103,7 @@ namespace lib60870.CS101
 			primaryLinkLayer = new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog);
 
 			linkLayer.SetPrimaryLinkLayer (primaryLinkLayer);
-			linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, HandleApplicationLayer, DebugLog));
+			linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, 0, HandleApplicationLayer, DebugLog));
 		}
 
 
@@ -112,6 +112,11 @@ namespace lib60870.CS101
 		{
 			asduReceivedHandler = handler;
 			asduReceivedHandlerParameter = parameter;
+		}
+
+		public void SetLinkLayerStateChangedHandler(LinkLayerStateChanged handler, object parameter)
+		{
+			primaryLinkLayer.SetLinkLayerStateChanged (handler, parameter);
 		}
 
 		private void EnqueueUserData(ASDU asdu)

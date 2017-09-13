@@ -27,6 +27,8 @@ using System.IO.Ports;
 namespace lib60870.linklayer
 {
 
+	public delegate void LinkLayerStateChanged (object parameter, LinkLayerState newState);
+
 	public enum LinkLayerState {
 		IDLE,
 		ERROR,
@@ -126,8 +128,6 @@ namespace lib60870.linklayer
 
 		private bool dir; /* ONLY for balanced link layer */
 
-		private int linkLayerAddress = 0;
-
 		public LinkLayer(byte[] buffer, LinkLayerParameters parameters, SerialTransceiverFT12 transceiver, Action<string> debugLog) {
 			this.buffer = buffer;
 			this.linkLayerParameters = parameters;
@@ -145,6 +145,17 @@ namespace lib60870.linklayer
 
 			return 0;
 		}
+
+
+		public int OwnAddress {
+			get {
+				return secondaryLinkLayer.Address;
+			}
+			set {
+				secondaryLinkLayer.Address = value;
+			}
+		}
+
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this balanced <see cref="lib60870.CS103.LinkLayer"/> has DIR bit set
@@ -183,15 +194,6 @@ namespace lib60870.linklayer
 			}
 			set {
 				linkLayerMode = value;
-			}
-		}
-
-		public int LinkLayerAddress {
-			set {
-				this.linkLayerAddress = value;
-			}
-			get {
-				return this.linkLayerAddress;
 			}
 		}
 
@@ -315,7 +317,7 @@ namespace lib60870.linklayer
 			transceiver.SendMessage (buffer, bufPos);
 		}
 
-		internal void SendVariableLengthFrameSecondary(FunctionCodeSecondary fc, bool acd, bool dfc, BufferFrame frame) 
+		internal void SendVariableLengthFrameSecondary(FunctionCodeSecondary fc, int address, bool acd, bool dfc, BufferFrame frame) 
 		{
 			buffer [0] = 0x68; /* START */
 			buffer [3] = 0x68; /* START */
@@ -336,10 +338,10 @@ namespace lib60870.linklayer
 			int bufPos = 5;
 
 			if (linkLayerParameters.AddressLength > 0) {
-				buffer [bufPos++] = (byte) (linkLayerAddress % 0x100);
+				buffer [bufPos++] = (byte) (address % 0x100);
 
 				if (linkLayerParameters.AddressLength > 1)
-					buffer [bufPos++] = (byte) ((linkLayerAddress / 0x100) % 0x100);			
+					buffer [bufPos++] = (byte) ((address / 0x100) % 0x100);			
 			}
 
 			byte[] userData = frame.GetBuffer ();
@@ -435,7 +437,7 @@ namespace lib60870.linklayer
 				}
 
 			} else {
-				if (address != linkLayerAddress) {
+				if (address != secondaryLinkLayer.Address) {
 					DebugLog ("INFO: unknown link layer address -> ignore message");
 					return;
 				}

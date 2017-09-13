@@ -29,72 +29,15 @@ namespace cs101_master_balanced
 {
 	class MainClass
 	{
+
+		private static void linkLayerStateChanged (object parameter, lib60870.linklayer.LinkLayerState newState)
+		{
+			Console.WriteLine ("LL state event: " + newState.ToString ());
+		}
+
 		private static bool asduReceivedHandler(object parameter, ASDU asdu)
 		{
 			Console.WriteLine (asdu.ToString ());
-
-			if (asdu.TypeId == TypeID.M_SP_NA_1) {
-
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-
-					var val = (SinglePointInformation)asdu.GetElement (i);
-
-					Console.WriteLine ("  IOA: " + val.ObjectAddress + " SP value: " + val.Value);
-					Console.WriteLine ("   " + val.Quality.ToString ());
-				}
-			} 
-			else if (asdu.TypeId == TypeID.M_ME_TE_1) {
-
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-
-					var msv = (MeasuredValueScaledWithCP56Time2a)asdu.GetElement (i);
-
-					Console.WriteLine ("  IOA: " + msv.ObjectAddress + " scaled value: " + msv.ScaledValue);
-					Console.WriteLine ("   " + msv.Quality.ToString ());
-					Console.WriteLine ("   " + msv.Timestamp.ToString ());
-				}
-
-			} else if (asdu.TypeId == TypeID.M_ME_TF_1) {
-
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-					var mfv = (MeasuredValueShortWithCP56Time2a)asdu.GetElement (i);
-
-					Console.WriteLine ("  IOA: " + mfv.ObjectAddress + " float value: " + mfv.Value);
-					Console.WriteLine ("   " + mfv.Quality.ToString ());
-					Console.WriteLine ("   " + mfv.Timestamp.ToString ());
-					Console.WriteLine ("   " + mfv.Timestamp.GetDateTime ().ToString ());
-				}
-			} else if (asdu.TypeId == TypeID.M_SP_TB_1) {
-
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-
-					var val = (SinglePointWithCP56Time2a)asdu.GetElement (i);
-
-					Console.WriteLine ("  IOA: " + val.ObjectAddress + " SP value: " + val.Value);
-					Console.WriteLine ("   " + val.Quality.ToString ());
-					Console.WriteLine ("   " + val.Timestamp.ToString ());
-				}
-			} else if (asdu.TypeId == TypeID.M_ME_NC_1) {
-
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-					var mfv = (MeasuredValueShort)asdu.GetElement (i);
-
-					Console.WriteLine ("  IOA: " + mfv.ObjectAddress + " float value: " + mfv.Value);
-					Console.WriteLine ("   " + mfv.Quality.ToString ());
-				}
-			} else if (asdu.TypeId == TypeID.M_ME_NB_1) {
-
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-
-					var msv = (MeasuredValueScaled)asdu.GetElement (i);
-
-					Console.WriteLine ("  IOA: " + msv.ObjectAddress + " scaled value: " + msv.ScaledValue);
-					Console.WriteLine ("   " + msv.Quality.ToString ());
-				}
-
-			} else {
-				Console.WriteLine ("Unknown message type!");
-			}
 
 			return true;
 		}
@@ -124,6 +67,7 @@ namespace cs101_master_balanced
 			CS101MasterBalanced master = new CS101MasterBalanced (port);
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
+			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 

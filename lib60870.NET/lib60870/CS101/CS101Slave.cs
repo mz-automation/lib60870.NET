@@ -471,13 +471,11 @@ namespace lib60870
 					linkLayer = new LinkLayer (buffer, linkLayerParameters, transceiver, DebugLog);
 					linkLayer.LinkLayerMode = linkLayerMode;
 
-					linkLayer.LinkLayerAddress = linkLayerAddress;
-
 					if (linkLayerMode == LinkLayerMode.BALANCED) {
 						linkLayer.SetPrimaryLinkLayer (new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog));
-						linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, HandleApplicationLayer, DebugLog));
+						linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, linkLayerAddress, HandleApplicationLayer, DebugLog));
 					} else {
-						linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerUnbalanced (linkLayer, this, DebugLog));
+						linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerUnbalanced (linkLayer, linkLayerAddress, this, DebugLog));
 					}
 
 					initialized = true;
