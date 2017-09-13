@@ -8,7 +8,7 @@ using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
 
-namespace tlsclient
+namespace cs104_tls_client
 {
 	class MainClass
 	{

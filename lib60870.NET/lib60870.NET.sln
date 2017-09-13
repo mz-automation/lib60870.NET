@@ -17,13 +17,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMasterSlave", "TestMast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "slave1", "slave1\slave1.csproj", "{C48F029B-D26C-47E9-9958-994543664DB7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-multi-client-server", "multi-client-server\cs104-multi-client-server.csproj", "{F19997DD-3182-46C0-9776-E23AC6C5ACBC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-multi-client-server", "cs104-multi-client-server\cs104-multi-client-server.csproj", "{F19997DD-3182-46C0-9776-E23AC6C5ACBC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "testclient3", "testclient3\testclient3.csproj", "{05875DE2-6036-46E9-A656-BACB47D6E5F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tlsserver", "tlsserver\tlsserver.csproj", "{CB566E9F-4814-40AD-ACA2-BDB598D7C174}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-tls-server", "tlsserver\cs104-tls-server.csproj", "{CB566E9F-4814-40AD-ACA2-BDB598D7C174}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tlsclient", "tlsclient\tlsclient.csproj", "{D770BDE6-5A88-4F22-9698-011356C4D505}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-tls-client", "tlsclient\cs104-tls-client.csproj", "{D770BDE6-5A88-4F22-9698-011356C4D505}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-master-unbalanced", "cs101_master_unbalanced\cs101-master-unbalanced.csproj", "{7B9B0905-91BE-4D13-849E-44B77E82607B}"
 EndProject
