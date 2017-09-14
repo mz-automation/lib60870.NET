@@ -26,7 +26,9 @@ using System.IO.Ports;
 
 namespace lib60870.linklayer
 {
-
+	/// <summary>
+	/// Will be called by the stack when the state of a balanced connection changes
+	/// </summary>
 	public delegate void LinkLayerStateChanged (object parameter, LinkLayerState newState);
 
 	public enum LinkLayerState {
@@ -42,7 +44,7 @@ namespace lib60870.linklayer
 	}
 
 	/* Function codes for unbalanced transmission */
-	public enum FunctionCodePrimary {
+	internal enum FunctionCodePrimary {
 		RESET_REMOTE_LINK = 0, /* Reset CU (communication unit) */
 		RESET_USER_PROCESS = 1,
 		TEST_FUNCTION_FOR_LINK = 2,
@@ -56,7 +58,7 @@ namespace lib60870.linklayer
 	}
 
 	/* Function codes for unbalanced transmission */
-	public enum FunctionCodeSecondary {
+	internal enum FunctionCodeSecondary {
 		ACK = 0,
 		NACK = 1,
 		RESP_USER_DATA = 8,
@@ -66,6 +68,9 @@ namespace lib60870.linklayer
 		LINK_SERVICE_NOT_IMPLEMENTED = 15
 	}
 
+	/// <summary>
+	/// Link layer specific parameters.
+	/// </summary>
 	public class LinkLayerParameters {
 		private int addressLength = 1; /* 0/1/2 bytes */
 		private int timeoutForACK = 200; /* timeout for ACKs in ms */

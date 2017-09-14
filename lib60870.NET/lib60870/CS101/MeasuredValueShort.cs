@@ -84,7 +84,7 @@ namespace lib60870.CS101
 			quality = new QualityDescriptor (msg [startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			byte[] floatEncoded = BitConverter.GetBytes (value);
@@ -142,7 +142,7 @@ namespace lib60870.CS101
 			timestamp = new CP24Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());
@@ -194,7 +194,7 @@ namespace lib60870.CS101
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (timestamp.GetEncodedValue ());

@@ -102,7 +102,7 @@ namespace lib60870.CS101
 			this.qos = new SetpointCommandQualifier (msg [startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
             frame.AppendBytes(scaledValue.GetEncodedValue());
@@ -157,7 +157,7 @@ namespace lib60870.CS101
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());
@@ -216,7 +216,7 @@ namespace lib60870.CS101
 			this.qos = new SetpointCommandQualifier (msg [startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.scaledValue.GetEncodedValue ());
@@ -265,7 +265,7 @@ namespace lib60870.CS101
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());
@@ -325,7 +325,7 @@ namespace lib60870.CS101
 			this.qos = new SetpointCommandQualifier (msg [startIndex++]);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (System.BitConverter.GetBytes (value));
@@ -374,7 +374,7 @@ namespace lib60870.CS101
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());
@@ -425,7 +425,7 @@ namespace lib60870.CS101
 			value += ((uint)msg [startIndex++] * 0x1000000);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.SetNextByte ((byte) (value % 256));
@@ -475,7 +475,7 @@ namespace lib60870.CS101
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			base.Encode(frame, parameters, isSequence);
 
 			frame.AppendBytes (this.timestamp.GetEncodedValue ());

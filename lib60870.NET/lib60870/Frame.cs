@@ -29,7 +29,10 @@ using System.Threading;
 
 namespace lib60870
 {
-	internal abstract class Frame
+	/// <summary>
+	/// Abstract class to encode an application layer frame
+	/// </summary>
+	public abstract class Frame
 	{
 		public abstract void ResetFrame ();
 

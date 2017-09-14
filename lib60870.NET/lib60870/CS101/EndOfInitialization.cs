@@ -80,7 +80,7 @@ namespace lib60870.CS101
             coi = msg[startIndex];
         }
 
-		internal override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
 

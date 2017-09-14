@@ -22,6 +22,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace lib60870.CS101
 {
@@ -42,7 +43,7 @@ namespace lib60870.CS101
 			return ioa;
 		}
 
-		internal InformationObject (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
+		protected InformationObject (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
 		{
 			if (!isSequence)
 				objectAddress = ParseInformationObjectAddress (parameters, msg, startIndex);
@@ -53,9 +54,9 @@ namespace lib60870.CS101
 		}
 
 		/// <summary>
-		/// Gets the encoded size of the object (without the IOA)
+		/// Gets the encoded payload size of the object (information object size without the IOA)
 		/// </summary>
-		/// <returns>The encoded size.</returns>
+		/// <returns>The encoded size in bytes</returns>
 		public abstract int GetEncodedSize();
 
 		public int ObjectAddress {
@@ -67,15 +68,23 @@ namespace lib60870.CS101
 			}
 		}
 			
+		/// <summary>
+		/// Indicates if this information object type supports sequence of information objects encoding
+		/// </summary>
+		/// <value><c>true</c> if supports sequence encoding; otherwise, <c>false</c>.</value>
 		public abstract bool SupportsSequence {
 			get;
 		}
 
+		/// <summary>
+		/// The type ID (message type) of the information object type
+		/// </summary>
+		/// <value>The type.</value>
 		public abstract TypeID Type {
 			get;
 		}
 
-		internal virtual void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+		public virtual void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
 			if (!isSequence) {
 				frame.SetNextByte ((byte)(objectAddress & 0xff));
 
@@ -86,8 +95,48 @@ namespace lib60870.CS101
 					frame.SetNextByte ((byte)((objectAddress / 0x10000) & 0xff));
 			}
 		}
-
-
+			
 	}
+
+	public interface IPrivateIOFactory
+	{
+		/// <summary>
+		/// Decode the information object and create a new InformationObject instance
+		/// </summary>
+		/// <param name="parameters">Application layer parameters required for decoding</param>
+		/// <param name="msg">the received message</param>
+		/// <param name="startIndex">start index of the payload in the message</param>
+		/// <param name="isSequence">If set to <c>true</c> is sequence.</param>
+		InformationObject Decode (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence);
+
+		/// <summary>
+		/// Gets the encoded payload size of the object (information object size without the IOA)
+		/// </summary>
+		/// <returns>The encoded size in bytes</returns>
+		int GetEncodedSize();
+	}
+
+	/// <summary>
+	/// Hold a list of private information object (IO) types to be used for parsing
+	/// </summary>
+	public class PrivateInformationObjectTypes {
+
+		private Dictionary<TypeID, IPrivateIOFactory> privateTypes = new Dictionary<TypeID, IPrivateIOFactory>();
+
+		public void AddPrivateInformationObjectType(TypeID typeId, IPrivateIOFactory iot)
+		{
+			privateTypes.Add (typeId, iot); 
+		}
+
+		internal IPrivateIOFactory GetFactory(TypeID typeId)
+		{
+			IPrivateIOFactory factory = null;
+
+			privateTypes.TryGetValue (typeId, out factory); 
+
+			return factory;
+		}
+	}
+		
 }
 

@@ -287,6 +287,16 @@ namespace lib60870.CS101
 			}
 		}
 
+
+		private PrivateInformationObjectTypes privateObjectTypes = null;
+
+		public InformationObject GetElement(int index, PrivateInformationObjectTypes privateObjectTypes)
+		{
+			this.privateObjectTypes = privateObjectTypes;
+
+			return GetElement (index);
+		}
+
 		public InformationObject GetElement(int index)
 		{
 			InformationObject retVal = null;
@@ -1036,8 +1046,31 @@ namespace lib60870.CS101
 			/* 114 - 119 reserved */
 
 			default:
-				throw new ASDUParsingException ("Unknown ASDU type id:" + typeId);
+				if (privateObjectTypes != null) {
+				
+					IPrivateIOFactory ioFactory = privateObjectTypes.GetFactory (typeId);
+
+					if (ioFactory != null) {
+					
+						elementSize = parameters.SizeOfIOA + ioFactory.GetEncodedSize ();
+
+						if (IsSquence) {
+							
+							int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
+
+							retVal = ioFactory.Decode (parameters, payload, index * elementSize, true);
+
+							retVal.ObjectAddress = ioa + index;
+						} else
+							retVal = ioFactory.Decode (parameters, payload, index * elementSize, false);
+
+					}
+				}
+				break;
 			}
+
+			if (retVal == null)
+				throw new ASDUParsingException ("Unknown ASDU type id:" + typeId);
 
 			return retVal;
 		}

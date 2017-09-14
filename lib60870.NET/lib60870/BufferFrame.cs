@@ -23,6 +23,9 @@ using System;
 
 namespace lib60870
 {
+	/// <summary>
+	/// Implementation of Frame to encode into a given byte array
+	/// </summary>
 	internal class BufferFrame : Frame {
 
 		private byte[] buffer;

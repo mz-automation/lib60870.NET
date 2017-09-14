@@ -89,6 +89,8 @@ namespace cs101_slave_unbalanced {
 			CS101Slave slave = new CS101Slave (port);
 			slave.DebugOutput = false;
 			slave.LinkLayerAddress = 1;
+
+			// for using the slave in balanced mode simple change the mode here:
 			slave.LinkLayerMode = lib60870.linklayer.LinkLayerMode.UNBALANCED;
 
 			slave.SetInterrogationHandler (myInterrogationHandler, null);

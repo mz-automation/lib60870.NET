@@ -47,6 +47,10 @@ To use the Connection class you have to import the lib60870.CS104 namespace into
 
   using lib60870.CS104;
 
+=== Preparing a CS101 connection to one or more slaves
+
+CS101 provides two kinds of serial connection mode to that slave
+
 === Sending a read request
 
 The IEC 60870 documents don't recommend this service (cyclical data requests or polling) but it is an easy way to get the required data. You just need to know the common address (CA) and the information object address (IOA) to create the proper request.

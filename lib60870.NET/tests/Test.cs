@@ -8,6 +8,76 @@ using lib60870.CS104;
 
 namespace tests
 {
+	class TestInteger32Object : InformationObject, IPrivateIOFactory
+	{
+		private int value = 0;
+
+		public TestInteger32Object ()
+			: base (0)
+		{
+		}
+
+		public TestInteger32Object(int ioa, int value)
+			:base (ioa)
+		{
+			this.value = value;
+		}
+
+		public int Value {
+			get {
+				return this.value;
+			}
+			set {
+				this.value = value;
+			}
+		}
+
+		private TestInteger32Object (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
+			:base(parameters, msg, startIndex, isSequence)
+		{
+			if (!isSequence)
+				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			value = msg [startIndex++];
+			value += ((int)msg [startIndex++] * 0x100);
+			value += ((int)msg [startIndex++] * 0x10000);
+			value += ((int)msg [startIndex++] * 0x1000000);
+		}
+
+		public override bool SupportsSequence {
+			get {
+				return true;
+			}
+		}
+
+		public override TypeID Type {
+			get {
+				return (TypeID)41;
+			}
+		}
+
+		InformationObject IPrivateIOFactory.Decode (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
+		{
+			return new TestInteger32Object (parameters, msg, startIndex, isSequence);
+		}
+
+		public override int GetEncodedSize()
+		{
+			return 4;
+		}
+
+		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
+			base.Encode(frame, parameters, isSequence);
+
+			frame.SetNextByte((byte) (value % 0x100));
+			frame.SetNextByte((byte) ((value / 0x100) % 0x100));
+			frame.SetNextByte((byte) ((value / 0x10000) % 0x100));
+			frame.SetNextByte((byte) (value / 0x1000000));
+		}
+	}
+
+
+
 	[TestFixture ()]
 	public class Test
 	{
@@ -1097,6 +1167,53 @@ namespace tests
 			server.Stop ();
 
 			Assert.AreEqual (sendValue, recvValue, 0.001);
+		}
+
+		[Test()]
+		public void TestEncodeDecodePrivateInformationObject()
+		{
+			Server server = new Server ();
+			server.SetLocalPort (20213);
+
+			int recvValue = 0;
+			int sendValue = 12345;
+			bool hasReceived = false;
+
+			PrivateInformationObjectTypes privateObjects = new PrivateInformationObjectTypes ();
+			privateObjects.AddPrivateInformationObjectType ((TypeID)41, new TestInteger32Object ());
+
+			server.SetASDUHandler(delegate(object parameter, IMasterConnection con, ASDU asdu) {
+
+				if (asdu.TypeId == (TypeID)41) {
+
+					TestInteger32Object spn = (TestInteger32Object) asdu.GetElement(0, privateObjects);
+
+					recvValue = spn.Value;
+					hasReceived = true;
+				}
+
+				return true;
+			}, null);
+
+			server.Start ();
+
+			Connection connection = new Connection ("127.0.0.1", 20213);
+			connection.Connect ();
+
+			ASDU newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.ACTIVATION, false, false, 0, 1, false);
+
+			newAsdu.AddInformationObject (new TestInteger32Object (100, sendValue));
+
+			connection.SendASDU (newAsdu);
+
+			while (hasReceived == false)
+				Thread.Sleep (50);
+
+			connection.Close ();
+			server.Stop ();
+
+			Assert.AreEqual (sendValue, recvValue);
+		
 		}
 	}
 }
