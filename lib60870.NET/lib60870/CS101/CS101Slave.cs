@@ -446,8 +446,7 @@ namespace lib60870
 
 				return true;
 			}
-
-
+				
 			private BufferFrame GetUserData()
 			{
 				if (IsUserDataClass1Available ())

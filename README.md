@@ -1,8 +1,8 @@
-# README lib60870
+# README lib60870 (v2 development branch)
 
 lib60870 library for IEC 60870-5 based protocols in C and C#
 
-The current implementation contains code for the IEC 60870-5-104 protocol only.
+The current implementation contains code for the IEC 60870-5-101/104 protocols only.
 
 Support for other protocol parts (companion standards - CS) like IEC 60870-5-101 (serial line link layer), IEC 60870-5-102 (CS for electricity meters) and IEC 60870-5-103 (CS for protection equipment) will be provided in future versions.
 
