@@ -179,7 +179,6 @@ namespace lib60870.CS104
         private long lastConfirmationTime; /* timestamp when the last confirmation message was sent */
 
         private Socket socket;
-        //private NetworkStream netStream = null;
         private Stream netStream = null;
         private TlsSecurityInformation tlsSecInfo = null;
 
@@ -862,6 +861,11 @@ namespace lib60870.CS104
             SendASDUInternal(asdu);
         }
 
+        public override ApplicationLayerParameters GetApplicationLayerParameters()
+        {
+            return alParameters;
+        }
+
         /// <summary>
         /// Start data transmission on this connection
         /// </summary>
@@ -912,11 +916,31 @@ namespace lib60870.CS104
         }
 
 
+        protected void SendStartDT_CON()
+        {
+            if (running)
+            {
+                netStream.Write(STARTDT_CON_MSG, 0, STARTDT_CON_MSG.Length);
+                statistics.SentMsgCounter++;
+                if (sentMessageHandler != null)
+                {
+                    sentMessageHandler(sentMessageHandlerParameter, STARTDT_CON_MSG, 6);
+                }
+            }
+            else
+            {
+                if (lastException != null)
+                    throw new ConnectionException(lastException.Message, lastException);
+                else
+                    throw new ConnectionException("not connected", new SocketException(10057));
+            }
+        }
+
         protected void SendStopDT_CON()
         {
             if (running)
             {
-                socket.Send(STOPDT_CON_MSG);
+                netStream.Write(STOPDT_CON_MSG, 0, STOPDT_CON_MSG.Length);
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -936,7 +960,7 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                socket.Send(TESTFR_ACT_MSG);
+                netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -956,7 +980,7 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                socket.Send(TESTFR_CON_MSG);
+                netStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {

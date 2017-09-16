@@ -32,11 +32,23 @@ namespace lib60870
     public static class SystemUtils
     {
         private static DateTime Jan1st1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-       
+
         public static long currentTimeMillis()
         {
             return (long)((DateTime.UtcNow - Jan1st1970).TotalMilliseconds);
         }
+
+        public static long ToTimeMillis(DateTime time)
+        {
+            return (long)((time.ToUniversalTime() - Jan1st1970).TotalMilliseconds);
+        }
+
+        public static DateTime FromMillis(long millis)
+        {
+            DateTime dtDateTime = Jan1st1970;
+            dtDateTime = dtDateTime.AddMilliseconds(millis).ToLocalTime();
+            return dtDateTime;
+        }
+
     }
-	
 }

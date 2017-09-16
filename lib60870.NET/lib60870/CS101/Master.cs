@@ -147,6 +147,12 @@ namespace lib60870.CS101
 		/// </summary>
 		/// <param name="asdu">The ASDU to send</param>
 		public abstract void SendASDU(ASDU asdu);
+
+        /// <summary>
+        /// Get the application layer parameters used by this master instance
+        /// </summary>
+        /// <returns>used application layer parameters</returns>
+        public abstract ApplicationLayerParameters GetApplicationLayerParameters();
 	}
 		
 }
