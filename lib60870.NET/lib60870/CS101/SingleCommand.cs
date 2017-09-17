@@ -87,6 +87,10 @@ namespace lib60870.CS101
 			get {
 				return ((sco & 0x7c) / 4);
 			}
+			set {
+				sco = (byte)(sco & 0x81);
+				sco += (byte)((value & 0x1f) * 4);
+			}
 		}
 
 		/// <summary>
@@ -97,6 +101,12 @@ namespace lib60870.CS101
 			get {
 				return ((sco & 0x01) == 0x01);
 			}
+			set {
+				if (value)
+					sco |= 0x01;
+				else
+					sco &= 0xfe;
+			}
 		}
 
 		/// <summary>
@@ -106,6 +116,12 @@ namespace lib60870.CS101
 		public bool Select {
 			get {
 				return ((sco & 0x80) == 0x80);
+			}
+			set {
+				if (value)
+					sco |= 0x80;
+				else
+					sco &= 0x7f;
 			}
 		}
 
