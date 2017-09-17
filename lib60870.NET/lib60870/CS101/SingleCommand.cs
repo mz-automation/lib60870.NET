@@ -71,6 +71,9 @@ namespace lib60870.CS101
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			sco = msg [startIndex++];
 		}
 
@@ -144,7 +147,12 @@ namespace lib60870.CS101
 		internal SingleCommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 1; /* skip IOA + SCQ*/
+			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 1; /* SCO */
 
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
@@ -192,6 +200,9 @@ namespace lib60870.CS101
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			dcq = msg [startIndex++];
 		}
@@ -252,7 +263,12 @@ namespace lib60870.CS101
 		internal DoubleCommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 1; /* skip IOA + DCQ*/
+			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 1; /* DCQ */
 
 			timestamp = new CP56Time2a (msg, startIndex);
 		}
@@ -327,7 +343,12 @@ namespace lib60870.CS101
 		internal StepCommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 1; /* skip IOA + DCQ*/
+			startIndex += parameters.SizeOfIOA + 1; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 1; /* step command value */
 
 			timestamp = new CP56Time2a (msg, startIndex);
 		}

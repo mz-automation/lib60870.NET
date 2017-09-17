@@ -23,6 +23,7 @@ using System;
 
 namespace lib60870
 {
+	[Serializable]
 	public class ASDUParsingException : Exception
 	{
 
