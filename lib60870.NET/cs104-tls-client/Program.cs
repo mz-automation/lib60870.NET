@@ -117,6 +117,16 @@ namespace cs104_tls_client
 
 		public static void Main (string[] args)
 		{
+            string hostname = "127.0.0.1";
+
+            if (args.Length > 0)
+            {
+                hostname = args[0];
+
+                Console.WriteLine("Using hostname: " + hostname);
+            }
+
+
 			Console.WriteLine ("Using lib60870.NET version " + LibraryCommon.GetLibraryVersionString ());
 
 			// Own certificate has to be a pfx file that contains the private key
@@ -137,7 +147,7 @@ namespace cs104_tls_client
 			// Check that the shown server certificate is in the list of allowed certificates
 			secInfo.AllowOnlySpecificCertificates = true;
 
-			Connection con = new Connection ("127.0.0.1");
+			Connection con = new Connection (hostname);
 
 			// Set security information object, this will force the connection using TLS (using TCP port 19998)
 			con.SetTlsSecurity (secInfo);

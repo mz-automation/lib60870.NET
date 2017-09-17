@@ -186,7 +186,7 @@ namespace lib60870.CS104
 
 
         private string hostname;
-        private int tcpPort;
+        protected int tcpPort;
 
         private bool running = false;
         private bool connecting = false;
@@ -1278,8 +1278,6 @@ namespace lib60870.CS104
                 socket.NoDelay = true;
 
                 netStream = new NetworkStream(socket);
-                netStream.ReadTimeout = 50;
-
             }
             else
             {
@@ -1386,7 +1384,6 @@ namespace lib60870.CS104
                     newChain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
                     newChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
                     newChain.ChainPolicy.VerificationTime = DateTime.Now;
-                    newChain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 0, 0);
 
                     foreach (X509Certificate2 caCert in tlsSecInfo.CaCertificates)
                         newChain.ChainPolicy.ExtraStore.Add(caCert);
@@ -1459,6 +1456,9 @@ namespace lib60870.CS104
                             catch (IOException e)
                             {
 
+                                Console.WriteLine(e.ToString());
+                                Console.WriteLine(e.StackTrace);
+
                                 string message;
 
                                 if (e.GetBaseException() != null)
@@ -1472,7 +1472,7 @@ namespace lib60870.CS104
 
                                 DebugLog("TLS authentication error: " + message);
 
-                                throw new SocketException();
+                                throw new SocketException(10060);
                             }
 
                             if (sslStream.IsAuthenticated)
@@ -1481,10 +1481,12 @@ namespace lib60870.CS104
                             }
                             else
                             {
-                                throw new SocketException();
+                                throw new SocketException(10060);
                             }
 
                         }
+
+                        netStream.ReadTimeout = 50;
 
                         if (autostart)
                         {
