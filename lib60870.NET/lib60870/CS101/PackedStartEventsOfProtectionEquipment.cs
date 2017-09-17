@@ -92,6 +92,9 @@ namespace lib60870.CS101
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			spe = new StartEvent (msg [startIndex++]);
 			qdp = new QualityDescriptorP (msg [startIndex++]);
 
@@ -179,6 +182,9 @@ namespace lib60870.CS101
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			spe = new StartEvent (msg [startIndex++]);
 			qdp = new QualityDescriptorP (msg [startIndex++]);

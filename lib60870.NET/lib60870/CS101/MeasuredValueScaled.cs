@@ -78,6 +78,9 @@ namespace lib60870.CS101
 			if (!isSquence) 
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			scaledValue = new ScaledValue (msg, startIndex);
 			startIndex += 2;
 
@@ -133,6 +136,9 @@ namespace lib60870.CS101
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			startIndex += 3; /* scaledValue + QDS */
 
 			/* parse CP56Time2a (time stamp) */
@@ -184,6 +190,9 @@ namespace lib60870.CS101
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			startIndex += 3; /* scaledValue + QDS */
 

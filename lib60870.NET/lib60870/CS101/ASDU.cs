@@ -281,6 +281,10 @@ namespace lib60870.CS101
 			}
 		}
 
+		/// <summary>
+		/// Gets the number of elements (information objects) of the ASDU
+		/// </summary>
+		/// <value>The number of information objects.</value>
 		public int NumberOfElements {
 			get {
 				return (vsq & 0x7f);
@@ -290,6 +294,13 @@ namespace lib60870.CS101
 
 		private PrivateInformationObjectTypes privateObjectTypes = null;
 
+		/// <summary>
+		/// Gets the element (information object) with the specified index. This function supports private information object types.
+		/// </summary>
+		/// <returns>the information object at index</returns>
+		/// <param name="index">index of the element (starting with 0)</param>
+		/// <param name="privateObjectTypes">known private information object types</param>
+		/// <exception cref="lib60870.ASDUParsingException">Thrown when there is a problem parsing the ASDU</exception>
 		public InformationObject GetElement(int index, PrivateInformationObjectTypes privateObjectTypes)
 		{
 			this.privateObjectTypes = privateObjectTypes;
@@ -297,8 +308,17 @@ namespace lib60870.CS101
 			return GetElement (index);
 		}
 
+		/// <summary>
+		/// Gets the element (information object) with the specified index
+		/// </summary>
+		/// <returns>the information object at index</returns>
+		/// <param name="index">index of the element (starting with 0)</param>
+		/// <exception cref="lib60870.ASDUParsingException">Thrown when there is a problem parsing the ASDU</exception>
 		public InformationObject GetElement(int index)
 		{
+			if (index >= NumberOfElements)
+				throw new ASDUParsingException ("Index out of range");
+
 			InformationObject retVal = null;
 
 			int elementSize;

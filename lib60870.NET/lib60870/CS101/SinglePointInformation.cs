@@ -66,6 +66,9 @@ namespace lib60870.CS101
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			/* parse SIQ (single point information with qualitiy) */
 			byte siq = msg [startIndex++];
 
@@ -126,6 +129,9 @@ namespace lib60870.CS101
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 		
 			startIndex += 1; /* skip SIQ */
 
@@ -180,6 +186,9 @@ namespace lib60870.CS101
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			startIndex += 1; /* skip SIQ */
 
@@ -246,6 +255,9 @@ namespace lib60870.CS101
 		{
 			if (!isSquence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			scd = new StatusAndStatusChangeDetection (msg, startIndex);
 			startIndex += 4;

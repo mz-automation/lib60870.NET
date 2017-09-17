@@ -32,6 +32,9 @@ namespace lib60870.CS101
 
 		internal static int ParseInformationObjectAddress(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
 		{
+			if (msg.Length - startIndex < parameters.SizeOfIOA)
+				throw new ASDUParsingException ("Message to short");
+
 			int ioa = msg [startIndex];
 
 			if (parameters.SizeOfIOA > 1)

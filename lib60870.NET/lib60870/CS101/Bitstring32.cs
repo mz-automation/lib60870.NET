@@ -72,6 +72,9 @@ namespace lib60870.CS101
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			value = msg [startIndex++];
 			value += ((uint)msg [startIndex++] * 0x100);
 			value += ((uint)msg [startIndex++] * 0x10000);
@@ -131,6 +134,9 @@ namespace lib60870.CS101
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			startIndex += 5; /* value + quality */
 
 			/* parse CP24Time2a (time stamp) */
@@ -181,6 +187,9 @@ namespace lib60870.CS101
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			startIndex += 5; /* value + quality */
 

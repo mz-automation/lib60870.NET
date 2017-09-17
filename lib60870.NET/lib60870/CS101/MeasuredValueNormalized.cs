@@ -92,6 +92,9 @@ namespace lib60870.CS101
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			scaledValue = new ScaledValue (msg, startIndex);
 		}
 
@@ -145,9 +148,12 @@ namespace lib60870.CS101
 			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
-				startIndex += parameters.SizeOfIOA + 2; /* skip IOA + normalized value */
-			else
-				startIndex += 2; /* normalized value */
+				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 2; /* normalized value */
 
 			/* parse QDS (quality) */
 			quality = new QualityDescriptor (msg [startIndex++]);
@@ -206,6 +212,9 @@ namespace lib60870.CS101
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			startIndex += 3; /* normalized value + quality */
 
 			/* parse CP24Time2a (time stamp) */
@@ -262,6 +271,9 @@ namespace lib60870.CS101
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			startIndex += 3; /* normalized value + quality */
 

@@ -84,6 +84,9 @@ namespace lib60870.CS101
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			qoi = msg [startIndex++];
 		}
 
@@ -137,6 +140,9 @@ namespace lib60870.CS101
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			qcc = msg [startIndex++];
 		}
@@ -253,6 +259,9 @@ namespace lib60870.CS101
 		{
             startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
             tsc = msg[startIndex++];
             tsc += (ushort) (msg[startIndex++] * 256);
 
@@ -305,6 +314,9 @@ namespace lib60870.CS101
 		base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			if (msg [startIndex++] != 0xcc)
 				valid = false;
@@ -360,6 +372,9 @@ namespace lib60870.CS101
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			/* parse CP56Time2a (time stamp) */
 			newTime = new CP56Time2a (msg, startIndex);
 		}
@@ -414,6 +429,9 @@ namespace lib60870.CS101
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			qrp = msg [startIndex++];
 		}
 
@@ -463,6 +481,9 @@ namespace lib60870.CS101
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			/* parse CP16Time2a (time stamp) */
 			delay = new CP16Time2a (msg, startIndex);

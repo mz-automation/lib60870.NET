@@ -96,6 +96,9 @@ namespace lib60870.CS101
 		{
             startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
             scaledValue = new ScaledValue(msg, startIndex);
             startIndex += 2;
 
@@ -152,7 +155,12 @@ namespace lib60870.CS101
 		internal SetpointCommandNormalizedWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 3; /* skip IOA */
+			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 3; /* normalized value + qualifier */
 
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
@@ -210,6 +218,9 @@ namespace lib60870.CS101
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			scaledValue = new ScaledValue (msg, startIndex);
 			startIndex += 2;
 
@@ -260,7 +271,12 @@ namespace lib60870.CS101
 		internal SetpointCommandScaledWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 3; /* skip IOA */
+			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 3; /* scaled value + qualifier */
 
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
@@ -318,6 +334,9 @@ namespace lib60870.CS101
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
 			/* parse float value */
 			value = System.BitConverter.ToSingle (msg, startIndex);
 			startIndex += 4;
@@ -369,7 +388,12 @@ namespace lib60870.CS101
 		internal SetpointCommandShortWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 5; /* skip IOA + float + QOS*/
+			startIndex += parameters.SizeOfIOA;
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 5; /* skip IOA + float + QOS*/
 
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}
@@ -418,6 +442,9 @@ namespace lib60870.CS101
 			base(parameters, msg, startIndex, false)
 		{
 			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
 
 			value = msg [startIndex++];
 			value += ((uint)msg [startIndex++] * 0x100);
@@ -470,7 +497,12 @@ namespace lib60870.CS101
 		internal Bitstring32CommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 4; /* skip IOA + bitstring */
+			startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
+			startIndex += 4; /* bitstring */
 
 			this.timestamp = new CP56Time2a (msg, startIndex);
 		}

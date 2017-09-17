@@ -77,6 +77,9 @@ namespace lib60870.CS101
         {
             startIndex += parameters.SizeOfIOA; /* skip IOA */
 
+			if ((msg.Length - startIndex) < GetEncodedSize())
+				throw new ASDUParsingException("Message too small");
+
             coi = msg[startIndex];
         }
 
