@@ -248,7 +248,11 @@ namespace lib60870.CS101
 			EnqueueUserData (asdu);
 		}
 
-	}
+        public override ApplicationLayerParameters GetApplicationLayerParameters()
+        {
+            return parameters;
+        }
+    }
 		
 }
 

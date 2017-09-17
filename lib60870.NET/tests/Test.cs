@@ -1213,8 +1213,33 @@ namespace tests
 			server.Stop ();
 
 			Assert.AreEqual (sendValue, recvValue);
-		
-		}
-	}
+
+        }
+
+        [Test()]
+        public void TestSingleCommand()
+        {
+            SingleCommand sc = new SingleCommand(10002, true, false, 12);
+
+            Assert.AreEqual(10002, sc.ObjectAddress);
+            Assert.AreEqual(true, sc.State);
+            Assert.AreEqual(false, sc.Select);
+            Assert.AreEqual(12, sc.QU);
+
+            sc = new SingleCommand(10002, false, true, 3);
+
+            Assert.AreEqual(10002, sc.ObjectAddress);
+            Assert.AreEqual(false, sc.State);
+            Assert.AreEqual(true, sc.Select);
+            Assert.AreEqual(3, sc.QU);
+
+            sc.QU = 17;
+
+            Assert.AreEqual(17, sc.QU);
+            Assert.AreEqual(false, sc.State);
+            Assert.AreEqual(true, sc.Select);
+        }
+
+    }
 }
 
