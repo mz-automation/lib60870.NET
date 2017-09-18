@@ -239,7 +239,7 @@ namespace tests
 		}
 
 		[Test()]
-		//[Ignore("Ignore to save execution time")]
+		[Ignore("Ignore to save execution time")]
 		public void TestConnectWhileAlreadyConnected()
 		{
 			ApplicationLayerParameters parameters = new ApplicationLayerParameters ();
@@ -1240,6 +1240,231 @@ namespace tests
             Assert.AreEqual(true, sc.Select);
         }
 
+        [Test()]
+        public void TestSinglePointInformationClientServer()
+        {
+            SinglePointInformation spi = new SinglePointInformation(101, true, new QualityDescriptor());
+
+            ASDU newAsdu = new ASDU(new ApplicationLayerParameters(), CauseOfTransmission.PERIODIC,
+                false, false, 0, 1, false);
+
+            newAsdu.AddInformationObject(spi);
+
+            Server server = new Server();
+            server.SetLocalPort(20213);
+
+            bool hasReceived = false;
+
+            server.SetASDUHandler(delegate (object parameter, IMasterConnection con, ASDU asdu) {
+
+                if (asdu.TypeId == TypeID.M_SP_NA_1)
+                {
+
+                    SinglePointInformation spn = (SinglePointInformation)asdu.GetElement(0);
+
+                    Assert.AreEqual(spi.Value, spn.Value);
+                    hasReceived = true;
+                }
+
+                return true;
+            }, null);
+
+            server.Start();
+
+            Connection connection = new Connection("127.0.0.1", 20213);
+            connection.Connect();
+
+            connection.SendASDU(newAsdu);
+
+            while (hasReceived == false)
+                Thread.Sleep(50);
+
+            connection.Close();
+            server.Stop();
+        }
+
+        [Test()]
+        public void TestSinglePointInformation()
+        {
+            byte[] buffer = new byte[257];
+
+            BufferFrame bf = new BufferFrame(buffer, 0);
+
+            ApplicationLayerParameters alParameters = new ApplicationLayerParameters();
+
+            SinglePointInformation spi = new SinglePointInformation(101, true, new QualityDescriptor());
+
+            spi.Encode(bf, alParameters, true);
+            Assert.AreEqual(1, bf.GetMsgSize());
+
+            bf.ResetFrame();
+
+            spi.Encode(bf, alParameters, false);
+
+            Assert.AreEqual(alParameters.SizeOfIOA + spi.GetEncodedSize(), bf.GetMsgSize());
+            Assert.AreEqual(4, bf.GetMsgSize());
+
+            SinglePointInformation spi2 = new SinglePointInformation(alParameters, buffer, 0, false);
+
+            Assert.AreEqual(101, spi2.ObjectAddress);
+            Assert.AreEqual(true, spi2.Value);
+        }
+
+        [Test()]
+        public void TestSinglePointInformationWithCp24Time2a()
+        {
+            byte[] buffer = new byte[257];
+
+            BufferFrame bf = new BufferFrame(buffer, 0);
+
+            ApplicationLayerParameters alParameters = new ApplicationLayerParameters();
+
+            CP24Time2a time = new CP24Time2a(45, 23, 538);
+
+            SinglePointWithCP24Time2a spi = new SinglePointWithCP24Time2a(102, false, new QualityDescriptor(), time);
+
+            spi.Encode(bf, alParameters, false);
+
+            Assert.AreEqual(alParameters.SizeOfIOA + spi.GetEncodedSize(), bf.GetMsgSize());
+            Assert.AreEqual(7, bf.GetMsgSize());
+
+            SinglePointWithCP24Time2a spi2 = new SinglePointWithCP24Time2a(alParameters, buffer, 0, false);
+
+            Assert.AreEqual(102, spi2.ObjectAddress);
+            Assert.AreEqual(false, spi2.Value);
+            Assert.AreEqual(45, spi2.Timestamp.Minute);
+            Assert.AreEqual(23, spi2.Timestamp.Second);
+            Assert.AreEqual(538, spi2.Timestamp.Millisecond);
+        }
+
+        [Test()]
+        public void TestSinglePointInformationWithCP56Time2a()
+        {
+            byte[] buffer = new byte[257];
+
+            BufferFrame bf = new BufferFrame(buffer, 0);
+
+            ApplicationLayerParameters alParameters = new ApplicationLayerParameters();
+
+            DateTime dateTime = DateTime.UtcNow;
+
+            CP56Time2a time = new CP56Time2a(dateTime);
+
+            SinglePointWithCP56Time2a spi = new SinglePointWithCP56Time2a(103, true, new QualityDescriptor(), time);
+
+            spi.Encode(bf, alParameters, false);
+
+            Assert.AreEqual(alParameters.SizeOfIOA + spi.GetEncodedSize(), bf.GetMsgSize());
+            Assert.AreEqual(11, bf.GetMsgSize());
+
+            SinglePointWithCP56Time2a spi2 = new SinglePointWithCP56Time2a(alParameters, buffer, 0, false);
+
+            Assert.AreEqual(103, spi2.ObjectAddress);
+            Assert.AreEqual(true, spi2.Value);
+
+            Assert.AreEqual(time.Year, spi2.Timestamp.Year);
+            Assert.AreEqual(time.Month, spi2.Timestamp.Month);
+            Assert.AreEqual(time.DayOfMonth, spi2.Timestamp.DayOfMonth);
+            Assert.AreEqual(time.Minute, spi2.Timestamp.Minute);
+            Assert.AreEqual(time.Second, spi2.Timestamp.Second);
+            Assert.AreEqual(time.Millisecond, spi2.Timestamp.Millisecond);
+        }
+
+        [Test()]
+        public void TestDoublePointInformation()
+        {
+            byte[] buffer = new byte[257];
+
+            BufferFrame bf = new BufferFrame(buffer, 0);
+
+            ApplicationLayerParameters alParameters = new ApplicationLayerParameters();
+
+            DoublePointInformation dpi = new DoublePointInformation(101, DoublePointValue.OFF, new QualityDescriptor());
+
+            dpi.Encode(bf, alParameters, true);
+            Assert.AreEqual(1, bf.GetMsgSize());
+
+            bf.ResetFrame();
+
+            dpi.Encode(bf, alParameters, false);
+
+            Assert.AreEqual(alParameters.SizeOfIOA + dpi.GetEncodedSize(), bf.GetMsgSize());
+            Assert.AreEqual(4, bf.GetMsgSize());
+
+            DoublePointInformation dpi2 = new DoublePointInformation(alParameters, buffer, 0, false);
+
+            Assert.AreEqual(101, dpi2.ObjectAddress);
+            Assert.AreEqual(DoublePointValue.OFF, dpi2.Value);
+        }
+
+        [Test()]
+        public void TestDoublePointInformationWithCP24Time2a()
+        {
+            byte[] buffer = new byte[257];
+
+            BufferFrame bf = new BufferFrame(buffer, 0);
+
+            ApplicationLayerParameters alParameters = new ApplicationLayerParameters();
+
+            CP24Time2a time = new CP24Time2a(45, 23, 538);
+
+            DoublePointWithCP24Time2a dpi = new DoublePointWithCP24Time2a(101, DoublePointValue.ON, new QualityDescriptor(), time);
+
+            dpi.Encode(bf, alParameters, true);
+            Assert.AreEqual(4, bf.GetMsgSize());
+
+            bf.ResetFrame();
+
+            dpi.Encode(bf, alParameters, false);
+
+            Assert.AreEqual(alParameters.SizeOfIOA + dpi.GetEncodedSize(), bf.GetMsgSize());
+            Assert.AreEqual(7, bf.GetMsgSize());
+
+            DoublePointWithCP24Time2a dpi2 = new DoublePointWithCP24Time2a(alParameters, buffer, 0, false);
+
+            Assert.AreEqual(101, dpi2.ObjectAddress);
+            Assert.AreEqual(DoublePointValue.ON, dpi2.Value);
+            Assert.AreEqual(45, dpi2.Timestamp.Minute);
+            Assert.AreEqual(23, dpi2.Timestamp.Second);
+            Assert.AreEqual(538, dpi2.Timestamp.Millisecond);
+        }
+
+        [Test()]
+        public void TestDoublePointInformationWithCP56Time2a()
+        {
+            byte[] buffer = new byte[257];
+
+            BufferFrame bf = new BufferFrame(buffer, 0);
+
+            ApplicationLayerParameters alParameters = new ApplicationLayerParameters();
+
+            DateTime dateTime = DateTime.UtcNow;
+
+            CP56Time2a time = new CP56Time2a(dateTime);
+
+            DoublePointWithCP56Time2a dpi = new DoublePointWithCP56Time2a(101, DoublePointValue.INTERMEDIATE, new QualityDescriptor(), time);
+
+            dpi.Encode(bf, alParameters, true);
+            Assert.AreEqual(8, bf.GetMsgSize());
+
+            bf.ResetFrame();
+
+            dpi.Encode(bf, alParameters, false);
+
+            Assert.AreEqual(alParameters.SizeOfIOA + dpi.GetEncodedSize(), bf.GetMsgSize());
+            Assert.AreEqual(11, bf.GetMsgSize());
+
+            DoublePointWithCP56Time2a dpi2 = new DoublePointWithCP56Time2a(alParameters, buffer, 0, false);
+
+            Assert.AreEqual(101, dpi2.ObjectAddress);
+            Assert.AreEqual(DoublePointValue.INTERMEDIATE, dpi2.Value);
+            Assert.AreEqual(time.Year, dpi2.Timestamp.Year);
+            Assert.AreEqual(time.Month, dpi2.Timestamp.Month);
+            Assert.AreEqual(time.DayOfMonth, dpi2.Timestamp.DayOfMonth);
+            Assert.AreEqual(time.Minute, dpi2.Timestamp.Minute);
+            Assert.AreEqual(time.Second, dpi2.Timestamp.Second);
+            Assert.AreEqual(time.Millisecond, dpi2.Timestamp.Millisecond);
+        }
     }
 }
 
