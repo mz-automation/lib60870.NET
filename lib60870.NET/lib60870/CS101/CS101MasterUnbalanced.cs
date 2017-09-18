@@ -61,9 +61,9 @@ namespace lib60870.CS101
 			}
 		}
 
-		public CS101MasterUnbalanced (SerialPort port)
+		public CS101MasterUnbalanced (SerialPort port, LinkLayerParameters llParameters)
 		{
-			this.linkLayerParameters = new LinkLayerParameters ();
+			this.linkLayerParameters = llParameters;
 			this.transceiver = new SerialTransceiverFT12 (port, linkLayerParameters, DebugLog);
 
 			linkLayer = new LinkLayer (buffer, linkLayerParameters, transceiver, DebugLog);
@@ -71,6 +71,11 @@ namespace lib60870.CS101
 
 			linkLayerUnbalanced = new PrimaryLinkLayerUnbalanced (linkLayer, this, DebugLog);
 			linkLayer.SetPrimaryLinkLayer(linkLayerUnbalanced);
+		}
+
+		public CS101MasterUnbalanced (SerialPort port)
+			: this (port, new LinkLayerParameters ())
+		{
 		}
 
 		public void SetASDUReceivedHandler(SlaveASDUReceivedHandler handler, object parameter)

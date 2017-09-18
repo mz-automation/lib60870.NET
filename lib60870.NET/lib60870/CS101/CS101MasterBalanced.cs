@@ -93,9 +93,14 @@ namespace lib60870.CS101
 		}
 
 		public CS101MasterBalanced (SerialPort port)
+			:this(port, new LinkLayerParameters())
+		{
+		}
+
+		public CS101MasterBalanced (SerialPort port, LinkLayerParameters llParameters)
 		{
 			this.port = port;
-			this.linkLayerParameters = new LinkLayerParameters ();
+			this.linkLayerParameters = llParameters;
 			this.transceiver = new SerialTransceiverFT12 (port, linkLayerParameters, DebugLog);
 
 			linkLayer = new LinkLayer (buffer, linkLayerParameters, transceiver, DebugLog);
@@ -105,9 +110,7 @@ namespace lib60870.CS101
 			linkLayer.SetPrimaryLinkLayer (primaryLinkLayer);
 			linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, 0, HandleApplicationLayer, DebugLog));
 		}
-
-
-
+			
 		public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
 		{
 			asduReceivedHandler = handler;

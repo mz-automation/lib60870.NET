@@ -25,6 +25,7 @@ using System.Threading;
 
 using lib60870;
 using lib60870.CS101;
+using lib60870.linklayer;
 
 namespace cs101_master_unbalanced
 {
@@ -112,16 +113,21 @@ namespace cs101_master_unbalanced
 
 			SerialPort port = new SerialPort ();
 
-			port.PortName = "/dev/ttyUSB1";
-			port.BaudRate = 19200;
+			port.PortName = "/dev/ttyUSB2";
+			port.BaudRate = 9600;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
 			port.Open ();
 			port.DiscardInBuffer ();
 
 			/* unbalanced mode allows multiple slaves on a single serial line */
-			CS101MasterUnbalanced master = new CS101MasterUnbalanced(port);
+			LinkLayerParameters llParameters = new LinkLayerParameters ();
+			llParameters.AddressLength = 2;
+
+			CS101MasterUnbalanced master = new CS101MasterUnbalanced(port, llParameters);
 			master.DebugOutput = false;
+
+		
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 
 			master.AddSlave (1);
