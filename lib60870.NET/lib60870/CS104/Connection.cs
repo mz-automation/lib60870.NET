@@ -1451,7 +1451,12 @@ namespace lib60870.CS104
 
                             try
                             {
-                                sslStream.AuthenticateAsClient(tlsSecInfo.TargetHostName, clientCertificateCollection, System.Security.Authentication.SslProtocols.Tls, false);
+								string targetHostName = tlsSecInfo.TargetHostName;
+
+								if (targetHostName == null)
+									targetHostName = "*";
+
+								sslStream.AuthenticateAsClient(targetHostName, clientCertificateCollection, System.Security.Authentication.SslProtocols.Tls, false);
                             }
                             catch (IOException e)
                             {

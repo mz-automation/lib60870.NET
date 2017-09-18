@@ -133,7 +133,7 @@ namespace cs104_tls_client
 			X509Certificate2 ownCertificate = new X509Certificate2 ("client1.pfx");
 
 			// Create a new security information object to configure TLS
-			TlsSecurityInformation secInfo = new TlsSecurityInformation ("test-server", ownCertificate);
+			TlsSecurityInformation secInfo = new TlsSecurityInformation (null, ownCertificate);
 
 			// Add allowed server certificates - not required when AllowOnlySpecificCertificates == false
 			secInfo.AddAllowedCertificate (new X509Certificate2 ("server.cer"));
