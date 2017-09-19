@@ -259,9 +259,14 @@ namespace lib60870
 				}
 			}
 
-			public CS101Slave(SerialPort port) {
+			public CS101Slave(SerialPort port)
+				:this (port, new LinkLayerParameters())
+			{
+			}
+
+			public CS101Slave(SerialPort port, LinkLayerParameters parameters) {
 				this.port = port;
-				linkLayerParameters = new LinkLayerParameters ();
+				linkLayerParameters = parameters;
 
 				transceiver = new SerialTransceiverFT12 (port, linkLayerParameters, DebugLog);
 

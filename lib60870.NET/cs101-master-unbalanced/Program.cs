@@ -113,21 +113,20 @@ namespace cs101_master_unbalanced
 
 			SerialPort port = new SerialPort ();
 
-			port.PortName = "/dev/ttyUSB2";
+			port.PortName = "/dev/ttyUSB1";
 			port.BaudRate = 9600;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
 			port.Open ();
 			port.DiscardInBuffer ();
 
-			/* unbalanced mode allows multiple slaves on a single serial line */
+			/* set link layer address length */
 			LinkLayerParameters llParameters = new LinkLayerParameters ();
 			llParameters.AddressLength = 2;
 
+			/* unbalanced mode allows multiple slaves on a single serial line */
 			CS101MasterUnbalanced master = new CS101MasterUnbalanced(port, llParameters);
 			master.DebugOutput = false;
-
-		
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 
 			master.AddSlave (1);

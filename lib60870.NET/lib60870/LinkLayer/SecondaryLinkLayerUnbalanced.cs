@@ -30,7 +30,7 @@ namespace lib60870.linklayer
 		private Action<string> DebugLog;
 		private LinkLayer linkLayer;
 		private ISecondaryApplicationLayer applicationLayer;
-		//	private Func<byte[], int, int, bool> HandleApplicationLayer;
+
 		private int linkLayerAddress = 0;
 
 		public SecondaryLinkLayerUnbalanced(LinkLayer linkLayer, int address, ISecondaryApplicationLayer applicationLayer, Action<string> debugLog)
@@ -65,8 +65,7 @@ namespace lib60870.linklayer
 				if (CheckFCB (fcb) == false)
 					return;
 			}
-
-
+				
 			switch (fcp) {
 
 			case FunctionCodePrimary.REQUEST_LINK_STATUS:
@@ -82,8 +81,12 @@ namespace lib60870.linklayer
 				DebugLog("SLL - RESET REMOTE LINK");
 				{
 					expectedFcb = true;
-					linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
-					//TODO can answer with single char
+
+					if (linkLayer.linkLayerParameters.UseSingleCharACK)
+						linkLayer.SendSingleCharACK ();
+					else
+						linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
+
 					applicationLayer.ResetCUReceived(false);
 				}
 
@@ -93,8 +96,12 @@ namespace lib60870.linklayer
 				DebugLog ("SLL - RESET FCB");
 				{
 					expectedFcb = true;
-					linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
-					//TODO can answer with single char
+
+					if (linkLayer.linkLayerParameters.UseSingleCharACK)
+						linkLayer.SendSingleCharACK ();
+					else
+						linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
+
 					applicationLayer.ResetCUReceived (true);
 				}
 				break;
@@ -107,9 +114,14 @@ namespace lib60870.linklayer
 					bool accessDemand = applicationLayer.IsClass1DataAvailable ();
 
 					if (asdu != null)
-						linkLayer.SendVariableLengthFrameSecondary (FunctionCodeSecondary.RESP_USER_DATA, linkLayerAddress, accessDemand, false, asdu);	
+						linkLayer.SendVariableLengthFrameSecondary (FunctionCodeSecondary.RESP_USER_DATA, linkLayerAddress, accessDemand, false, asdu);
 					else 
-						linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.RESP_NACK_NO_DATA, linkLayerAddress, false, false);
+					{
+						if (linkLayer.linkLayerParameters.UseSingleCharACK && (accessDemand == false))
+							linkLayer.SendSingleCharACK ();
+						else
+							linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.RESP_NACK_NO_DATA, linkLayerAddress, accessDemand, false);
+					}
 
 				}
 				break;
@@ -123,8 +135,14 @@ namespace lib60870.linklayer
 
 					if (asdu != null)
 						linkLayer.SendVariableLengthFrameSecondary (FunctionCodeSecondary.RESP_USER_DATA, linkLayerAddress, accessDemand, false, asdu);
-					else
-						linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.RESP_NACK_NO_DATA, linkLayerAddress, false, false);
+					else 
+					{
+						if (linkLayer.linkLayerParameters.UseSingleCharACK && (accessDemand == false))
+							linkLayer.SendSingleCharACK ();
+						else
+							linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.RESP_NACK_NO_DATA, linkLayerAddress, accessDemand, false);
+					}
+
 				}
 				break;
 

@@ -118,12 +118,7 @@ namespace lib60870.linklayer
 			internal void HandleMessage(FunctionCodeSecondary fcs, bool acd, bool dfc, 
 				int address, byte[] msg, int userDataStart, int userDataLength)
 			{
-				//Console.WriteLine ("Received msg FC=" + (int)fcs + " " + fcs.ToString () + " ACD=" + acd.ToString() + " DFC=" + dfc.ToString());
-
 				PrimaryLinkLayerState newState = primaryState;
-
-				if (acd)
-					Console.WriteLine ("ACD set");
 
 				if (dfc) {
 
@@ -309,6 +304,7 @@ namespace lib60870.linklayer
 						nextFcb = !nextFcb;
 						lastSendTime = SystemUtils.currentTimeMillis ();
 						originalSendTime = lastSendTime;
+						waitingForResponse = true;
 						newState = PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND;
 					}
 					else {
@@ -344,7 +340,7 @@ namespace lib60870.linklayer
 							DebugLog ("TIMEOUT: ASDU not confirmed after repeated transmission");
 							newState = PrimaryLinkLayerState.IDLE;
 						} else {
-							DebugLog ("TIMEOUT: ASDU not confirmed");
+							DebugLog ("TIMEOUT: 1 ASDU not confirmed");
 
 							if (sendLinkLayerTestFunction) {
 								DebugLog ("PLL - REPEAT SEND RESET REMOTE LINK");
@@ -370,7 +366,7 @@ namespace lib60870.linklayer
 							requestClass2Data = false;
 
 						} else {
-							DebugLog ("TIMEOUT: ASDU not confirmed");
+							DebugLog ("TIMEOUT: 2 ASDU not confirmed");
 
 							if (requestClass1Data) {
 								linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_1, address, !nextFcb, true);
@@ -530,14 +526,18 @@ namespace lib60870.linklayer
 		public override void HandleMessage(FunctionCodeSecondary fcs, bool acd, bool dfc, 
 			int address, byte[] msg, int userDataStart, int userDataLength)
 		{
-			SlaveConnection slave = GetSlaveConnection (address);
+			SlaveConnection slave = null;
+
+			if (address == -1)
+				slave = currentSlave;
+			else
+				slave = GetSlaveConnection (address);
 
 			if (slave != null) {
 
 				slave.HandleMessage (fcs, acd, dfc, address, msg, userDataStart, userDataLength);
 
 			} else {
-				// response from unknown slave? What to do?
 				DebugLog ("PLL RECV - response from unknown slave " + address + " !");
 			}
 		}
@@ -558,7 +558,6 @@ namespace lib60870.linklayer
 					currentSlaveIndex = (currentSlaveIndex + 1) % slaveConnections.Count;
 
 				}
-
 
 				currentSlave.RunStateMachine ();
 

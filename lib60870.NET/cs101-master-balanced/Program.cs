@@ -24,6 +24,7 @@ using System.IO.Ports;
 
 using lib60870;
 using lib60870.CS101;
+using lib60870.linklayer;
 
 namespace cs101_master_balanced
 {
@@ -63,15 +64,18 @@ namespace cs101_master_balanced
 
 			// Setup serial port
 			SerialPort port = new SerialPort ();
-			port.PortName = "/dev/ttyUSB2";
-			port.BaudRate = 19200;
+			port.PortName = "/dev/ttyUSB1";
+			port.BaudRate = 9600;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
 			port.Open ();
 			port.DiscardInBuffer ();
 
 			// Setup balanced CS101 master
-			CS101MasterBalanced master = new CS101MasterBalanced (port);
+			LinkLayerParameters llParameters = new LinkLayerParameters();
+			llParameters.AddressLength = 2;
+
+			CS101MasterBalanced master = new CS101MasterBalanced (port, llParameters);
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);

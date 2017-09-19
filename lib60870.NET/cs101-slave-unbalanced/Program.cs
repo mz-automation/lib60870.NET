@@ -25,6 +25,7 @@ using System.IO.Ports;
 using lib60870;
 using lib60870.CS101;
 using System.Collections.Generic;
+using lib60870.linklayer;
 
 namespace cs101_slave_unbalanced {
 
@@ -81,12 +82,16 @@ namespace cs101_slave_unbalanced {
 			SerialPort port = new SerialPort ();
 
 			port.PortName = "/dev/ttyUSB0";
-			port.BaudRate = 19200;
-			port.Parity = Parity.None;
+			port.BaudRate = 9600;
+			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
 			port.Open ();
 
-			CS101Slave slave = new CS101Slave (port);
+			LinkLayerParameters llParameters = new LinkLayerParameters ();
+			llParameters.AddressLength = 2;
+			llParameters.UseSingleCharACK = false;
+
+			CS101Slave slave = new CS101Slave (port, llParameters);
 			slave.DebugOutput = false;
 			slave.LinkLayerAddress = 1;
 

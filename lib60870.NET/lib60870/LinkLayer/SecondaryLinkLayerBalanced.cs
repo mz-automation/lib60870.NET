@@ -76,8 +76,12 @@ namespace lib60870.linklayer
 			case FunctionCodePrimary.RESET_REMOTE_LINK:
 				expectedFcb = true;
 				DebugLog ("SLL - RECV RESET REMOTE LINK");
-				linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
-				//TODO can answer with single char
+
+				if (linkLayer.linkLayerParameters.UseSingleCharACK)
+					linkLayer.SendSingleCharACK ();
+				else
+					linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
+				
 				break;
 
 				//case FunctionCodePrimary.RESET_USER_PROCESS:
@@ -86,8 +90,10 @@ namespace lib60870.linklayer
 			case FunctionCodePrimary.TEST_FUNCTION_FOR_LINK:
 				DebugLog ("SLL -TEST FUNCTION FOR LINK");
 				// TODO check if DCF has to be sent
-				//SendSingleCharACK ();
-				linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
+				if (linkLayer.linkLayerParameters.UseSingleCharACK)
+					linkLayer.SendSingleCharACK ();
+				else
+					linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
 				break;
 
 			case FunctionCodePrimary.USER_DATA_CONFIRMED:

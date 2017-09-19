@@ -75,7 +75,13 @@ namespace lib60870.linklayer
 		private int addressLength = 1; /* 0/1/2 bytes */
 		private int timeoutForACK = 200; /* timeout for ACKs in ms */
 		private long timeoutRepeat = 1000; /* timeout for repeating messages when no ACK received in ms */
+		private bool useSingleCharACK = true; /* use single char ACK for ACK (FC=0) or RESP_NO_USER_DATA (FC=9) */
 
+		/// <summary>
+		/// Gets or sets the length of the link layer address field
+		/// </summary>
+		/// <para>The value can be either 0, 1, or 2 for balanced mode or 0, or 1 for unbalanced mode</para>
+		/// <value>The length of the address in byte</value>
 		public int AddressLength {
 			get {
 				return this.addressLength;
@@ -85,6 +91,10 @@ namespace lib60870.linklayer
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the timeout for message ACK
+		/// </summary>
+		/// <value>The timeout to wait for message ACK in ms</value>
 		public int TimeoutForACK {
 			get {
 				return this.timeoutForACK;
@@ -94,12 +104,29 @@ namespace lib60870.linklayer
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the timeout for message repetition in case of missing ACK messages
+		/// </summary>
+		/// <value>The timeout for message repetition in ms</value>
 		public long TimeoutRepeat {
 			get {
 				return this.timeoutRepeat;
 			}
 			set {
 				timeoutRepeat = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the secondary link layer uses single character ACK instead of FC 0 or FC 9
+		/// </summary>
+		/// <value><c>true</c> if use single char ACK; otherwise, <c>false</c>.</value>
+		public bool UseSingleCharACK {
+			get {
+				return this.useSingleCharACK;
+			}
+			set {
+				this.useSingleCharACK = value;
 			}
 		}
 	}
@@ -451,7 +478,7 @@ namespace lib60870.linklayer
 				address = msg [csStart + 1];
 
 				if (linkLayerParameters.AddressLength > 1) {
-					address = msg [csStart + 2] * 0x100;
+					address += (msg [csStart + 2] * 0x100);
 
 					if (address == 65535)
 						isBroadcast = true;
@@ -514,9 +541,9 @@ namespace lib60870.linklayer
 		{
 			int userDataLength = 0;
 			int userDataStart = 0;
-			byte c;
-			int csStart;
-			int csIndex;
+			byte c = 0;
+			int csStart = 0;
+			int csIndex = 0;
 			int address = 0; /* address can be ignored in balanced mode? */
 			bool prm = true;
 			int fc = 0;
@@ -565,10 +592,6 @@ namespace lib60870.linklayer
 				fc = (int)FunctionCodeSecondary.ACK;
 				prm = false; /* single char ACK is only sent by secondary station */
 				DebugLog ("Received single char ACK");
-				//TODO check if ACK was expected
-				//TODO reset timeout for last received message
-
-				return;
 			}
 			else {
 				DebugLog("ERROR: Received unexpected message type!");
@@ -598,7 +621,7 @@ namespace lib60870.linklayer
 
 					DebugLog ("PRM=" + (prm == true ? "1" : "0") + " FCB=" + (fcb == true ? "1" : "0") + " FCV=" + (fcv == true ? "1" : "0")
 					+ " FC=" + fc + "(" + ((FunctionCodePrimary)c).ToString () + ")");
-					;
+
 					FunctionCodePrimary fcp = (FunctionCodePrimary)fc;
 
 					if (secondaryLinkLayer != null)
@@ -617,7 +640,7 @@ namespace lib60870.linklayer
 					FunctionCodeSecondary fcs = (FunctionCodeSecondary)fc;
 
 					if (primaryLinkLayer != null) {
-						//primaryLinkLayer.HandleMessage (fcs, dir, dfc);
+
 						if (linkLayerMode == LinkLayerMode.BALANCED)
 							primaryLinkLayer.HandleMessage (fcs, dir, dfc, address, msg, userDataStart, userDataLength);
 						else
