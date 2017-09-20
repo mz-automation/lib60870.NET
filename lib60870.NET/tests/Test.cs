@@ -1465,6 +1465,32 @@ namespace tests
             Assert.AreEqual(time.Second, dpi2.Timestamp.Second);
             Assert.AreEqual(time.Millisecond, dpi2.Timestamp.Millisecond);
         }
+
+		[Test()]
+		public void TestMeasuredValueNormalized()
+		{
+			byte[] buffer = new byte[257];
+
+			BufferFrame bf = new BufferFrame(buffer, 0);
+
+			ApplicationLayerParameters alParameters = new ApplicationLayerParameters();
+
+			MeasuredValueNormalized mvn = new MeasuredValueNormalized (201, 0.5f, new QualityDescriptor ());
+
+			mvn.Encode (bf, alParameters, true);
+			Assert.AreEqual (3, bf.GetMsgSize ());
+
+			bf.ResetFrame ();
+
+			mvn.Encode (bf, alParameters, false);
+			Assert.AreEqual(alParameters.SizeOfIOA + mvn.GetEncodedSize(), bf.GetMsgSize());
+
+			MeasuredValueNormalized mvn2 = new MeasuredValueNormalized (alParameters, buffer, 0, false);
+
+			Assert.AreEqual (201, mvn2.ObjectAddress);
+			Assert.AreEqual (0.5f, mvn2.NormalizedValue, 0.001);
+		}
+
     }
 }
 

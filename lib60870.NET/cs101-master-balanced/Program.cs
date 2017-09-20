@@ -74,6 +74,7 @@ namespace cs101_master_balanced
 			// Setup balanced CS101 master
 			LinkLayerParameters llParameters = new LinkLayerParameters();
 			llParameters.AddressLength = 2;
+			llParameters.UseSingleCharACK = false;
 
 			CS101MasterBalanced master = new CS101MasterBalanced (port, llParameters);
 			master.DebugOutput = false;

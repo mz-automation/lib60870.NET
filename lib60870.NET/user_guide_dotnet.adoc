@@ -1,4 +1,4 @@
-= lib60870.NET 1.0 User Guide
+= lib60870.NET 2.0 User Guide
 Michael Zillgith
 
 == Introduction
@@ -16,6 +16,7 @@ The list of supported features:
 * Master/Client supports sending system commands, process commands, parameter commands, and data messages in reverse direction.
 * Slave/Server supports sending data messages in monitoring direction and commands in reverse direction
 * The list of supported ASDU types can be found in the annex
+* The library supports user defined private ASDU types
 
 *NOTE:* CS stands for "companion standard" and specifies variants of the communication protocols and services defined in the IEC 60870-5 standard series.
 
@@ -24,7 +25,7 @@ The list of supported features:
 For master side programming the following API classes can be used:
 
 * *CS101MasterBalanced* for a CS 101 compliant _balanced mode_ serial connection.
-* *CS101NasterUnbalanced* for a CS 101 compliant _unbalanced mode_ serial connection.
+* *CS101MasterUnbalanced* for a CS 101 compliant _unbalanced mode_ serial connection.
 * *Connection* for a CS 104 compliant TCP/IP connection
 
 All of these classes implement the abstract base class *Master* that provides a set of methods to send commands and messages to the slave.
@@ -33,7 +34,7 @@ All of these classes implement the abstract base class *Master* that provides a 
 
 Since an IEC 60870-5-104 (CS 104) connection is based on a TCP client/server connection the connection will be established by the client(master). The server(slave or outstation) is passively waiting for connections.
 
-In C# a connection is simple created by calling a Constructor of the Connection class:
+In C# a connection is simply created by calling a Constructor of the Connection class:
 
   Connection con = new Connection ("127.0.0.1");
 
@@ -49,7 +50,69 @@ To use the Connection class you have to import the lib60870.CS104 namespace into
 
 === Preparing a CS101 connection to one or more slaves
 
-CS101 provides two kinds of serial connection mode to that slave
+CS101 provides two kind of serial connection modes for master/slave communication.
+
+*Balanced mode* supports communication between a single master and a single slave using a dedicated
+serial line. Both ends can spontaneously send messages at any time.
+
+*Unbalanced mode* supports communication between a single master and multiple slaves on a serial bus. Each
+slave is addressed by its unique link layer address. Slaves do not send spontaneously. They only respond after
+a request form the master. The master can address multiple slaves by using a broadcast address.
+
+==== Configuring the serial port
+
+For both mode first the serial port has to be configured and initialized. The following code shows an
+example how to prepare the serial port for using with the library:
+
+[[app-listing]]
+[source, csharp]
+.Example configuration of the serial port
+----
+SerialPort port = new SerialPort ();
+port.PortName = "/dev/ttyUSB1";
+port.BaudRate = 9600;
+port.Parity = Parity.Even;
+port.Handshake = Handshake.None;
+port.Open ();
+----
+
+Before passing the SerialPort object to the library the port has to be opened.
+
+==== Setting the link layer parameters
+
+Setting the link layer parameters is an optional step. When not explicitly set a default set of
+parameters will be used for the new master instance.
+
+[[app-listing]]
+[source, csharp]
+.Example link layer parameter settings
+----
+LinkLayerParameters llParameters = new LinkLayerParameters();
+llParameters.AddressLength = 2;
+llParameters.UseSingleCharACK = false;
+----
+
+In the example the length of the link layer address will be set to two bytes and the
+library will be instructed not to send single char ACK messages but use short messages instead.
+The new LinkLayerParameters object will be passed to the master constructor in the next step.
+
+
+==== Create and use a new master instance
+
+For unbalanced communication mode the *CS101MasterUnbalanced* class has to be used.
+
+The following code create a new unbalanced master instance and provides the previously set
+link layer parameters. The _SetASDUReceivedHandler_ method provides a callback function for
+received ASDUs. The _AddSlave_ function will create a new slave specific state machine to
+handle all communication with the slave with link layer address 1.
+
+[[app-listing]]
+[source, csharp]
+----
+CS101MasterUnbalanced master = new CS101MasterUnbalanced(port, llParameters);
+master.SetASDUReceivedHandler (asduReceivedHandler, null);
+master.AddSlave (1);
+----
 
 === Sending a read request
 
@@ -369,6 +432,7 @@ The *LinkLayerParameters* class stored the configuration parameters for the CS 1
 |AddressLength    | Size of the link layer address field of the LPCI. Can be 0, 1 (default), or 2.
 |TimeoutForACK    | Timeout for ACK of the link layer message
 |TimeoutRepeat    | Timeout for repeated transmission of link layer messages.
+|UseSingleCharACK | Indicates if the secondary link layer will use single char ACK (E5)
 |==========================
 
 === CS104 specific parameters

@@ -125,7 +125,7 @@ namespace lib60870
 			private LinkLayerParameters linkLayerParameters;
 			private LinkLayerMode linkLayerMode = LinkLayerMode.UNBALANCED;
 
-			private int linkLayerAddress;
+			private int linkLayerAddress = 0;
 			private int linkLayerAddressOtherStation; // link layer address of other station in balanced mode
 
 			private Queue<BufferFrame> userDataClass1Queue = new Queue<BufferFrame>();

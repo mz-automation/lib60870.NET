@@ -18,6 +18,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyVersion ("1.0.*")]
 [assembly: NeutralResourcesLanguage("")]
 [assembly: InternalsVisibleTo("lib60870-tests")]
+[assembly: InternalsVisibleTo("lib60870.NET.CS103")]
 // The following attributes are used to specify the signing key for the assembly, 
 // if desired. See the Mono documentation for more information about signing.
 //[assembly: AssemblyDelaySign(false)]
