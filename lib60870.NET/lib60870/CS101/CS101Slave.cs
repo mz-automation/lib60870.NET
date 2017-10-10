@@ -129,7 +129,10 @@ namespace lib60870
 			private int linkLayerAddressOtherStation; // link layer address of other station in balanced mode
 
 			private Queue<BufferFrame> userDataClass1Queue = new Queue<BufferFrame>();
+			private int userDataClass1QueueMaxSize = 100;
+
 			private Queue<BufferFrame> userDataClass2Queue = new Queue<BufferFrame>();
+			private int userDataClass2QueueMaxSize = 100;
 
 			private SerialTransceiverFT12 transceiver;
 
@@ -185,6 +188,23 @@ namespace lib60870
 				}
 			}
 
+			/// <summary>
+			/// Sets the user data queue sizes. When the maximum size is reached the oldest value will be deleted when
+			/// a new ASDU is added
+			/// </summary>
+			/// <param name="class1QueueSize">Class 1 queue size.</param>
+			/// <param name="class2QueueSize">Class 2 queue size.</param>
+			public void SetUserDataQueueSizes(int class1QueueSize, int class2QueueSize)
+			{
+				userDataClass1QueueMaxSize = class1QueueSize;
+				userDataClass2QueueMaxSize = class2QueueSize;
+			}
+
+			public bool IsUserDataClass1QueueFull()
+			{
+				return (userDataClass1Queue.Count == userDataClass1QueueMaxSize);
+			}
+
 			public void EnqueueUserDataClass1(ASDU asdu)
 			{
 				lock (userDataClass1Queue) {
@@ -194,6 +214,9 @@ namespace lib60870
 					asdu.Encode (frame, parameters);
 
 					userDataClass1Queue.Enqueue (frame);
+
+					while (userDataClass1Queue.Count > userDataClass1QueueMaxSize)
+						userDataClass1Queue.Dequeue ();
 				}
 			}
 
@@ -218,6 +241,11 @@ namespace lib60870
 				}
 			}
 
+			public bool IsUserDataClass2QueueFull()
+			{
+				return (userDataClass2Queue.Count == userDataClass2QueueMaxSize);
+			}
+
 			public void EnqueueUserDataClass2(ASDU asdu)
 			{
 				lock (userDataClass2Queue) {
@@ -227,9 +255,12 @@ namespace lib60870
 					asdu.Encode (frame, parameters);
 
 					userDataClass2Queue.Enqueue (frame);
+
+					while (userDataClass2Queue.Count > userDataClass2QueueMaxSize)
+						userDataClass2Queue.Dequeue ();
 				}
 			}
-
+				
 			internal BufferFrame DequeueUserDataClass2() 
 			{
 				lock (userDataClass2Queue) {

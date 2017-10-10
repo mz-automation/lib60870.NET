@@ -100,6 +100,8 @@ namespace cs101_slave_unbalanced {
 
 			slave.SetInterrogationHandler (myInterrogationHandler, null);
 
+			slave.SetUserDataQueueSizes (50, 20);
+
 			ASDU asdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
 			asdu.AddInformationObject (new StepPositionInformation (301, 1, false, new QualityDescriptor()));
 			slave.EnqueueUserDataClass1 (asdu);
