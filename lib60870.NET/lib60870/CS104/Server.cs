@@ -269,6 +269,28 @@ namespace lib60870.CS104
         }
     }
 
+	internal class CS101n104File {
+		public int ca;
+		public int ioa;
+		public NameOfFile nof;
+		public IFileProvider provider = null;
+		public byte[][] sections = null;
+		public ServerConnection selected = null;
+
+		public int GetLengthOfFile() {
+			int lengthOfFile = 0;
+
+			if (sections != null) {
+				foreach (byte[] section in sections)
+					lengthOfFile += section.Length;
+			} else if (provider != null) {
+				lengthOfFile = provider.GetFileSize ();
+			}
+
+			return lengthOfFile;
+		}
+	}
+
 
 	/// <summary>
 	/// This class represents a single IEC 60870-5 server (slave or controlled station). It is also the
@@ -330,6 +352,43 @@ namespace lib60870.CS104
 			set {
 				maxOpenConnections = value;
 			}
+		}
+
+		List<CS101n104File> availableFiles = new List<CS101n104File> ();
+
+
+
+		public void AddFile (int ca, int ioa, NameOfFile nof, IFileProvider provider)
+		{
+			CS101n104File newFile = new CS101n104File ();
+			newFile.ca = ca;
+			newFile.ioa = ioa;
+			newFile.nof = nof;
+			newFile.provider = provider;
+
+			availableFiles.Add (newFile);
+		}
+
+		public void AddFile (int ca, int ioa, NameOfFile nof, byte[][] sections)
+		{
+			CS101n104File newFile = new CS101n104File ();
+			newFile.ca = ca;
+			newFile.ioa = ioa;
+			newFile.nof = nof;
+			newFile.sections = sections;
+
+			availableFiles.Add (newFile);
+		}
+
+		internal CS101n104File GetFile(int ca, int ioa, NameOfFile nof)
+		{
+			foreach (CS101n104File file in availableFiles) {
+			
+				if (file.ca == ca && file.ioa == ioa && file.nof == nof)
+					return file;
+			}
+
+			return null;
 		}
 
 		private APCIParameters apciParameters;

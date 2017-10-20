@@ -92,6 +92,7 @@
     <Compile Include="LinkLayer\PrimaryLinkLayerUnbalanced.cs" />
     <Compile Include="LinkLayer\SecondaryLinkLayerBalanced.cs" />
     <Compile Include="LinkLayer\SecondaryLinkLayerUnbalanced.cs" />
+    <Compile Include="CS101\FileTransfer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

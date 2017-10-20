@@ -622,6 +622,34 @@ namespace lib60870.CS104
 
 				break;
 
+			case TypeID.F_SC_NA_1: /* 122 - Call/Select directoy/file/section */
+
+				DebugLog ("Received call/select F_SC_NA_1");
+
+				if (asdu.Cot == CauseOfTransmission.FILE_TRANSFER) {
+
+					FileCallOrSelect sc = (FileCallOrSelect)asdu.GetElement (0);
+
+					CS101n104File file = server.GetFile (asdu.Ca, sc.ObjectAddress, sc.NOF);
+
+					if (file == null) {
+						asdu.Cot = CauseOfTransmission.UNKNOWN_INFORMATION_OBJECT_ADDRESS;
+						this.SendASDUInternal (asdu);
+					} else {
+						ASDU fileReady = new ASDU (alParameters, CauseOfTransmission.FILE_TRANSFER, false, false, 0, asdu.Ca, false);
+					
+						fileReady.AddInformationObject (new FileReady (sc.ObjectAddress, sc.NOF, file.GetLengthOfFile (), true));
+					
+						this.SendASDUInternal (fileReady);
+					}
+						
+
+				} else {
+					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					this.SendASDUInternal (asdu);
+				}
+				break;
+			
 			}
 
 			if ((messageHandled == false) && (server.asduHandler != null))

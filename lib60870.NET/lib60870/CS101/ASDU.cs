@@ -101,7 +101,7 @@ namespace lib60870.CS101
 
 			int objectSize = io.GetEncodedSize ();
 
-			if (IsSquence == false)
+			if (IsSequence == false)
 				objectSize += parameters.SizeOfIOA;
 			else {
 				if (informationObjects.Count == 0) // is first object?
@@ -204,7 +204,7 @@ namespace lib60870.CS101
 						io.Encode (frame, parameters, false);
 						isFirst = false;
 					} else {
-						if (IsSquence)
+						if (IsSequence)
 							io.Encode (frame, parameters, true);
 						else
 							io.Encode (frame, parameters, false);
@@ -272,7 +272,7 @@ namespace lib60870.CS101
 			}
 		}
 
-		public bool IsSquence {
+		public bool IsSequence {
 			get {
 				if ((vsq & 0x80) != 0)
 					return true;
@@ -329,7 +329,7 @@ namespace lib60870.CS101
 
 				elementSize = 1;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new SinglePointInformation (parameters, payload,  parameters.SizeOfIOA + (index * elementSize), true);
@@ -345,7 +345,7 @@ namespace lib60870.CS101
 				
 				elementSize = 4;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new SinglePointWithCP24Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -360,7 +360,7 @@ namespace lib60870.CS101
 
 				elementSize = 1;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new DoublePointInformation (parameters, payload,  parameters.SizeOfIOA + (index * elementSize), true);
@@ -376,7 +376,7 @@ namespace lib60870.CS101
 
 				elementSize = 4;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new DoublePointWithCP24Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -392,7 +392,7 @@ namespace lib60870.CS101
 
 				elementSize = 2;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new StepPositionInformation (parameters, payload,  parameters.SizeOfIOA + (index * elementSize), true);
@@ -408,7 +408,7 @@ namespace lib60870.CS101
 
 				elementSize = 5;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new StepPositionWithCP24Time2a (parameters, payload,  parameters.SizeOfIOA + (index * elementSize), true);
@@ -424,7 +424,7 @@ namespace lib60870.CS101
 
 				elementSize = 5;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new Bitstring32 (parameters, payload,  parameters.SizeOfIOA + (index * elementSize), true);
@@ -440,7 +440,7 @@ namespace lib60870.CS101
 
 				elementSize = 8;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new Bitstring32WithCP24Time2a (parameters, payload,  parameters.SizeOfIOA + (index * elementSize), true);
@@ -456,7 +456,7 @@ namespace lib60870.CS101
 
 				elementSize = 3;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueNormalized (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -472,7 +472,7 @@ namespace lib60870.CS101
 
 				elementSize = 6;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueNormalizedWithCP24Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -488,7 +488,7 @@ namespace lib60870.CS101
 
 				elementSize = 3;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueScaled (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -504,7 +504,7 @@ namespace lib60870.CS101
 
 				elementSize = 6;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueScaledWithCP24Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -521,7 +521,7 @@ namespace lib60870.CS101
 
 				elementSize = 5;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueShort (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -537,7 +537,7 @@ namespace lib60870.CS101
 
 				elementSize = 8;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueShortWithCP24Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -553,7 +553,7 @@ namespace lib60870.CS101
 
 				elementSize = 5;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new IntegratedTotals (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -569,7 +569,7 @@ namespace lib60870.CS101
 
 				elementSize = 8;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new IntegratedTotalsWithCP24Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -585,7 +585,7 @@ namespace lib60870.CS101
 
 				elementSize = 3;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new EventOfProtectionEquipment (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -601,7 +601,7 @@ namespace lib60870.CS101
 
 				elementSize = 7;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new PackedStartEventsOfProtectionEquipment (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -617,7 +617,7 @@ namespace lib60870.CS101
 
 				elementSize = 7;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new PackedOutputCircuitInfo (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -633,7 +633,7 @@ namespace lib60870.CS101
 
 				elementSize = 5;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new PackedSinglePointWithSCD (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -650,7 +650,7 @@ namespace lib60870.CS101
 
 				elementSize = 2;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueNormalizedWithoutQuality (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -668,7 +668,7 @@ namespace lib60870.CS101
 
 				elementSize = 8;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new SinglePointWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -684,7 +684,7 @@ namespace lib60870.CS101
 
 				elementSize = 8;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new DoublePointWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -700,7 +700,7 @@ namespace lib60870.CS101
 
 				elementSize = 9;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new StepPositionWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -716,7 +716,7 @@ namespace lib60870.CS101
 
 				elementSize = 12;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new Bitstring32WithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -732,7 +732,7 @@ namespace lib60870.CS101
 
 				elementSize = 10;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueNormalizedWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -748,7 +748,7 @@ namespace lib60870.CS101
 
 				elementSize = 10;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueScaledWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -764,7 +764,7 @@ namespace lib60870.CS101
 
 				elementSize = 12;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new MeasuredValueShortWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -780,7 +780,7 @@ namespace lib60870.CS101
 
 				elementSize = 12;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new IntegratedTotalsWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -796,7 +796,7 @@ namespace lib60870.CS101
 
 				elementSize = 10;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new EventOfProtectionEquipmentWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -812,7 +812,7 @@ namespace lib60870.CS101
 
 				elementSize = 11;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new PackedStartEventsOfProtectionEquipmentWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -828,7 +828,7 @@ namespace lib60870.CS101
 
 				elementSize = 11;
 
-				if (IsSquence) {
+				if (IsSequence) {
 					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
 					retVal = new PackedOutputCircuitInfoWithCP56Time2a (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
@@ -1063,6 +1063,59 @@ namespace lib60870.CS101
 
 				break;
 
+			case TypeID.F_FR_NA_1: /* 120 - File ready */
+
+				retVal = new FileReady (parameters, payload, 0, false);
+
+				break;
+
+			case TypeID.F_SR_NA_1: /* 121 - Section ready */
+
+				retVal = new SectionReady (parameters, payload, 0, false);
+
+				break;
+
+			case TypeID.F_SC_NA_1: /* 122 - Call directory, select file, call file, call section */
+
+				retVal = new FileCallOrSelect (parameters, payload, 0, false);
+
+				break;
+
+			case TypeID.F_LS_NA_1: /* 123 - Last section, last segment */
+
+				retVal = new FileLastSegmentOrSection (parameters, payload, 0, false);
+
+				break;
+
+			case TypeID.F_AF_NA_1: /* 124 - ACK file, ACK section */
+
+				retVal = new FileACK (parameters, payload, 0, false);
+
+				break;
+
+			case TypeID.F_SG_NA_1: /* 125 - Segment */
+
+				retVal = new FileSegment (parameters, payload, 0, false);
+
+				break;
+
+			case TypeID.F_DR_TA_1: /* 126 - Directory */
+
+				elementSize = 13;
+
+				if (IsSequence) {
+					int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
+
+					retVal = new FileDirectory (parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
+
+					retVal.ObjectAddress = ioa + index;
+
+				} else
+					retVal = new FileDirectory (parameters, payload, index * (parameters.SizeOfIOA + elementSize), false);
+
+				break;
+
+
 			/* 114 - 119 reserved */
 
 			default:
@@ -1074,7 +1127,7 @@ namespace lib60870.CS101
 					
 						elementSize = parameters.SizeOfIOA + ioFactory.GetEncodedSize ();
 
-						if (IsSquence) {
+						if (IsSequence) {
 							
 							int ioa = InformationObject.ParseInformationObjectAddress (parameters, payload, 0);
 
@@ -1111,7 +1164,7 @@ namespace lib60870.CS101
 			if (isNegative)
 				ret += " [NEG]";
 
-			if (IsSquence)
+			if (IsSequence)
 				ret += " [SEQ]";
 
 			ret += " elements: " + NumberOfElements;
