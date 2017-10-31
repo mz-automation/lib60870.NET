@@ -21,6 +21,7 @@
 
 
 using System;
+using System.Collections.Generic;
 
 namespace lib60870.CS101
 {
@@ -174,6 +175,14 @@ namespace lib60870.CS101
 		{
 			this.asduHandler = handler;
 			this.asduHandlerParameter = parameter;
+		}
+
+
+		protected FilesAvailable filesAvailable = new FilesAvailable();
+
+		public FilesAvailable GetAvailableFiles()
+		{
+			return filesAvailable;
 		}
 	}
 

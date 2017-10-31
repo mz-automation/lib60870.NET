@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{05875DE2-6036-46E9-A656-BACB47D6E5F5}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>testclient3</RootNamespace>

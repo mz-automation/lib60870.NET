@@ -53,6 +53,8 @@ namespace lib60870.CS101
 		private SlaveASDUReceivedHandler asduReceivedHandler = null;
 		private object asduReceivedHandlerParameter = null;
 
+		private FileClient fileClient = null;
+
 		private void DebugLog(string msg)
 		{
 			if (debugOutput) {
@@ -71,6 +73,8 @@ namespace lib60870.CS101
 
 			linkLayerUnbalanced = new PrimaryLinkLayerUnbalanced (linkLayer, this, DebugLog);
 			linkLayer.SetPrimaryLinkLayer(linkLayerUnbalanced);
+
+			this.fileClient = null;
 		}
 
 		public CS101MasterUnbalanced (SerialPort port)
@@ -132,9 +136,16 @@ namespace lib60870.CS101
 				DebugLog ("ASDU parsing failed: " + e.Message);
 				return;
 			}
+
+			bool messageHandled = false;
 				
-			if (asduReceivedHandler != null)
-				asduReceivedHandler (asduReceivedHandlerParameter, slaveAddress, asdu);
+			if (fileClient != null)
+				messageHandled = fileClient.HandleFileAsdu(asdu);
+
+			if (messageHandled == false) {
+				if (asduReceivedHandler != null)
+					asduReceivedHandler (asduReceivedHandlerParameter, slaveAddress, asdu);
+			}
 			
 		}
 			
@@ -155,6 +166,9 @@ namespace lib60870.CS101
 		public void Run()
 		{
 			linkLayer.Run ();
+
+			if (fileClient != null)
+				fileClient.HandleFileService ();
 		}
 
 		private void EnqueueUserData(ASDU asdu)
@@ -257,6 +271,14 @@ namespace lib60870.CS101
         {
             return parameters;
         }
+
+		public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)
+		{
+			if (fileClient == null)
+				fileClient = new FileClient (this, DebugLog);
+
+			fileClient.RequestFile (ca, ioa, nof, receiver);
+		}
     }
 		
 }

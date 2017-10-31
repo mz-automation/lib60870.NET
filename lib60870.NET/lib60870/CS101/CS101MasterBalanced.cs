@@ -52,6 +52,8 @@ namespace lib60870.CS101
 
 		private Queue<BufferFrame> userDataQueue = new Queue<BufferFrame>();
 
+		private FileClient fileClient = null;
+
 		private void DebugLog(string msg)
 		{
 			if (debugOutput) {
@@ -109,6 +111,8 @@ namespace lib60870.CS101
 
 			linkLayer.SetPrimaryLinkLayer (primaryLinkLayer);
 			linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, 0, HandleApplicationLayer, DebugLog));
+
+			this.fileClient = null;
 		}
 			
 		public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
@@ -190,8 +194,13 @@ namespace lib60870.CS101
 
 			bool messageHandled = false;
 
-			if (asduReceivedHandler != null)
-				messageHandled = asduReceivedHandler (asduReceivedHandlerParameter, asdu);
+			if (fileClient != null)
+				messageHandled = fileClient.HandleFileAsdu(asdu);
+
+			if (messageHandled == false) {
+				if (asduReceivedHandler != null)
+					messageHandled = asduReceivedHandler (asduReceivedHandlerParameter, asdu);
+			}
 
 			return messageHandled;
 		}
@@ -203,6 +212,9 @@ namespace lib60870.CS101
 		public void Run() 
 		{
 			linkLayer.Run ();
+
+			if (fileClient != null)
+				fileClient.HandleFileService ();
 		}
 
 		public void Stop()
@@ -318,6 +330,13 @@ namespace lib60870.CS101
             return parameters;
         }
 
+		public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)
+		{
+			if (fileClient == null)
+				fileClient = new FileClient (this, DebugLog);
+
+			fileClient.RequestFile (ca, ioa, nof, receiver);
+		}
     }
 }
 

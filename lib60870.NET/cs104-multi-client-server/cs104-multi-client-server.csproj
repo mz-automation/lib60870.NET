@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{F19997DD-3182-46C0-9776-E23AC6C5ACBC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>multiclientserver</RootNamespace>

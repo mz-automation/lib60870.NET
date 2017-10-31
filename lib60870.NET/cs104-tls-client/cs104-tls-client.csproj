@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{D770BDE6-5A88-4F22-9698-011356C4D505}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>tlsclient</RootNamespace>

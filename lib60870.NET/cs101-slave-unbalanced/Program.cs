@@ -109,43 +109,54 @@ namespace cs101_slave_unbalanced {
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 			Int16 measuredValue = 0;
 
+			TransparentFile file = new TransparentFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
+
+			byte[] fileData = new byte[1025];
+
+			for (int i = 0; i < 1025; i++)
+				fileData [i] = (byte)(i + 1);
+
+			file.AddSection (fileData);
+
+			slave.GetAvailableFiles().AddFile (file);
+
 			while (running) {
 
 				slave.Run (); // call the protocol stack
 
-				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
-
-					lastTimestamp = SystemUtils.currentTimeMillis ();
-
-					ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
-					newAsdu.AddInformationObject (new MeasuredValueScaled (110, measuredValue, new QualityDescriptor ()));
-					slave.EnqueueUserDataClass2 (newAsdu);
-
-					measuredValue++;
-				}
-
-				if (Console.KeyAvailable) {
-
-					ConsoleKeyInfo keyInfo = Console.ReadKey ();
-
-					if (keyInfo.KeyChar == 't') {
-						slave.SendLinkLayerTestFunction ();
-					} 
-					else {
-						Console.WriteLine ("Send spontaneous message");
-
-						bool value = false;
-
-						if (keyInfo.KeyChar == 's') {
-							value = true;
-						}
-
-						ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
-						newAsdu.AddInformationObject (new SinglePointInformation (100, value, new QualityDescriptor ()));
-
-						slave.EnqueueUserDataClass1 (newAsdu);
-					}
-				}
+//				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
+//
+//					lastTimestamp = SystemUtils.currentTimeMillis ();
+//
+//					ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
+//					newAsdu.AddInformationObject (new MeasuredValueScaled (110, measuredValue, new QualityDescriptor ()));
+//					slave.EnqueueUserDataClass2 (newAsdu);
+//
+//					measuredValue++;
+//				}
+//
+//				if (Console.KeyAvailable) {
+//
+//					ConsoleKeyInfo keyInfo = Console.ReadKey ();
+//
+//					if (keyInfo.KeyChar == 't') {
+//						slave.SendLinkLayerTestFunction ();
+//					} 
+//					else {
+//						Console.WriteLine ("Send spontaneous message");
+//
+//						bool value = false;
+//
+//						if (keyInfo.KeyChar == 's') {
+//							value = true;
+//						}
+//
+//						ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
+//						newAsdu.AddInformationObject (new SinglePointInformation (100, value, new QualityDescriptor ()));
+//
+//						slave.EnqueueUserDataClass1 (newAsdu);
+//					}
+//				}
 			}
 
 		}

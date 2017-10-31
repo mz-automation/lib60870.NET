@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{DE72BC11-8C68-434D-9291-1F38E4F4F54B}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>cs104server3</RootNamespace>

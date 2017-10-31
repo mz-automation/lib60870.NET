@@ -101,6 +101,20 @@ namespace cs101_master_unbalanced
 			return true;
 		}
 
+		public class Receiver : IFileReceiver 
+		{
+			public void Finished(FileErrorCode result)
+			{ 
+				Console.WriteLine ("File download finished - code: " + result.ToString ());
+			}
+
+
+			public void SegmentReceived(byte sectionName, int offset, int size, byte[] data)
+			{
+				Console.WriteLine ("File segment - sectionName: {0} offset: {1} size: {2}", sectionName, offset, size);
+			}
+		}
+
 		public static void Main (string[] args)
 		{
 			bool running = true;
@@ -135,6 +149,10 @@ namespace cs101_master_unbalanced
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 
+			master.UseSlaveAddress (1);
+			master.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
+
+
 			while (running) {
 
 
@@ -149,8 +167,8 @@ namespace cs101_master_unbalanced
 					lastTimestamp = SystemUtils.currentTimeMillis ();
 
 					//	if (master.GetStateOfSlave (1) == LinkLayerState.AVAILABLE) {
-					master.UseSlaveAddress (1);
-					master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
+					//master.UseSlaveAddress (1);
+					//master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
 					//	}
 
 					//					if (master.GetStateOfSlave (2) == LinkLayerState.AVAILABLE) {

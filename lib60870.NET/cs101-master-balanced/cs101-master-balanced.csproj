@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{302416B2-D0C2-47D8-8386-882E168CA840}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>cs101masterbalanced</RootNamespace>

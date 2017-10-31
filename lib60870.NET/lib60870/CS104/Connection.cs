@@ -184,6 +184,7 @@ namespace lib60870.CS104
 
         private bool autostart = true;
 
+		private FileClient fileClient = null;
 
         private string hostname;
         protected int tcpPort;
@@ -1137,8 +1138,17 @@ namespace lib60870.CS104
                 {
                     ASDU asdu = new ASDU(alParameters, buffer, 6, msgSize);
 
-                    if (asduReceivedHandler != null)
-                        asduReceivedHandler(asduReceivedHandlerParameter, asdu);
+					bool messageHandled = false;
+
+					if (fileClient != null)
+						messageHandled = fileClient.HandleFileAsdu(asdu);
+
+					if (messageHandled == false) {
+
+	                    if (asduReceivedHandler != null)
+	                        asduReceivedHandler(asduReceivedHandlerParameter, asdu);
+
+					}
                 }
                 catch (ASDUParsingException e)
                 {
@@ -1718,6 +1728,14 @@ namespace lib60870.CS104
             else
                 return IsSentBufferFull();
         }
+
+		public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)
+		{
+			if (fileClient == null)
+				fileClient = new FileClient (this, DebugLog);
+
+			fileClient.RequestFile (ca, ioa, nof, receiver);
+		}
     }
 }
 

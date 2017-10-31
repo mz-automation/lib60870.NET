@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{6CDC09F4-A182-4500-A999-B7AF49724778}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>cs101slaveunbalanced</RootNamespace>

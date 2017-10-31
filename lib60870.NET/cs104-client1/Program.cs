@@ -112,6 +112,20 @@ namespace cs104_client1
 			return true;
 		}
 
+		public class Receiver : IFileReceiver 
+		{
+			public void Finished(FileErrorCode result)
+			{ 
+				Console.WriteLine ("File download finished - code: " + result.ToString ());
+			}
+
+
+			public void SegmentReceived(byte sectionName, int offset, int size, byte[] data)
+			{
+				Console.WriteLine ("File segment - sectionName: {0} offset: {1} size: {2}", sectionName, offset, size);
+			}
+		}
+
 		public static void Main (string[] args)
 		{
 			Console.WriteLine ("Using lib60870.NET version " + LibraryCommon.GetLibraryVersionString ());
@@ -120,12 +134,33 @@ namespace cs104_client1
 
 			con.DebugOutput = true;
 
-			con.SetASDUReceivedHandler (asduReceivedHandler, null);
+			//con.SetASDUReceivedHandler (asduReceivedHandler, null);
 			con.SetConnectionHandler (ConnectionHandler, null);
 
 			con.Connect ();
 
-			Thread.Sleep (5000);
+			con.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
+
+//			ASDU fileAsdu = new ASDU (con.GetApplicationLayerParameters (), CauseOfTransmission.FILE_TRANSFER, false, false, 0, 1, false);
+//
+//			fileAsdu.AddInformationObject (new FileCallOrSelect (30000, NameOfFile.TRANSPARENT_FILE, 0, SelectAndCallQualifier.SELECT_FILE));
+//
+//			con.SendASDU (fileAsdu);
+//
+//			fileAsdu = new ASDU (con.GetApplicationLayerParameters (), CauseOfTransmission.FILE_TRANSFER, false, false, 0, 1, false);
+//
+//			fileAsdu.AddInformationObject (new FileCallOrSelect (30000, NameOfFile.TRANSPARENT_FILE, 0, SelectAndCallQualifier.REQUEST_FILE));
+//
+//			con.SendASDU (fileAsdu);
+//
+//			fileAsdu = new ASDU (con.GetApplicationLayerParameters (), CauseOfTransmission.FILE_TRANSFER, false, false, 0, 1, false);
+//
+//			fileAsdu.AddInformationObject (new FileCallOrSelect (30000, NameOfFile.TRANSPARENT_FILE, 0, SelectAndCallQualifier.REQUEST_SECTION));
+//
+//			con.SendASDU (fileAsdu);
+
+
+			Thread.Sleep (50000);
 
 			con.SendTestCommand (1);
 

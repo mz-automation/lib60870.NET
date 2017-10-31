@@ -136,6 +136,8 @@ namespace lib60870
 
 			private SerialTransceiverFT12 transceiver;
 
+			private FileServer fileServer;
+
 			private bool initialized;
 
 			private ApplicationLayerParameters parameters = new ApplicationLayerParameters();
@@ -303,6 +305,7 @@ namespace lib60870
 
 				initialized = false;
 
+				fileServer = new FileServer (this, GetAvailableFiles (), DebugLog);
 			}
 
 			internal void SendASDU(ASDU asdu) {
@@ -471,9 +474,12 @@ namespace lib60870
 
 				}
 
+				if (messageHandled == false)
+					messageHandled = fileServer.HandleFileAsdu (asdu);
+
 				if ((messageHandled == false) && (this.asduHandler != null))
-				if (this.asduHandler (this.asduHandlerParameter, this, asdu))
-					messageHandled = true;
+					if (this.asduHandler (this.asduHandlerParameter, this, asdu))
+						messageHandled = true;
 
 				if (messageHandled == false) {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_TYPE_ID;
@@ -515,6 +521,9 @@ namespace lib60870
 
 					initialized = true;
 				}
+
+				if (fileServer != null)
+					fileServer.HandleFileTransmission();
 
 				linkLayer.Run ();
 			}

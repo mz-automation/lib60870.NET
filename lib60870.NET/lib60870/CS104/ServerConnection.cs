@@ -102,6 +102,8 @@ namespace lib60870.CS104
         // only available if the server has multiple redundancy groups
         private ASDUQueue asduQueue = null;
 
+		private FileServer fileServer;
+
         internal ASDUQueue GetASDUQueue()
         {
             return asduQueue;
@@ -145,6 +147,8 @@ namespace lib60870.CS104
 			socketStream = new NetworkStream (socket);
 			this.socket = socket;
 			this.tlsSecInfo = tlsSecInfo;
+
+			this.fileServer = new FileServer (this, server.GetAvailableFiles (), DebugLog);
 
 			Thread workerThread = new Thread(HandleConnection);
 
@@ -621,36 +625,10 @@ namespace lib60870.CS104
 				}
 
 				break;
-
-			case TypeID.F_SC_NA_1: /* 122 - Call/Select directoy/file/section */
-
-				DebugLog ("Received call/select F_SC_NA_1");
-
-				if (asdu.Cot == CauseOfTransmission.FILE_TRANSFER) {
-
-					FileCallOrSelect sc = (FileCallOrSelect)asdu.GetElement (0);
-
-					CS101n104File file = server.GetFile (asdu.Ca, sc.ObjectAddress, sc.NOF);
-
-					if (file == null) {
-						asdu.Cot = CauseOfTransmission.UNKNOWN_INFORMATION_OBJECT_ADDRESS;
-						this.SendASDUInternal (asdu);
-					} else {
-						ASDU fileReady = new ASDU (alParameters, CauseOfTransmission.FILE_TRANSFER, false, false, 0, asdu.Ca, false);
-					
-						fileReady.AddInformationObject (new FileReady (sc.ObjectAddress, sc.NOF, file.GetLengthOfFile (), true));
-					
-						this.SendASDUInternal (fileReady);
-					}
-						
-
-				} else {
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					this.SendASDUInternal (asdu);
-				}
-				break;
-			
 			}
+
+			if (messageHandled == false)
+				messageHandled = fileServer.HandleFileAsdu (asdu);
 
 			if ((messageHandled == false) && (server.asduHandler != null))
 				if (server.asduHandler (server.asduHandlerParameter, this, asdu))
@@ -967,6 +945,8 @@ namespace lib60870.CS104
 				return false;
 		}
 
+
+
 		private void HandleConnection()
 		{
 
@@ -1033,7 +1013,7 @@ namespace lib60870.CS104
 							if (bytesRec > 0) {
 							
 								DebugLog("RCVD: " +	BitConverter.ToString(bytes, 0, bytesRec));
-							
+
 								if (HandleMessage(bytes, bytesRec) == false) {
 									/* close connection on error */
 									running = false;
@@ -1053,6 +1033,9 @@ namespace lib60870.CS104
 						catch (System.IO.IOException) {
 							running = false;
 						}
+
+						if (fileServer != null)
+							fileServer.HandleFileTransmission();
 
 						if (handleTimeouts() == false)
 							running = false;

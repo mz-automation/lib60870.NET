@@ -148,6 +148,16 @@ namespace lib60870.CS101
 		/// <param name="asdu">The ASDU to send</param>
 		public abstract void SendASDU(ASDU asdu);
 
+
+		/// <summary>
+		/// Gets the file.
+		/// </summary>
+		/// <param name="ca">Ca.</param>
+		/// <param name="ioa">Ioa.</param>
+		/// <param name="nof">Nof.</param>
+		/// <param name="receiver">Receiver.</param>
+		public abstract void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver);
+
         /// <summary>
         /// Get the application layer parameters used by this master instance
         /// </summary>
