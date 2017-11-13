@@ -93,6 +93,11 @@ namespace lib60870.CS101
 	}
 
 	/// <summary>
+	/// File ready handler. Will be called by the slave when a master sends a FILE READY (file download announcement) message to the slave.
+	/// </summary>
+	public delegate IFileReceiver FileReadyHandler (object parameter, int ca, int ioa, NameOfFile nof, int lengthOfFile);
+
+	/// <summary>
 	/// Simple implementation of IFileProvider that can be used to provide transparent files. Derived classed should override the
 	/// TransferComplete method.
 	/// </summary>
@@ -299,6 +304,13 @@ namespace lib60870.CS101
 					}
 
 				} else if (state == FileClientState.IDLE) {
+
+					//TODO call user callback to 
+
+					//TODO send positive or negative ACK
+
+					state = FileClientState.WAITING_FOR_SECTION_READY;
+
 				}
 				else {
 					AbortFileTransfer (FileErrorCode.PROTOCOL_ERROR);

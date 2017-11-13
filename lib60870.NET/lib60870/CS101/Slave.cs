@@ -106,8 +106,11 @@ namespace lib60870.CS101
 		public DelayAcquisitionHandler delayAcquisitionHandler = null;
 		public object delayAcquisitionHandlerParameter = null;
 
-		public ASDUHandler asduHandler = null;
+		public  ASDUHandler asduHandler = null;
 		public object asduHandlerParameter = null;
+
+		protected FileReadyHandler fileReadyHandler = null;
+		protected object fileReadyHandlerParameter = null;
 
 		/// <summary>
 		/// Sets a callback for interrogaton requests.
@@ -177,6 +180,11 @@ namespace lib60870.CS101
 			this.asduHandlerParameter = parameter;
 		}
 
+		public void SetFileReadyHandler(FileReadyHandler handler, object parameter)
+		{
+			fileReadyHandler = handler;
+			fileReadyHandlerParameter = parameter;
+		}
 
 		protected FilesAvailable filesAvailable = new FilesAvailable();
 
