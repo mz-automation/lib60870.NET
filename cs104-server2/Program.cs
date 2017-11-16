@@ -43,11 +43,6 @@ namespace cs104_server2
 
 			int waitTime = 2000;
 
-			byte[] section1 = new byte[] { 0x10, 0x20, 0x40, 0x80 };
-			byte[][] file1 = new byte[][] { section1 };
-
-			server.AddFile (1, 10070, NameOfFile.TRANSPARENT_FILE, file1);
-
 			while (running) {
 				Thread.Sleep(100);
 
