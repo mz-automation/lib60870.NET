@@ -1,0 +1,452 @@
+= lib60870.NET 2.0 User Guide
+Michael Zillgith
+
+== Introduction
+
+lib60870.NET is a new implementation of the IEC 60870-5 protocol for client (master station) and server (controlled station). The library implements all data types of the IEC 60870-5-101/104 specifications. *lib60870.NET* is a pure C#/.NET implementation. It is designed to be as easy to use as possible. Since it is using only standardized .NET features it is compatible with Windows systems and the Microsoft .NET implementation as well as on Linux and other operating systems running with Mono.
+
+The client/server API is strictly asynchronous. You send the requests with non-blocking functions and will have to handle the response and other events in callback functions.
+
+The list of supported features:
+
+* CS 101 (IEC 60870-5-101) balanced and unbalanced serial modes
+* CS 104 (IEC 60870-5-104) client and server TCP/IP communication
+* CS 104 supports encrypted and authenticated TLS communication
+* CS 104 uses the CS 101 application layer
+* Master/Client supports sending system commands, process commands, parameter commands, and data messages in reverse direction.
+* Slave/Server supports sending data messages in monitoring direction and commands in reverse direction
+* The list of supported ASDU types can be found in the annex
+* The library supports user defined private ASDU types
+
+*NOTE:* CS stands for "companion standard" and specifies variants of the communication protocols and services defined in the IEC 60870-5 standard series.
+
+== Master (client) side programming
+
+For master side programming the following API classes can be used:
+
+* *CS101MasterBalanced* for a CS 101 compliant _balanced mode_ serial connection.
+* *CS101MasterUnbalanced* for a CS 101 compliant _unbalanced mode_ serial connection.
+* *Connection* for a CS 104 compliant TCP/IP connection
+
+All of these classes implement the abstract base class *Master* that provides a set of methods to send commands and messages to the slave.
+
+=== Create a connection to a CS104 server
+
+Since an IEC 60870-5-104 (CS 104) connection is based on a TCP client/server connection the connection will be established by the client(master). The server(slave or outstation) is passively waiting for connections.
+
+In C# a connection is simply created by calling a Constructor of the Connection class:
+
+  Connection con = new Connection ("127.0.0.1");
+
+This creates a new Connection object that is ready to connect to the server. If you can go with the default connection parameters (TCP port 2404 and a common set of the IEC 60870-5-104 parameters) you can now simply call the _Connect_ method:
+
+  con.Connect ();
+
+When the connection has been established correctly you can use the connection object to send commands and receive data.
+
+To use the Connection class you have to import the lib60870.CS104 namespace into your application:
+
+  using lib60870.CS104;
+
+=== Preparing a CS101 connection to one or more slaves
+
+CS101 provides two kind of serial connection modes for master/slave communication.
+
+*Balanced mode* supports communication between a single master and a single slave using a dedicated
+serial line. Both ends can spontaneously send messages at any time.
+
+*Unbalanced mode* supports communication between a single master and multiple slaves on a serial bus. Each
+slave is addressed by its unique link layer address. Slaves do not send spontaneously. They only respond after
+a request form the master. The master can address multiple slaves by using a broadcast address.
+
+==== Configuring the serial port
+
+For both mode first the serial port has to be configured and initialized. The following code shows an
+example how to prepare the serial port for using with the library:
+
+[[app-listing]]
+[source, csharp]
+.Example configuration of the serial port
+----
+SerialPort port = new SerialPort ();
+port.PortName = "/dev/ttyUSB1";
+port.BaudRate = 9600;
+port.Parity = Parity.Even;
+port.Handshake = Handshake.None;
+port.Open ();
+----
+
+Before passing the SerialPort object to the library the port has to be opened.
+
+==== Setting the link layer parameters
+
+Setting the link layer parameters is an optional step. When not explicitly set a default set of
+parameters will be used for the new master instance.
+
+[[app-listing]]
+[source, csharp]
+.Example link layer parameter settings
+----
+LinkLayerParameters llParameters = new LinkLayerParameters();
+llParameters.AddressLength = 2;
+llParameters.UseSingleCharACK = false;
+----
+
+In the example the length of the link layer address will be set to two bytes and the
+library will be instructed not to send single char ACK messages but use short messages instead.
+The new LinkLayerParameters object will be passed to the master constructor in the next step.
+
+
+==== Create and use a new master instance
+
+For unbalanced communication mode the *CS101MasterUnbalanced* class has to be used.
+
+The following code create a new unbalanced master instance and provides the previously set
+link layer parameters. The _SetASDUReceivedHandler_ method provides a callback function for
+received ASDUs. The _AddSlave_ function will create a new slave specific state machine to
+handle all communication with the slave with link layer address 1.
+
+[[app-listing]]
+[source, csharp]
+----
+CS101MasterUnbalanced master = new CS101MasterUnbalanced(port, llParameters);
+master.SetASDUReceivedHandler (asduReceivedHandler, null);
+master.AddSlave (1);
+----
+
+=== Sending a read request
+
+The IEC 60870 documents don't recommend this service (cyclical data requests or polling) but it is an easy way to get the required data. You just need to know the common address (CA) and the information object address (IOA) to create the proper request.
+
+  con.SendReadCommand(1 /* CA */, 2001 /* IOA */);
+
+The call is non-blocking. You have to evaluate the response in the ASDUReceivedHandler callback function.
+
+Typically it is expected that the server response contains only the basic data type without timestamps (that is using the message types for a specific data type that does not contain the timestamps)!
+
+=== Interrogation
+
+You can also request a group of data items from a slave with a single request. On the master (client) side you can simply use the SendInterrogationCommand method of the Connection object:
+
+  con.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
+
+The client/master side method signature looks like this:
+
+  public void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi)
+
+The parameter ca is the common address (CA) as in the other methods. The parameter qoi is the "Qualifier of interrogation" (QOI). The value "20" (indicating "station interrogation") for the QOI indicates that it is an request for all data points. Other values for QOI will indicate that the client (master) only wants to receive data from a specific interrogation group.
+
+
+=== Clock synchronization procedure
+
+For the clock synchronization procedure the controlling station (master) sends a C_CS_NA_1 ACT message to the controlled station (slave) containing the current valid time information as a CP56Time2a typed time value. The controlled station has to update its internal time and respond with a C_CS_NA_1 ACT_CON message after all queued time-tagged PDUs have been sent.
+
+Clock synchronization of the controlled station can be done with a with the _SendClockSyncCommand_ method of the Connection class.
+
+  CP56Time2a currentTime = new CP56Time2a (DateTime.Now);
+  con.SendClockSyncCommand (1 /* CA */, currentTime);
+
+
+=== Command procedures
+
+Commands are used to set set points, parameters or trigger some actions at the outstation.
+
+The following command types (data types are available for commands):
+
+* C_SC (single command) - to control binary data (switch...)
+* C_DC (double command) - to control binary data with transition state (moving switch...)
+* S_RC (step position command) - to control a step position
+* S_SE (setpoint command) - to control a set point (scaled value, normalized value, floating point values) - may also be used to set parameters, alarm limits etc.
+
+These command types are also available in a version with a time tag (CP56TIme2a).
+
+There are two different command procedures available. The *direct operate* command procedure and the *select and operate* command procedure.
+
+To send a command for the direct operate command procedure you have to send an ACTIVATION APDU to the outstation.
+
+    Connection con = new Connection ("127.0.0.1");
+
+    con.SendControlCommand (TypeID.C_SC_NA_1, CauseOfTransmission.ACTIVATION, 1,
+                  new SingleCommand (5000, true, false, 0));
+
+To issue a single command you have to provide the proper _TypeID (C_SC_NA_1)_ and pass a _SingleCommand_ instance to the _SendControlCommand_ method.
+
+The constructor of SingleCommand has the following signature:
+
+  public SingleCommand (int ioa, bool command, bool selectCommand, int qu)
+
+In order to send a direct operate command the _selectCommand_ parameter should be false. The qualifier (_qu_) should in general be set to 0.
+
+If the command has been successful the outstation will answer with an ACT_CON response message with the _negative flag_ not set. In case the outstation cannot execute the command it will also answer with an ACT_CON response but with the _negative flag_ set. You can check if this flag is set with the IsNegative property of the received ASDU instance.
+
+
+== Slave (server) side programming
+
+=== Server configuration and setup
+
+To configure and setup an IEC 60870-5-104 server/slave an instance of the _Server_ class is required.
+
+  Server server = new Server ();
+
+After the server instance is created it can be configured
+
+=== Server mode
+
+The server provides two different modes.
+
+The default mode (_SINGLE_REDUNDANCY_GROUP_) allows only a *single active client connection*. An active client connection is a connection where ASDUs are sent. All other connections are standby connections. There is a single queue for events. Events are also stored when no client is connected or when no connection is active.
+
+The second mode (_CONNECION_IS_REDUNDANCY_GROUP_) allows *multiple active client connections*. Every connection has its own event queue. The event queue will be deleted when the client connection is closed. This mode has to be used when more then one client has to access the application data.
+
+The server mode can be set with the _ServerMode_ property of the _Server_ class.
+
+  server.ServerMode = ServerMode.CONNECION_IS_REDUNDANCY_GROUP;
+
+=== Restrict the number of client connections
+
+The number of clients can be restricted with the _MaxOpenConnections_ property of the _Server_ class.
+
+  server.MaxOpenConnections = 2;
+
+In this case the server will only allow two concurrent client connections.
+
+=== Setting local port and IP address
+
+The default TCP port for IEC 60870-5-104 is 2404. The port can be changed with the _SetLocalPort_ method of the _Server_ class.
+
+  server.SetLocalPort(2405);
+
+Per default the server listens to all local IP addresses. With the _SetLocalAddress_ method of the _Server_ class it is possible to restrict the server to a single local IP address.
+
+  server.SetLocalAddress("192.168.1.50");
+
+=== Set the size of the event queue
+
+The maximum size of the event queue(s) can be set with the _MaxQueueSize_ property of the _Server_ class. The default size is 1000. Each queue entry needs approximately 260 bytes.
+
+    server.MaxQueueSize = 10;
+
+=== Set a connection request handler to restrict the access and track connections
+
+The _ConnectionRequestHandler_ can be used to restrict the access to the server. With the return value the application can allow or deny the connection attempt of a client.
+
+A _ConnectionRequestHandler_ can be set with the _SetConnectionRequestHandler_ method of the _Server_ class. The second parameter is an arbitrary user provided object that will be passed to the handler when it is called. If not needed it can be set to _null_.
+
+  server.SetConnectionRequestHandler (connectionRequestHandler, null);
+
+[[app-listing]]
+[source, csharp]
+.Example how to implement a ConnectionRequestHandler in C#
+----
+static bool connectionRequestHandler(object parameter, IPAddress ipAddress)
+{
+  // Allow only known IP addresses!
+  // You can implement your allowed client whitelist here
+  if (ipAddress.ToString ().Equals ("127.0.0.1"))
+    return true;
+  else
+    return false;
+}
+----
+
+In the handler you can optionally check the client IP address against a whitelist of allowed clients or implement a blacklist.
+
+=== Starting/Stopping the server
+
+After the server is configured it can be started with the _Start_ method
+
+  server.Start ();
+
+To deactivate the IEC 60870-5-104 service the server can be stopped with the _Stop_ method.
+
+  server.Stop ();
+
+=== Handling interrogation requests
+
+On the server side you should use the *InterrogationHandler* delegate to handle the Interrogation request. Depending on the QOI value your should return different information objects. For a simple system it is enough to only handle station interrogation requests (QOI = 20).
+
+According to the specification the server has to respond the ACTIVATION request from the client with the ACT_CON response followed by ASDUs containing the information objects with the COT = INTERROGATED_BY_STATION. After sending all information objects the server has to send the initial interrogation command message with COT = ACT_TERM to indicate that the transmission of the interrogation data is finished.
+
+[[app-listing]]
+[source, csharp]
+.Example how to implement an InterrogationHandler in C#
+----
+  private static bool interrogationHandler(object parameter, ServerConnection connection, ASDU asdu, byte qoi)
+  {
+    Console.WriteLine ("Interrogation for group " + qoi);
+
+    // send ACT_CON
+    connection.SendACT_CON (asdu, false);
+
+    // send information objects
+    newAsdu.AddInformationObject (new MeasuredValueScaled (100, -1, new QualityDescriptor ()));
+    newAsdu.AddInformationObject (new MeasuredValueScaled (101, 23, new QualityDescriptor ()));
+    newAsdu.AddInformationObject (new MeasuredValueScaled (102, 2300, new QualityDescriptor ()));
+    connection.SendASDU (newAsdu);
+
+    newAsdu = new ASDU (TypeID.M_ME_TE_1, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, 3, 1, false);
+    newAsdu.AddInformationObject(new MeasuredValueScaledWithCP56Time2a(103, 3456, new QualityDescriptor (), new CP56Time2a(DateTime.Now)));
+    connection.SendASDU (newAsdu);
+
+    newAsdu = new ASDU (TypeID.M_SP_TB_1, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, 2, 1, false);
+    newAsdu.AddInformationObject (new SinglePointWithCP56Time2a (104, true, new QualityDescriptor (), new CP56Time2a (DateTime.Now)));
+    connection.SendASDU (newAsdu);
+
+    // send ACT_TERM
+    connection.SendACT_TERM (asdu);
+
+    return true;
+  }
+----
+
+=== Spontaneous transmission of messages
+
+For spontaneous message transmission on the server side the API user has to allocate an ASDU object, add Information Objects to the ASDU and put the ASDU into the transmission queue. The transmission queue is a FIFO (first in first out) list. If the queue is full the oldest message will be deleted and replaced by the newly added message. Messages will only be sent if the there is an active client connection. Otherwise the messages will remain in the queue until a connection is activated.
+
+*CS104* The size of the queue is controlled by the property *MaxQueueSize* of the *Server* object..
+
+These are the required steps:
+
+. Step: Create a new ASDU instance
+
+    ASDU newAsdu = new ASDU (TypeID.M_ME_NB_1, CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
+
+. Step: Add an information object to the ASDU
+
+    newAsdu.AddInformationObject (new MeasuredValueScaled (110, -1, new QualityDescriptor ()));
+
+. Step: Add the ASDU to the transmission queue
+
+    server.EnqueueASDU (newAsdu);
+
+=== Adding multiple Information Objects to a single ASDU
+
+Multiple information objects can be included in the same ASDU when the information objects are all of the same type.
+
+The return value of the _AddInformationObject_ method indicates if the information object has been added successfully. When the ASDU capacity is already reached the return value is _false_ and the InformationObject instance has not been added.
+
+
+== Advanced topics ==
+
+=== Creating non-standard information object types ===
+
+For lib60870.NET you should derive a new class from the *InformationObject* class.
+
+== ANNEX - Reference information
+
+=== Supported message types
+
+The library supports the following ASDU (application service data unit) types.
+
+.IEC 60870-5-101/104 message types
+[width="90%",cols="n,10,1,1",frame="topbot",options="header"]
+|==========================
+| Message type | Description | C | C#
+| M_SP_NA_1(1) | Single point information (BOOLEAN)  | + | +
+| M_SP_TA_1(2) | Single point information (BOOLEAN) with CP24Time2a | + | +
+| M_DP_NA_1(3) | Double point information (ON/OFF/transient)  | + | +
+| M_DP_TA_1(4) | Double point information (ON/OFF/transient) with CP24Time2a  | + | +
+| M_ST_NA_1(5) | Step position information (-64 ... 63, is transient)  | + | +
+| M_ST_TA_1(6) | Step position information (-64 ... 63, is transient) with CP24Time2a | + | +
+| M_BO_NA_1(7) | Bitstring32 (32 bit bitstring)  | + | +
+| M_BO_TA_1(8) | Bitstring32 (32 bit bitstring) with CP24Time2a | + | +
+| M_ME_NA_1(9) | Normalized measured value (-1.0 ... +1.0)  | + | +
+| M_ME_TA_1(10) | Normalized measured value (-1.0 ... +1.0) with CP24Time2a | + | +
+| M_ME_NB_1(11) | Scaled measured value (-32768 ... +32767)  | + | +
+| M_ME_TB_1(12) | Scaled measured value (-32768 ... +32767) with CP24Time2a | + | +
+| M_ME_NC_1(13) | Short measured value (FLOAT32)  | + | +
+| M_ME_TC_1(14) | Short measured value (FLOAT32) with CP24Time2a | + | +
+| M_IT_NA_1(15) | Integrated totals (INT32 with quality indicators)  | + | +
+| M_IT_TA_1(16) | Integrated totals (INT32 with quality indicators) with CP24Time2a | + | +
+| M_EP_TA_1(17) | Event of protection equipment | + | +
+| M_EP_TB_1(18) | Packed start events of protection equipment | + | +
+| M_EP_TC_1(19) | Packed output circuit info | + | +
+| M_PS_NA_1(20) | Packed single point with SCD | + | +
+| M_ME_ND_1(21) | Normalized measured value (-1.0 ... +1.0) without quality | + | +
+| M_SP_TB_1(30) | Single point information (BOOLEAN) with CP56Time2a | + | +
+| M_DP_TB_1(31) | Double point information (ON/OFF/transient) with CP56Time2a  | + | +
+| M_ST_TB_1(32) | Step position information (-64 ... 63, is transient) with CP56Time2a  | + | +
+| M_BO_TB_1(33) | Bitstring32 (32 bit bitstring) with CP56Time2a | + | +
+| M_ME_TD_1(34) | Normalized measured value (-1.0 ... +1.0) with CP56Time2a | + | +
+| M_ME_TE_1(35) | Scaled measured value (-32768 ... +32767) with CP56Time2a | + | +
+| M_ME_TF_1(36) | Short measured value (FLOAT32) with CP56Time2a | + | +
+| M_IT_TB_1(37) | Integrated totals (INT32 with quality indicators) with CP56Time2a | + | +
+| M_EP_TD_1(38) | Event of protection equipment with CP56Time2a | + | +
+| M_EP_TE_1(39) | Packed start events of protection equipment with CP56Time2a | + | +
+| M_EP_TF_1(40) | Packed output circuit info with CP56Time2a | + | +
+| C_SC_NA_1(45) | Single command (BOOLEAN) | + | +
+| C_DC_NA_1(46) | Double command (ON/OFF/transient) | + | +
+| C_RC_NA_1(47) | Step command | + | +
+| C_SE_NA_1(48) | Setpoint command, normalized value (-1.0 ... +1.0)| + | +
+| C_SE_NB_1(49) | Setpoint command, scaled value (-32768 ... +32767) | + | +
+| C_SE_NC_1(50) | Setpoint command, short value (FLOAT32)| + | +
+| C_BO_NA_1(51) | Bitstring command (32 bit bitstring)  | + | +
+
+
+| C_SC_TA_1(58) | Single command (BOOLEAN) with CP56Time2a | + | +
+| C_DC_TA_1(59) | Double command (ON/OFF/transient) with CP56Time2a | + | +
+| C_RC_TA_1(60) | Step command with CP56Time2a | + | +
+| C_SE_TA_1(61) | Setpoint command, normalized value (-1.0 ... +1.0) with CP56Time2a| + | +
+| C_SE_TB_1(62) | Setpoint command, scaled value (-32768 ... +32767) with CP56Time2a | + | +
+| C_SE_TC_1(63) | Setpoint command, short value (FLOAT32) with CP56Time2a| + | +
+| C_BO_TA_1(64) | Bitstring command (32 bit bitstring) with CP56Time2a | + | +
+
+| C_IC_NA_1(100) | Interrogation command | + | +
+| C_CI_NA_1(101) | Counter interrogation command | + | +
+| C_RD_NA_1(102) | Read command | + | +
+| C_CS_NA_1(103) | Clock synchronization command | + | +
+| C_RP_NA_1(105) | Reset process command | + | +
+| C_CD_NA_1(106) | Delay acquisition command | + | +
+
+| P_ME_NA_1(110) | Parameter of measured values, normalized value | + | +
+| P_ME_NB_1(111) | Parameter of measured values, scaled value  | + | +
+| P_ME_NC_1(112) | Parameter of measured values, short floating point number | + | +
+| P_AC_NA_1(113) | Parameter for activation | + | +
+|==========================
+
+
+
+=== CS101/CS104 application layer parameters
+
+The following parameters are for the CS101/CS104 application layer and are stored in the *lib60870.CS101.ApplicationLayerParameters* class.
+
+.IEC 60870-5-101/104 application layer parameters
+[width="90%",cols="n,10",frame="topbot",options="header"]
+|==========================
+|Parameter        |Description
+|SizeOfCOT       | Size of the COT field of the ASDU. Can be 1 or 2 (default). When the size is 2 the COT field contains the originator address (OA).
+|OA      | Originator address
+|SizeOfCA      | Size of the common address (CA) field of the ASDU. Can be 1 or 2 (default).
+|SizeOfIOA | Size of the information object addresses (IOA). Can be 1, 2, or 3 (default).
+|MaxAsduLength      | Maximum allowed length of the ASDU (default and maximum is 249). Should not be changed.
+|==========================
+
+=== CS101 link layer parameters
+
+The *LinkLayerParameters* class stored the configuration parameters for the CS 101 link layer.
+
+.IEC 60870-5-101 link layer parameters
+[width="90%",cols="n,10",frame="topbot",options="header"]
+|==========================
+|Parameter        |Description
+|AddressLength    | Size of the link layer address field of the LPCI. Can be 0, 1 (default), or 2.
+|TimeoutForACK    | Timeout for ACK of the link layer message
+|TimeoutRepeat    | Timeout for repeated transmission of link layer messages.
+|UseSingleCharACK | Indicates if the secondary link layer will use single char ACK (E5)
+|==========================
+
+=== CS104 specific parameters
+
+The following parameters are stored in *APCIParameters* objects.
+
+.IEC 60870-5-104 parameters
+[width="90%",cols="n,10",frame="topbot",options="header"]
+|==========================
+|Parameter        |Description
+|k       |Number of unconfirmed APDUs in I format. Sender will stop transmission after k unconfirmed I messages.
+|w       |Number of unconfirmed APDUs in I format. Receiver will confirm latest after w messages
+|t0      |Timeout for connection establishment (in s)
+|t1      |Timeout for transmitted APDUs in I/U format (in s) when timeout elapsed without confirmation the connection will be closed. This is used by the sender to determine if the receiver has failed to confirm a message.
+|t2      |Timeout to confirm messages (in s). This timeout is used by the receiver to determine the time when the message confirmation has to be sent.
+|t3      |time until test telegrams will be sent in case of an idle connection
+|==========================
