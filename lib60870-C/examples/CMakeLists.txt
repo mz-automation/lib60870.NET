@@ -1,3 +1,0 @@
-add_subdirectory(simple_client)
-add_subdirectory(simple_server)
-add_subdirectory(multi_client_server)

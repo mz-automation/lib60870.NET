@@ -1,6 +1,6 @@
-# README lib60870 (v2 development branch)
+# README lib60870.NET v2
 
-lib60870 library for IEC 60870-5 based protocols in C and C#
+lib60870.NET library for IEC 60870-5 based protocols in C#
 
 The current implementation contains code for the IEC 60870-5-101/104 protocols only.
 
@@ -15,24 +15,6 @@ Please also consider the User Guide.
 lib60870.NET:
 
 Open the provided solution file in the lib60870.NET folder with MonoDevelop or Visual Studio. You should be able to build and run the library and examples with any recent version of MonoDevelop or Visual Studio
-
-lib60870-C:
-
-In the lib60870-C folder build the library with
-
-`make`
-
-Go to the examples folder
-
-examples/simple_client
-examples/simple_server
-
-and build the examples with
-
-`make`
-
-in each examples' directory.
-
 
 ## Contact:
 
