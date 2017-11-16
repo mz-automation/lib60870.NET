@@ -50,7 +50,7 @@ namespace lib60870.CS104
         /// <summary>
         /// Every connection is an own redundancy group. This enables simple multi-client server.
         /// </summary>
-        CONNECION_IS_REDUNDANCY_GROUP
+        CONNECTION_IS_REDUNDANCY_GROUP
     }
 
     internal class ASDUQueue

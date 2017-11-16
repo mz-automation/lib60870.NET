@@ -104,6 +104,18 @@ namespace cs104_client1
 					Console.WriteLine ((asdu.IsNegative ? "Negative" : "Positive") + "confirmation for interrogation command");
 				else if (asdu.Cot == CauseOfTransmission.ACTIVATION_TERMINATION)
 					Console.WriteLine ("Interrogation command terminated");
+			} else if (asdu.TypeId == TypeID.F_DR_TA_1) {
+				Console.WriteLine ("Received file directory:\n------------------------");
+				int ca = asdu.Ca;
+
+				for (int i = 0; i < asdu.NumberOfElements; i++) {
+					FileDirectory fd = (FileDirectory)asdu.GetElement (i);
+
+					Console.Write (fd.FOR ? "DIR:  " : "FILE: ");
+
+					Console.WriteLine ("CA: {0} IOA: {1} Type: {2}", ca, fd.ObjectAddress, fd.NOF.ToString ()); 
+				}
+
 			}
 			else {
 				Console.WriteLine ("Unknown message type!");
@@ -134,31 +146,14 @@ namespace cs104_client1
 
 			con.DebugOutput = true;
 
-			//con.SetASDUReceivedHandler (asduReceivedHandler, null);
+			con.SetASDUReceivedHandler (asduReceivedHandler, null);
 			con.SetConnectionHandler (ConnectionHandler, null);
 
 			con.Connect ();
 
+			con.GetDirectory (1);
+
 			con.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
-
-//			ASDU fileAsdu = new ASDU (con.GetApplicationLayerParameters (), CauseOfTransmission.FILE_TRANSFER, false, false, 0, 1, false);
-//
-//			fileAsdu.AddInformationObject (new FileCallOrSelect (30000, NameOfFile.TRANSPARENT_FILE, 0, SelectAndCallQualifier.SELECT_FILE));
-//
-//			con.SendASDU (fileAsdu);
-//
-//			fileAsdu = new ASDU (con.GetApplicationLayerParameters (), CauseOfTransmission.FILE_TRANSFER, false, false, 0, 1, false);
-//
-//			fileAsdu.AddInformationObject (new FileCallOrSelect (30000, NameOfFile.TRANSPARENT_FILE, 0, SelectAndCallQualifier.REQUEST_FILE));
-//
-//			con.SendASDU (fileAsdu);
-//
-//			fileAsdu = new ASDU (con.GetApplicationLayerParameters (), CauseOfTransmission.FILE_TRANSFER, false, false, 0, 1, false);
-//
-//			fileAsdu.AddInformationObject (new FileCallOrSelect (30000, NameOfFile.TRANSPARENT_FILE, 0, SelectAndCallQualifier.REQUEST_SECTION));
-//
-//			con.SendASDU (fileAsdu);
-
 
 			Thread.Sleep (50000);
 

@@ -1736,6 +1736,17 @@ namespace lib60870.CS104
 
 			fileClient.RequestFile (ca, ioa, nof, receiver);
 		}
+
+		public void GetDirectory(int ca) 
+		{
+			ASDU getDirectoryAsdu = new ASDU (GetApplicationLayerParameters (), CauseOfTransmission.REQUEST, false, false, 0, ca, false);
+
+			InformationObject io = new FileCallOrSelect (0, NameOfFile.DEFAULT, 0, SelectAndCallQualifier.DEFAULT);
+
+			getDirectoryAsdu.AddInformationObject (io);
+
+			SendASDU (getDirectoryAsdu);
+		}
     }
 }
 

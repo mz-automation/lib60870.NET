@@ -725,7 +725,7 @@ namespace lib60870.CS101
 		}
 
 		internal FileDirectory (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-		base(parameters, msg, startIndex, isSequence)
+			base(parameters, msg, startIndex, isSequence)
 		{
 			if (!isSequence)
 				startIndex += parameters.SizeOfIOA; /* skip IOA */

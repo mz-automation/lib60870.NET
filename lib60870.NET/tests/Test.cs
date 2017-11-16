@@ -1467,6 +1467,22 @@ namespace tests
         }
 
 		[Test()]
+		public void TestCP56Time2a()
+		{
+			CP56Time2a time = new CP56Time2a();
+
+			Assert.AreEqual (time.Year, 0);
+
+			time.Year = 2017;
+
+			Assert.AreEqual (time.Year, 17);
+
+			time.Year = 1980;
+
+			Assert.AreEqual (time.Year, 80);
+		}
+
+		[Test()]
 		public void TestMeasuredValueNormalized()
 		{
 			byte[] buffer = new byte[257];

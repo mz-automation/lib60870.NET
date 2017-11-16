@@ -426,6 +426,7 @@ namespace lib60870.CS101
 				break;
 
 			default:
+
 				asduHandled = false;
 				break;
 			}
@@ -511,15 +512,82 @@ namespace lib60870.CS101
 			return null;
 		}
 
+		internal void SendDirectoy(IMasterConnection masterConnection, bool spontaneous)
+		{
+			CauseOfTransmission cot;
+
+			if (spontaneous)
+				cot = CauseOfTransmission.SPONTANEOUS;
+			else
+				cot = CauseOfTransmission.REQUEST;
+
+			lock (availableFiles) {
+
+				int size = availableFiles.Count;
+				int i = 0;
+
+				int currentCa = -1;
+				int currentIOA = -1;
+
+				ASDU directoryAsdu = null; 
+
+				foreach (CS101n104File file in availableFiles) {
+				
+					bool newAsdu = false;
+
+					if (file.provider.GetCA () != currentCa) {
+						currentCa = file.provider.GetCA ();
+						newAsdu = true;
+					}
+
+					if (currentIOA != (file.provider.GetIOA () - 1)) {
+						newAsdu = true;
+					}
+
+					if (newAsdu) {
+						if (directoryAsdu != null) {
+							masterConnection.SendASDU (directoryAsdu);
+							directoryAsdu = null;
+						}
+					}
+
+					currentIOA = file.provider.GetIOA ();
+
+					i++;
+
+					if (directoryAsdu == null) {
+						Console.WriteLine ("Send directory ASDU");
+						directoryAsdu = new ASDU (masterConnection.GetApplicationLayerParameters (), cot, false, false, 0, currentCa, true);
+					}
+
+					bool lastFile = (i == size);
+
+					byte sof = 0;
+
+					if (lastFile)
+						sof = 0x20;
+
+					InformationObject io = new FileDirectory(currentIOA, file.provider.GetNameOfFile(), file.provider.GetFileSize(), sof, new CP56Time2a(file.provider.GetFileDate()));
+
+					directoryAsdu.AddInformationObject (io);
+				}
+
+				if (directoryAsdu != null) {
+
+					Console.WriteLine ("Send directory ASDU");
+					masterConnection.SendASDU (directoryAsdu);
+				}
+
+			}
+		}
+
 		public void AddFile(IFileProvider file)
 		{
 			lock (availableFiles) {
 
 				availableFiles.Add (new CS101n104File (file));
 			}
-
-			//if (sendDirectroy)
-			//	sendDirectroyMessage ();
+				
 		}
 
 		public void RemoveFile(IFileProvider file)
@@ -571,6 +639,11 @@ namespace lib60870.CS101
 		private byte fileChecksum = 0;
 
 		private FileServerState transferState;
+
+		private void SendDirectory()
+		{
+			
+		}
 
 		public bool HandleFileAsdu(ASDU asdu)
 		{
@@ -828,6 +901,7 @@ namespace lib60870.CS101
 				} else if (asdu.Cot == CauseOfTransmission.REQUEST) {
 					logger ("Call directory received");
 
+					availableFiles.SendDirectoy (connection, false);
 
 				} else {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;

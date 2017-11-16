@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -6,26 +6,25 @@ using System.Threading;
 using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
+using System.Collections.Generic;
 
-namespace cs104_multi_client_server
+namespace cs104_server_file
 {
-
-	class MainClass
+	public class SimpleFile : TransparentFile
 	{
-		private static bool connectionRequestHandler(object parameter, IPAddress ipAddress)
+		public SimpleFile (int ca, int ioa, NameOfFile nof)
+			: base (ca, ioa, nof)
 		{
-			Console.WriteLine ("New connection request from IP " + ipAddress.ToString ());
-
-			// Allow only known IP addresses!
-			// You can implement your allowed client whitelist here
-			if (ipAddress.ToString ().Equals ("127.0.0.1"))
-				return true;
-			else if (ipAddress.ToString ().Equals ("192.168.178.70"))
-				return true;
-			else
-				return false;
 		}
 
+		public override void TransferComplete (bool success)
+		{
+			Console.WriteLine ("Transfer complete: " + success.ToString());
+		}
+	}
+	
+	class MainClass
+	{
 		private static bool interrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
 		{
 			Console.WriteLine ("Interrogation for group " + qoi);
@@ -93,16 +92,22 @@ namespace cs104_multi_client_server
 
 		private static bool asduHandler(object parameter, IMasterConnection connection, ASDU asdu)
 		{
-
+			
 			if (asdu.TypeId == TypeID.C_SC_NA_1) {
 				Console.WriteLine ("Single command");
 
 				SingleCommand sc = (SingleCommand)asdu.GetElement (0);
 
 				Console.WriteLine (sc.ToString ());
-			} 
+			} else if (asdu.TypeId == TypeID.M_EI_NA_1) {
+				Console.WriteLine ("End of initialization received");
+			}
+			else if (asdu.TypeId == TypeID.F_DR_TA_1) {
+			
+				Console.WriteLine ("Received file directory");
+			}
 			else if (asdu.TypeId == TypeID.C_CS_NA_1){
-
+				
 
 				ClockSynchronizationCommand qsc = (ClockSynchronizationCommand)asdu.GetElement (0);
 
@@ -123,13 +128,9 @@ namespace cs104_multi_client_server
 
 			Server server = new Server ();
 
-			//server.SetLocalAddress ("0.0.0.0");
+			server.DebugOutput = true;
 
-			server.ServerMode = ServerMode.CONNECTION_IS_REDUNDANCY_GROUP;
 			server.MaxQueueSize = 10;
-			server.MaxOpenConnections = 2;
-
-			server.SetConnectionRequestHandler (connectionRequestHandler, null);
 
 			server.SetInterrogationHandler (interrogationHandler, null);
 
@@ -137,23 +138,30 @@ namespace cs104_multi_client_server
 
 			server.Start ();
 
+			SimpleFile file = new SimpleFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
+
+			byte[] fileData = new byte[1025];
+
+			for (int i = 0; i < 1025; i++)
+				fileData [i] = (byte)(i + 1);
+
+			file.AddSection (fileData);
+
+			SimpleFile file2 = new SimpleFile (1, 30001, NameOfFile.TRANSPARENT_FILE);
+			file2.AddSection (fileData);
+
+			server.GetAvailableFiles().AddFile (file);
+			server.GetAvailableFiles().AddFile (file2);
+
+            ASDU newAsdu = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.INITIALIZED, false, false, 0, 1, false);
+            EndOfInitialization eoi = new EndOfInitialization(0);
+            newAsdu.AddInformationObject(eoi);
+            server.EnqueueASDU(newAsdu);
+
 			int waitTime = 1000;
 
 			while (running) {
 				Thread.Sleep(100);
-
-				if (waitTime > 0)
-					waitTime -= 100;
-				else {
-
-					ASDU newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
-
-					newAsdu.AddInformationObject (new MeasuredValueScaled (110, -1, new QualityDescriptor ()));
-
-					server.EnqueueASDU (newAsdu);
-
-					waitTime = 1000;
-				}
 			}
 
 			Console.WriteLine ("Stop server");
