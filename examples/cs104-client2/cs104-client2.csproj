@@ -3,10 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{608CD6D9-91FC-419F-A0F6-2091E0B6D469}</ProjectGuid>
+    <ProjectGuid>{7BB50F1A-3C65-4D26-998D-C7744BABAA7F}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>testclient</RootNamespace>
-    <AssemblyName>testclient</AssemblyName>
+    <RootNamespace>testclient2</RootNamespace>
+    <AssemblyName>testclient2</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,7 +38,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <ProjectReference Include="..\lib60870\lib60870.csproj">
+    <ProjectReference Include="..\..\lib60870\lib60870.csproj">
       <Project>{F604286A-1AFC-4355-8C2C-A998CFCEE979}</Project>
       <Name>lib60870</Name>
     </ProjectReference>

@@ -158,8 +158,6 @@ namespace cs104_server_file
             newAsdu.AddInformationObject(eoi);
             server.EnqueueASDU(newAsdu);
 
-			int waitTime = 1000;
-
 			while (running) {
 				Thread.Sleep(100);
 			}
