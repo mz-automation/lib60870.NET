@@ -38,7 +38,7 @@ namespace cs101_master_balanced
 			return true;
 		}
 
-		private static void linkLayerStateChanged (object parameter, lib60870.linklayer.LinkLayerState newState)
+		private static void linkLayerStateChanged (object parameter, int address, lib60870.linklayer.LinkLayerState newState)
 		{
 			Console.WriteLine ("LL state event: " + newState.ToString ());
 		}

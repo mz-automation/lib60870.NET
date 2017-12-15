@@ -40,9 +40,6 @@ namespace lib60870.CS101
 
 		private byte[] buffer = new byte[300]; /* buffer to read data from serial line */
 
-		private long timeoutForACK = 1000;       // for balanced mode only - timeout for ACKs in ms
-		private long timeoutRepeat = 5000;       // for balanced mode only - timeout for repeating messages when no ACK received in ms
-
 		private SerialTransceiverFT12 transceiver;
 
 		private PrimaryLinkLayerBalanced primaryLinkLayer;
@@ -74,24 +71,6 @@ namespace lib60870.CS101
 		public LinkLayerState GetLinkLayerState()
 		{
 			return primaryLinkLayer.GetLinkLayerState ();
-		}
-
-		public long TimeoutForACK {
-			get {
-				return this.timeoutForACK;
-			}
-			set {
-				timeoutForACK = value;
-			}
-		}
-
-		public long TimeoutRepeat {
-			get {
-				return this.timeoutRepeat;
-			}
-			set {
-				timeoutRepeat = value;
-			}
 		}
 
 		public CS101MasterBalanced (SerialPort port)

@@ -27,9 +27,10 @@ using System.IO.Ports;
 namespace lib60870.linklayer
 {
 	/// <summary>
-	/// Will be called by the stack when the state of a balanced connection changes
+	/// Will be called by the stack when the state of a link layer connection changes
 	/// </summary>
-	public delegate void LinkLayerStateChanged (object parameter, LinkLayerState newState);
+	/// <param name="address">Address of the slave (only used for unbalanced master mode)</param>
+	public delegate void LinkLayerStateChanged (object parameter, int address, LinkLayerState newState);
 
 	public enum LinkLayerState {
 		IDLE,

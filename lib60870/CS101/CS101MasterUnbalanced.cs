@@ -108,6 +108,11 @@ namespace lib60870.CS101
 			return linkLayerUnbalanced.GetStateOfSlave(slaveAddress);
 		}
 
+		public void SetLinkLayerStateChangedHandler(LinkLayerStateChanged handler, object parameter)
+		{
+			linkLayerUnbalanced.SetLinkLayerStateChanged (handler, parameter);
+		}
+
 		/// <summary>
 		/// Sets the slave address for the next application layer message/service
 		/// </summary>

@@ -84,9 +84,6 @@ namespace lib60870.linklayer
 				
 				break;
 
-				//case FunctionCodePrimary.RESET_USER_PROCESS:
-				//	break;
-
 			case FunctionCodePrimary.TEST_FUNCTION_FOR_LINK:
 				DebugLog ("SLL -TEST FUNCTION FOR LINK");
 				// TODO check if DCF has to be sent

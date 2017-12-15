@@ -101,14 +101,18 @@ namespace cs101_master_unbalanced
 			return true;
 		}
 
+		private static void linkLayerStateChanged (object parameter, int address, lib60870.linklayer.LinkLayerState newState)
+		{
+			Console.WriteLine ("LL state event {0} for slave {1}", newState.ToString (), address);
+		}
+
 		public class Receiver : IFileReceiver 
 		{
 			public void Finished(FileErrorCode result)
 			{ 
 				Console.WriteLine ("File download finished - code: " + result.ToString ());
 			}
-
-
+				
 			public void SegmentReceived(byte sectionName, int offset, int size, byte[] data)
 			{
 				Console.WriteLine ("File segment - sectionName: {0} offset: {1} size: {2}", sectionName, offset, size);
@@ -142,6 +146,8 @@ namespace cs101_master_unbalanced
 			CS101MasterUnbalanced master = new CS101MasterUnbalanced(port, llParameters);
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
+
+			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
 
 			master.AddSlave (1);
 			//master.AddSlave (2);

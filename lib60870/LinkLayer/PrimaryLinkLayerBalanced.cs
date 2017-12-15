@@ -75,7 +75,7 @@ namespace lib60870.linklayer
 			if (stateChangedCallback != null) {
 				if (newState != state) {
 					state = newState;
-					stateChangedCallback (stateChangedCallbackParameter, newState);
+					stateChangedCallback (stateChangedCallbackParameter, -1, newState);
 				}
 			}
 		}
@@ -88,7 +88,6 @@ namespace lib60870.linklayer
 			if (dfc) {
 
 				//TODO stop sending ASDUs; only send Status of link requests
-				//TODO switch to new state...
 
 				switch (primaryState) {
 				case PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK:
@@ -172,7 +171,7 @@ namespace lib60870.linklayer
 
 			case FunctionCodeSecondary.LINK_SERVICE_NOT_FUNCTIONING:
 			case FunctionCodeSecondary.LINK_SERVICE_NOT_IMPLEMENTED:
-				DebugLog ("PLL - link layer service not functioning/not implemented in secondary station ");
+				DebugLog ("PLL - link layer service not functioning/not implemented in secondary station");
 				if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
 					newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 					SetNewState(LinkLayerState.AVAILABLE);
@@ -287,10 +286,10 @@ namespace lib60870.linklayer
 						if (sendLinkLayerTestFunction) {
 							DebugLog ("PLL - REPEAT SEND RESET REMOTE LINK");
 							linkLayer.SendFixedFramePrimary (FunctionCodePrimary.TEST_FUNCTION_FOR_LINK, linkLayerAddressOtherStation, !nextFcb, true);
-							lastSendTime = SystemUtils.currentTimeMillis ();
-						}
-						else
+						} else {
+							DebugLog ("PLL - repeat last ASDU");
 							linkLayer.SendVariableLengthFramePrimary (FunctionCodePrimary.USER_DATA_CONFIRMED, linkLayerAddressOtherStation, !nextFcb, true, lastSendASDU);
+						}
 
 						lastSendTime = SystemUtils.currentTimeMillis ();
 					}
