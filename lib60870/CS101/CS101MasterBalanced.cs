@@ -80,6 +80,8 @@ namespace lib60870.CS101
 
 			linkLayer = new LinkLayer (buffer, linkLayerParameters, transceiver, DebugLog);
 
+			linkLayer.DIR = true;
+
 			primaryLinkLayer = new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog);
 
 			linkLayer.SetPrimaryLinkLayer (primaryLinkLayer);

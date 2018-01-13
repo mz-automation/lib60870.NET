@@ -52,6 +52,19 @@ namespace lib60870.CS101
 		}
 
 		/// <summary>
+		/// Value of DIR bit when sending messages.
+		/// </summary>
+		public bool DIR
+		{
+			get {
+				return linkLayer.DIR;
+			}
+			set {
+				linkLayer.DIR = value;
+			}
+		}
+
+		/// <summary>
 		/// Run the protocol state machines a single time.
 		/// Alternative to Start/Stop when no background thread should be used
 		/// Has to be called frequently
