@@ -183,6 +183,8 @@ namespace lib60870.linklayer
 					} else if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND) {
 
 						/* single char ACK is interpreted as RESP NO DATA */
+						requestClass1Data = false;
+						requestClass2Data = false;
 
 						SetState (LinkLayerState.AVAILABLE);
 
@@ -255,6 +257,9 @@ namespace lib60870.linklayer
 
 					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND) {
 						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+
+						requestClass1Data = false;
+						requestClass2Data = false;
 
 						SetState (LinkLayerState.AVAILABLE);
 					} else { /* illegal message */
