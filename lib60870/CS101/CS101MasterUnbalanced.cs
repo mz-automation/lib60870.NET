@@ -70,6 +70,8 @@ namespace lib60870.CS101
 			linkLayerUnbalanced = new PrimaryLinkLayerUnbalanced (linkLayer, this, DebugLog);
 			linkLayer.SetPrimaryLinkLayer(linkLayerUnbalanced);
 
+			this.port = port;
+
 			this.fileClient = null;
 		}
 

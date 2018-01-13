@@ -97,7 +97,7 @@ namespace cs101_slave_balanced
 			llParameters.UseSingleCharACK = true;
 
 			CS101Slave slave = new CS101Slave (port, llParameters);
-			slave.DebugOutput = true;
+			slave.DebugOutput = false;
 			slave.LinkLayerAddress = 1;
 
 			slave.LinkLayerMode = lib60870.linklayer.LinkLayerMode.BALANCED;
