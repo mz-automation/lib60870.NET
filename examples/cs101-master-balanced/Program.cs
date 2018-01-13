@@ -61,10 +61,14 @@ namespace cs101_master_balanced
 				running = false;
 			};
 
+			string portName = "/dev/ttyUSB1";
+
+			if (args.Length > 0)
+				portName = args [0];
 
 			// Setup serial port
 			SerialPort port = new SerialPort ();
-			port.PortName = "/dev/ttyUSB1";
+			port.PortName = portName;
 			port.BaudRate = 9600;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
@@ -84,9 +88,11 @@ namespace cs101_master_balanced
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 
-			while (running) {
+			// This will start a separate thread!
+			// alternativley you can you master.Run() inside the loop
+			master.Start ();
 
-				master.Run ();
+			while (running) {
 
 				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
 
@@ -100,6 +106,8 @@ namespace cs101_master_balanced
 				}
 
 			}
+
+			master.Stop ();
 
 			port.Close ();
 		}

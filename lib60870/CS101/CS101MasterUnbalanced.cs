@@ -35,10 +35,8 @@ namespace lib60870.CS101
 	/// </summary>
 	public delegate bool SlaveASDUReceivedHandler (object parameter, int slaveAddress, ASDU asdu);
 
-	public class CS101MasterUnbalanced : Master, IPrimaryLinkLayerCallbacks
+	public class CS101MasterUnbalanced : CS101Master, IPrimaryLinkLayerCallbacks
 	{
-		private LinkLayer linkLayer = null;
-
 		private PrimaryLinkLayerUnbalanced linkLayerUnbalanced = null;
 
 		private SerialTransceiverFT12 transceiver;
@@ -52,8 +50,6 @@ namespace lib60870.CS101
 
 		private SlaveASDUReceivedHandler asduReceivedHandler = null;
 		private object asduReceivedHandlerParameter = null;
-
-		private FileClient fileClient = null;
 
 		private void DebugLog(string msg)
 		{
@@ -166,14 +162,6 @@ namespace lib60870.CS101
 			catch (LinkLayerBusyException) {
 				DebugLog ("Link layer busy");
 			}
-		}
-
-		public void Run()
-		{
-			linkLayer.Run ();
-
-			if (fileClient != null)
-				fileClient.HandleFileService ();
 		}
 
 		private void EnqueueUserData(ASDU asdu)

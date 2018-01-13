@@ -94,6 +94,7 @@
     <Compile Include="LinkLayer\SecondaryLinkLayerUnbalanced.cs" />
     <Compile Include="CS101\FileObjects.cs" />
     <Compile Include="CS101\FileServices.cs" />
+    <Compile Include="CS101\CS101Master.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

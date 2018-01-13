@@ -25,16 +25,12 @@ using System.IO.Ports;
 using System.Collections.Generic;
 
 using lib60870.linklayer;
+using System.Threading;
 
 namespace lib60870.CS101
 {
-	public class CS101MasterBalanced : Master
+	public class CS101MasterBalanced : CS101Master
 	{
-		private LinkLayer linkLayer = null;
-
-		private SerialPort port;
-		private bool running = false;
-
 		private LinkLayerParameters linkLayerParameters;
 		private ApplicationLayerParameters parameters = new ApplicationLayerParameters();
 
@@ -48,8 +44,6 @@ namespace lib60870.CS101
 		private object asduReceivedHandlerParameter = null;
 
 		private Queue<BufferFrame> userDataQueue = new Queue<BufferFrame>();
-
-		private FileClient fileClient = null;
 
 		private void DebugLog(string msg)
 		{
@@ -188,34 +182,6 @@ namespace lib60870.CS101
 			linkLayer.SendTestFunction ();
 		}
 
-		public void Run() 
-		{
-			linkLayer.Run ();
-
-			if (fileClient != null)
-				fileClient.HandleFileService ();
-		}
-
-		public void Stop()
-		{
-			running = false;
-		}
-
-		public void ReceiveMessageLoop()
-		{
-			running = true;
-
-			if (port.IsOpen == false)
-				port.Open ();
-
-			port.DiscardInBuffer ();
-
-			while (running) {
-				Run ();
-			}
-
-			port.Close ();
-		}
 
 
 		public override void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi) 
