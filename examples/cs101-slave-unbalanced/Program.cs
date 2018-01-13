@@ -79,20 +79,25 @@ namespace cs101_slave_unbalanced {
 				running = false;
 			};
 
+			string portName = "/dev/ttyUSB3";
+
+			if (args.Length > 0)
+				portName = args [0];
+
 			SerialPort port = new SerialPort ();
 
-			port.PortName = "/dev/ttyUSB0";
+			port.PortName = portName;
 			port.BaudRate = 9600;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;
 			port.Open ();
 
 			LinkLayerParameters llParameters = new LinkLayerParameters ();
-			llParameters.AddressLength = 2;
-			llParameters.UseSingleCharACK = false;
+			llParameters.AddressLength = 1;
+			llParameters.UseSingleCharACK = true;
 
 			CS101Slave slave = new CS101Slave (port, llParameters);
-			slave.DebugOutput = false;
+			slave.DebugOutput = true;
 			slave.LinkLayerAddress = 1;
 
 			// for using the slave in balanced mode simple change the mode here:

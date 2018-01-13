@@ -83,16 +83,6 @@ namespace lib60870.CS101
 			asduReceivedHandler = handler;
 			asduReceivedHandlerParameter = parameter;
 		}
-			
-		public void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
-		{
-			linkLayer.SetReceivedRawMessageHandler (handler, parameter);
-		}
-
-		public void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
-		{
-			linkLayer.SetSentRawMessageHandler (handler, parameter);
-		}
 
 		public void AddSlave(int slaveAddress)
 		{

@@ -129,9 +129,14 @@ namespace cs101_master_unbalanced
 				running = false;
 			};
 
+			string portName = "/dev/ttyUSB3";
+
+			if (args.Length > 0)
+				portName = args [0];
+
 			SerialPort port = new SerialPort ();
 
-			port.PortName = "/dev/ttyUSB0";
+			port.PortName = portName;
 			port.BaudRate = 9600;
 			port.Parity = Parity.Even;
 			port.Handshake = Handshake.None;

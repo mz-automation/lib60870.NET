@@ -1021,7 +1021,7 @@ namespace tests
 
 			connection.Connect ();
 
-			connection.SetRawMessageHandler (testSendTestFRTimeoutMasterRawMessageHandler, null);
+			connection.SetReceivedRawMessageHandler (testSendTestFRTimeoutMasterRawMessageHandler, null);
 
 			ASDU asdu = new ASDU (clientParameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
 			asdu.AddInformationObject (new SinglePointInformation (100, false, new QualityDescriptor()));
@@ -1093,7 +1093,7 @@ namespace tests
 			Connection connection = new Connection ("127.0.0.1", 20213, clientApciParamters, clientParameters);
 
 			connection.DebugOutput = true;
-			connection.SetRawMessageHandler (testSendTestFRTimeoutSlaveRawMessageHandler, null);
+			connection.SetReceivedRawMessageHandler (testSendTestFRTimeoutSlaveRawMessageHandler, null);
 
 			connection.Connect ();
 

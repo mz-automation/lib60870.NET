@@ -92,6 +92,16 @@ namespace lib60870.CS101
 					workerThread.Join();
 			}
 		}
+
+		public override void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
+		{
+			linkLayer.SetReceivedRawMessageHandler (handler, parameter);
+		}
+
+		public override void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
+		{
+			linkLayer.SetSentRawMessageHandler (handler, parameter);
+		}
 	}
 
 }

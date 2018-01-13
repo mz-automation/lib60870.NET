@@ -98,17 +98,7 @@ namespace lib60870.CS101
 		{
 			primaryLinkLayer.SetLinkLayerStateChanged (handler, parameter);
 		}
-
-		public void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
-		{
-			linkLayer.SetReceivedRawMessageHandler (handler, parameter);
-		}
-
-		public void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
-		{
-			linkLayer.SetSentRawMessageHandler (handler, parameter);
-		}
-
+			
 		private void EnqueueUserData(ASDU asdu)
 		{
 			lock (userDataQueue) {

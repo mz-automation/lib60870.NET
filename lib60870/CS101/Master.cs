@@ -163,6 +163,21 @@ namespace lib60870.CS101
         /// </summary>
         /// <returns>used application layer parameters</returns>
         public abstract ApplicationLayerParameters GetApplicationLayerParameters();
+
+		/// <summary>
+		/// Sets the raw message handler for receoved messages
+		/// </summary>
+		/// <param name="handler">Handler/delegate that will be invoked when a message is received</param>
+		/// <param name="parameter">will be passed to the delegate</param>
+		public abstract void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter);
+
+		/// <summary>
+		/// Sets the sent message handler for sent messages.
+		/// </summary>
+		/// <param name="handler">Handler/delegate that will be invoked when a message is sent<</param>
+		/// <param name="parameter">will be passed to the delegate</param>
+		public abstract void SetSentRawMessageHandler(RawMessageHandler handler, object parameter);
+
 	}
 		
 }

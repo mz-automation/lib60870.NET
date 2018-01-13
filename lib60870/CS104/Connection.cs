@@ -1717,7 +1717,7 @@ namespace lib60870.CS104
         /// </summary>
         /// <param name="handler">Handler/delegate that will be invoked when a message is received</param>
         /// <param name="parameter">will be passed to the delegate</param>
-        public void SetRawMessageHandler(RawMessageHandler handler, object parameter)
+		public override void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
         {
             recvRawMessageHandler = handler;
             recvRawMessageHandlerParameter = parameter;
@@ -1728,12 +1728,12 @@ namespace lib60870.CS104
         /// </summary>
         /// <param name="handler">Handler/delegate that will be invoked when a message is sent<</param>
         /// <param name="parameter">will be passed to the delegate</param>
-        public void SetSentMessageHandler(RawMessageHandler handler, object parameter)
+		public override void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
         {
             sentMessageHandler = handler;
             sentMessageHandlerParameter = parameter;
         }
-
+			
         /// <summary>
         /// Determines whether the transmit (send) buffer is full. If true the next send command will throw a ConnectionException
         /// </summary>
