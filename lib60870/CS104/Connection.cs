@@ -178,7 +178,7 @@ namespace lib60870.CS104
         private int unconfirmedReceivedIMessages; /* number of unconfirmed messages received */
         private long lastConfirmationTime; /* timestamp when the last confirmation message was sent */
 
-        private Socket socket;
+        private Socket socket = null;
         private Stream netStream = null;
         private TlsSecurityInformation tlsSecInfo = null;
 
@@ -1283,16 +1283,27 @@ namespace lib60870.CS104
             bool success = result.AsyncWaitHandle.WaitOne(connectTimeoutInMs, true);
             if (success)
             {
-                socket.EndConnect(result);
+                try
+                {
+                    socket.EndConnect(result);
+                    socket.NoDelay = true;
+                    netStream = new NetworkStream(socket);
+                }
+                catch (ObjectDisposedException)
+                {
+                    socket = null;
 
-                socket.NoDelay = true;
+                    DebugLog("ObjectDisposedException -> Connect canceled");
 
-                netStream = new NetworkStream(socket);
+                    throw new SocketException(995); // WSA_OPERATION_ABORTED
+                }
             }
             else
             {
                 socket.Close();
-                throw new SocketException(10060); // Connection timed out.
+                socket = null;
+
+                throw new SocketException(10060); // Connection timed out (WSAETiMEDOUT)
             }
         }
 
@@ -1648,7 +1659,7 @@ namespace lib60870.CS104
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                DebugLog(e.ToString());
             }
 
             running = false;
@@ -1661,6 +1672,12 @@ namespace lib60870.CS104
             {
                 return this.running;
             }
+        }
+
+        public void Cancel()
+        {
+            if (socket != null)
+                socket.Close();
         }
 
         public void Close()
