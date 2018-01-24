@@ -86,8 +86,6 @@
     <Compile Include="BufferFrame.cs" />
     <Compile Include="CS101\CS101Slave.cs" />
     <Compile Include="CS101\Master.cs" />
-    <Compile Include="CS101\CS101MasterBalanced.cs" />
-    <Compile Include="CS101\CS101MasterUnbalanced.cs" />
     <Compile Include="LinkLayer\PrimaryLinkLayerBalanced.cs" />
     <Compile Include="LinkLayer\PrimaryLinkLayerUnbalanced.cs" />
     <Compile Include="LinkLayer\SecondaryLinkLayerBalanced.cs" />

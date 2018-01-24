@@ -29,7 +29,7 @@ using System.Threading;
 
 namespace lib60870.CS101
 {
-	public abstract class CS101Master : Master
+	public class CS101Master : Master, IPrimaryLinkLayerCallbacks
 	{
 		protected Thread workerThread = null;
 
@@ -106,6 +106,20 @@ namespace lib60870.CS101
 			}
 		}
 
+		public int OwnAddress {
+			get {
+				return linkLayer.OwnAddress;
+			}
+			set {
+				linkLayer.OwnAddress = value;
+			}
+		}
+
+		public LinkLayerState GetLinkLayerState()
+		{
+			return primaryLinkLayer.GetLinkLayerState ();
+		}
+
 		public override void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
 		{
 			linkLayer.SetReceivedRawMessageHandler (handler, parameter);
@@ -114,6 +128,340 @@ namespace lib60870.CS101
 		public override void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
 		{
 			linkLayer.SetSentRawMessageHandler (handler, parameter);
+		}
+
+		private PrimaryLinkLayerUnbalanced linkLayerUnbalanced = null;
+		private PrimaryLinkLayerBalanced primaryLinkLayer = null;
+
+		private SerialTransceiverFT12 transceiver;
+
+		/* selected slave address for unbalanced mode */
+		private int slaveAddress = 0;
+
+		/* buffer to read data from serial line */
+		private byte[] buffer = new byte[300];
+
+		private LinkLayerParameters linkLayerParameters;
+		private ApplicationLayerParameters parameters = new ApplicationLayerParameters();
+
+		private ASDUReceivedHandler asduReceivedHandler = null;
+		private object asduReceivedHandlerParameter = null;
+
+		/* user data queue for balanced mode */
+		private Queue<BufferFrame> userDataQueue;
+
+		private void DebugLog(string msg)
+		{
+			if (debugOutput) {
+				Console.Write ("CS101 MASTER: ");
+				Console.WriteLine (msg);
+			}
+		}
+
+		public CS101Master (SerialPort port, LinkLayerParameters llParameters, LinkLayerMode mode)
+		{
+			this.linkLayerParameters = llParameters;
+			this.transceiver = new SerialTransceiverFT12 (port, linkLayerParameters, DebugLog);
+
+			linkLayer = new LinkLayer (buffer, linkLayerParameters, transceiver, DebugLog);
+			linkLayer.LinkLayerMode = mode;
+
+			if (mode == LinkLayerMode.BALANCED) {
+
+
+				linkLayer.DIR = true;
+
+				primaryLinkLayer = new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog);
+
+				linkLayer.SetPrimaryLinkLayer (primaryLinkLayer);
+				linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, 0, HandleApplicationLayer, DebugLog));
+
+				userDataQueue = new Queue<BufferFrame> ();
+			} else {
+				linkLayerUnbalanced = new PrimaryLinkLayerUnbalanced (linkLayer, this, DebugLog);
+				linkLayer.SetPrimaryLinkLayer (linkLayerUnbalanced);
+			}
+
+			this.port = port;
+
+			this.fileClient = null;
+		}
+
+		public CS101Master (SerialPort port, LinkLayerMode mode)
+			: this (port, new LinkLayerParameters (), mode)
+		{
+		}
+
+		public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
+		{
+			asduReceivedHandler = handler;
+			asduReceivedHandlerParameter = parameter;
+		}
+
+		public void AddSlave(int slaveAddress)
+		{
+			linkLayerUnbalanced.AddSlaveConnection (slaveAddress);
+		}
+
+		public LinkLayerState GetLinkLayerState(int slaveAddress)
+		{
+			if (linkLayerUnbalanced != null)
+				return linkLayerUnbalanced.GetStateOfSlave(slaveAddress);
+			else
+				return primaryLinkLayer.GetLinkLayerState ();
+		}
+
+		public void SetLinkLayerStateChangedHandler(LinkLayerStateChanged handler, object parameter)
+		{
+			if (linkLayerUnbalanced != null)
+				linkLayerUnbalanced.SetLinkLayerStateChanged (handler, parameter);
+			else
+				primaryLinkLayer.SetLinkLayerStateChanged (handler, parameter);
+		}
+
+		/// <summary>
+		/// Sets the slave address for the next application layer message/service
+		/// </summary>
+		/// <param name="slaveAddress">Slave address.</param>
+		public void UseSlaveAddress(int slaveAddress)
+		{
+			this.slaveAddress = slaveAddress;
+		}
+
+		void IPrimaryLinkLayerCallbacks.AccessDemand(int slaveAddress)
+		{
+			DebugLog ("Access demand slave " + slaveAddress);
+			linkLayerUnbalanced.RequestClass1Data(slaveAddress);
+		}
+
+		void IPrimaryLinkLayerCallbacks.UserData(int slaveAddress, byte[] message, int start, int length)
+		{
+			DebugLog ("User data slave " + slaveAddress);
+
+			ASDU asdu;
+
+			try {
+				asdu = new ASDU (parameters, message, start, start + length);
+			}
+			catch(ASDUParsingException e) {
+				DebugLog ("ASDU parsing failed: " + e.Message);
+				return;
+			}
+
+			bool messageHandled = false;
+
+			if (fileClient != null)
+				messageHandled = fileClient.HandleFileAsdu(asdu);
+
+			if (messageHandled == false) {
+				if (asduReceivedHandler != null)
+					asduReceivedHandler (asduReceivedHandlerParameter, slaveAddress, asdu);
+			}
+
+		}
+
+		void IPrimaryLinkLayerCallbacks.Timeout(int slaveAddress)
+		{
+			DebugLog ("Timeout accessing slave " + slaveAddress);
+		}
+
+		public void PollSingleSlave(int address) {
+			try {
+				linkLayerUnbalanced.RequestClass2Data(address);
+			}
+			catch (LinkLayerBusyException) {
+				DebugLog ("Link layer busy");
+			}
+		}
+
+		private void EnqueueUserData(ASDU asdu)
+		{
+			if (linkLayerUnbalanced != null) {
+				//TODO problem -> buffer frame needs own buffer so that the message can be stored.
+				BufferFrame frame = new BufferFrame (buffer, 0);
+
+				asdu.Encode (frame, parameters);
+
+				linkLayerUnbalanced.SendConfirmed (slaveAddress, frame);
+			} 
+			else {
+				lock (userDataQueue) {
+
+					BufferFrame frame = new BufferFrame (new byte[256], 0);
+
+					asdu.Encode (frame, parameters);
+
+					userDataQueue.Enqueue (frame);
+				}
+			}
+		}
+
+		private BufferFrame DequeueUserData() 
+		{
+			lock (userDataQueue) {
+
+				if (userDataQueue.Count > 0)
+					return userDataQueue.Dequeue ();
+				else
+					return null;
+			}
+		}
+
+		private bool IsUserDataAvailable()
+		{
+			lock (userDataQueue) {
+				if (userDataQueue.Count > 0)
+					return true;
+				else
+					return false;
+			}
+		}
+
+		/// <summary>
+		/// Callback function forPrimaryLinkLayerBalanced
+		/// </summary>
+		/// <returns>The next ASDU to send</returns>
+		private BufferFrame GetUserData()
+		{
+			BufferFrame asdu = null;
+
+			if (IsUserDataAvailable())
+				return DequeueUserData ();
+
+			return asdu;
+		}
+
+		/// <summary>
+		/// Callback function for secondary link layer (balanced mode)
+		/// </summary>
+		private bool HandleApplicationLayer(int address, byte[] msg, int userDataStart, int userDataLength) 
+		{
+
+			ASDU asdu;
+
+			try {
+				asdu = new ASDU (parameters, buffer, userDataStart, userDataStart + userDataLength);
+			}
+			catch(ASDUParsingException e) {
+				DebugLog ("ASDU parsing failed: " + e.Message);
+				return false;
+			}
+
+			bool messageHandled = false;
+
+			if (fileClient != null)
+				messageHandled = fileClient.HandleFileAsdu(asdu);
+
+			if (messageHandled == false) {
+				if (asduReceivedHandler != null)
+					messageHandled = asduReceivedHandler (asduReceivedHandlerParameter, address, asdu);
+			}
+
+			return messageHandled;
+		}
+
+
+		public void SendLinkLayerTestFunction() {
+			linkLayer.SendTestFunction ();
+		}
+
+		public override void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi)
+		{
+			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
+
+			asdu.AddInformationObject (new InterrogationCommand (0, qoi));
+
+			EnqueueUserData(asdu);
+		}
+
+		public override void SendCounterInterrogationCommand(CauseOfTransmission cot, int ca, byte qcc)
+		{
+			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
+
+			asdu.AddInformationObject (new CounterInterrogationCommand(0, qcc));
+
+			EnqueueUserData(asdu);
+		}
+
+		public override void SendReadCommand(int ca, int ioa)
+		{
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.REQUEST, false, false, (byte) parameters.OA, ca, false);
+
+			asdu.AddInformationObject(new ReadCommand(ioa));
+
+			EnqueueUserData(asdu);
+		}
+
+		public override void SendClockSyncCommand(int ca, CP56Time2a time)
+		{
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+
+			asdu.AddInformationObject (new ClockSynchronizationCommand (0, time));
+
+			EnqueueUserData(asdu);
+		}
+
+		public override void SendTestCommand(int ca)
+		{
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+
+			asdu.AddInformationObject (new TestCommand ());
+
+			EnqueueUserData(asdu);
+		}
+
+		public override void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
+		{
+			ASDU asdu = new ASDU(parameters, CauseOfTransmission.ACTIVATION, false, false, (byte)parameters.OA, ca, false);
+
+			asdu.AddInformationObject(new TestCommandWithCP56Time2a(tsc, time));
+
+			EnqueueUserData(asdu);
+		}
+
+		public override void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
+		{
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+
+			asdu.AddInformationObject (new ResetProcessCommand(0, qrp));
+
+			EnqueueUserData (asdu);
+		}
+
+		public override void SendDelayAcquisitionCommand(CauseOfTransmission cot, int ca, CP16Time2a delay)
+		{
+			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+
+			asdu.AddInformationObject (new DelayAcquisitionCommand (0, delay));
+
+			EnqueueUserData (asdu);
+		}
+
+		public override void SendControlCommand(CauseOfTransmission cot, int ca, InformationObject sc)
+		{
+			ASDU controlCommand = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
+
+			controlCommand.AddInformationObject (sc);
+
+			EnqueueUserData (controlCommand);
+		}
+
+		public override void SendASDU(ASDU asdu)
+		{
+			EnqueueUserData (asdu);
+		}
+
+		public override ApplicationLayerParameters GetApplicationLayerParameters()
+		{
+			return parameters;
+		}
+
+		public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)
+		{
+			if (fileClient == null)
+				fileClient = new FileClient (this, DebugLog);
+
+			fileClient.RequestFile (ca, ioa, nof, receiver);
 		}
 	}
 

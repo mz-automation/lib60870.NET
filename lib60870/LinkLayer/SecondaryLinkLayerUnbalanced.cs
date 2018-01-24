@@ -58,7 +58,7 @@ namespace lib60870.linklayer
 			}
 		}
 
-		public override void HandleMessage(FunctionCodePrimary fcp, bool isBroadcast, bool fcb, bool fcv, byte[] msg, int userDataStart, int userDataLength)
+		public override void HandleMessage(FunctionCodePrimary fcp, bool isBroadcast, int address, bool fcb, bool fcv, byte[] msg, int userDataStart, int userDataLength)
 		{
 			// check frame count bit if fcv == true
 			if (fcv) {

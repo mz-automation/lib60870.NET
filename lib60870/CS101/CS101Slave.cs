@@ -97,7 +97,7 @@ namespace lib60870
 
 			bool ISecondaryApplicationLayer.HandleReceivedData (byte[] msg, bool isBroadcast, int userDataStart, int userDataLength)
 			{
-				return HandleApplicationLayer (msg, userDataStart, userDataLength);
+				return HandleApplicationLayer (0, msg, userDataStart, userDataLength);
 			}
 
 			void ISecondaryApplicationLayer.ResetCUReceived(bool onlyFcb)
@@ -313,7 +313,7 @@ namespace lib60870
 			}
 
 
-			private bool HandleApplicationLayer(byte[] msg, int userDataStart, int userDataLength) 
+			private bool HandleApplicationLayer(int address, byte[] msg, int userDataStart, int userDataLength) 
 			{
 
 				ASDU asdu;

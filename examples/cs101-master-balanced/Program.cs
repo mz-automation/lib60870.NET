@@ -43,7 +43,7 @@ namespace cs101_master_balanced
 			Console.WriteLine ("LL state event: " + newState.ToString ());
 		}
 
-		private static bool asduReceivedHandler(object parameter, ASDU asdu)
+		private static bool asduReceivedHandler(object parameter, int address, ASDU asdu)
 		{
 			Console.WriteLine (asdu.ToString ());
 
@@ -77,10 +77,10 @@ namespace cs101_master_balanced
 
 			// Setup balanced CS101 master
 			LinkLayerParameters llParameters = new LinkLayerParameters();
-			llParameters.AddressLength = 2;
+			llParameters.AddressLength = 1;
 			llParameters.UseSingleCharACK = false;
 
-			CS101MasterBalanced master = new CS101MasterBalanced (port, llParameters);
+			CS101Master master = new CS101Master (port, llParameters, LinkLayerMode.BALANCED);
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);

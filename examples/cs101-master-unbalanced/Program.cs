@@ -148,7 +148,7 @@ namespace cs101_master_unbalanced
 			llParameters.AddressLength = 1;
 
 			/* unbalanced mode allows multiple slaves on a single serial line */
-			CS101MasterUnbalanced master = new CS101MasterUnbalanced(port, llParameters);
+			CS101Master master = new CS101Master(port, llParameters, LinkLayerMode.UNBALANCED);
 			master.DebugOutput = false;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 

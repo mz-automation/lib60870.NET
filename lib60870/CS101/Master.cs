@@ -28,7 +28,7 @@ namespace lib60870.CS101
 	/// <summary>
 	/// Handler that is called when a new ASDU is received
 	/// </summary>
-	public delegate bool ASDUReceivedHandler (object parameter, ASDU asdu);
+	public delegate bool ASDUReceivedHandler (object parameter, int slaveAddress, ASDU asdu);
 
 	/// <summary>
 	/// Common interface for CS104 and CS101 balanced and unbalanced master

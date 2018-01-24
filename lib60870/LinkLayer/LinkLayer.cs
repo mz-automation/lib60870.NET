@@ -532,7 +532,7 @@ namespace lib60870.linklayer
 				+  " FC=" + fc + "(" + fcp.ToString () + ")");
 
 			if (secondaryLinkLayer != null)
-				secondaryLinkLayer.HandleMessage (fcp, isBroadcast, fcb, fcv, msg, userDataStart, userDataLength);
+				secondaryLinkLayer.HandleMessage (fcp, isBroadcast, address, fcb, fcv, msg, userDataStart, userDataLength);
 			else
 				DebugLog ("No secondary link layer available!");
 		}
@@ -626,7 +626,7 @@ namespace lib60870.linklayer
 					FunctionCodePrimary fcp = (FunctionCodePrimary)fc;
 
 					if (secondaryLinkLayer != null)
-						secondaryLinkLayer.HandleMessage (fcp, false, fcb, fcv, msg, userDataStart, userDataLength);
+						secondaryLinkLayer.HandleMessage (fcp, false, address, fcb, fcv, msg, userDataStart, userDataLength);
 					else
 						DebugLog ("No secondary link layer available!");
 

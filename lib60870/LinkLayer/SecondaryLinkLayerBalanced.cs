@@ -29,12 +29,12 @@ namespace lib60870.linklayer
 		private bool expectedFcb = true; // expected value of next frame count bit (FCB)
 		private Action<string> DebugLog;
 		private LinkLayer linkLayer;
-		private Func<byte[], int, int, bool> HandleApplicationLayer;
+		private Func<int, byte[], int, int, bool> HandleApplicationLayer;
 
 		private int linkLayerAddress = 0;
 
 		public SecondaryLinkLayerBalanced(LinkLayer linkLayer, int address,
-			Func<byte[], int, int, bool> handleApplicationLayer, Action<string> debugLog)
+			Func<int, byte[], int, int, bool> handleApplicationLayer, Action<string> debugLog)
 		{
 			this.linkLayer = linkLayer;
 			this.linkLayerAddress = address;
@@ -64,7 +64,7 @@ namespace lib60870.linklayer
 			}
 		}
 
-		public override void HandleMessage (FunctionCodePrimary fcp, bool isBroadcast, bool fcb, bool fcv, byte[] msg, int userDataStart, int userDataLength) {
+		public override void HandleMessage (FunctionCodePrimary fcp, bool isBroadcast, int address, bool fcb, bool fcv, byte[] msg, int userDataStart, int userDataLength) {
 
 			if (fcv) {
 				if (CheckFCB (fcb) == false)
@@ -97,7 +97,7 @@ namespace lib60870.linklayer
 				DebugLog("SLL - USER DATA CONFIRMED");
 				if (userDataLength > 0) {
 
-					if (HandleApplicationLayer (msg, userDataStart, userDataLength))
+					if (HandleApplicationLayer (address, msg, userDataStart, userDataLength))
 						linkLayer.SendFixedFrameSecondary (FunctionCodeSecondary.ACK, linkLayerAddress, false, false);
 				}
 				break;
@@ -105,7 +105,7 @@ namespace lib60870.linklayer
 			case FunctionCodePrimary.USER_DATA_NO_REPLY:
 				DebugLog ("SLL - USER DATA NO REPLY");
 				if (userDataLength > 0) {
-					HandleApplicationLayer (msg, userDataStart, userDataLength);
+					HandleApplicationLayer (address, msg, userDataStart, userDataLength);
 				}
 				break;
 

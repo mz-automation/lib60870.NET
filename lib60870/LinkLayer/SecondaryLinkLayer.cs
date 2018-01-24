@@ -40,7 +40,7 @@ namespace lib60870.linklayer
 			get;
 			set;
 		}
-		public abstract void HandleMessage(FunctionCodePrimary fcp, bool isBroadcast, bool fcb, bool fcv, byte[] msg, int userDataStart, int userDataLength);
+		public abstract void HandleMessage(FunctionCodePrimary fcp, bool isBroadcast, int address, bool fcb, bool fcv, byte[] msg, int userDataStart, int userDataLength);
 		public abstract void RunStateMachine();
 	}
 
