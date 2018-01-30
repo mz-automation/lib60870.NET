@@ -72,11 +72,11 @@ namespace lib60870.linklayer
 
 		private void SetNewState(LinkLayerState newState)
 		{
-			if (stateChangedCallback != null) {
-				if (newState != state) {
-					state = newState;
+			if (newState != state) {
+				state = newState;
+
+				if (stateChangedCallback != null)
 					stateChangedCallback (stateChangedCallbackParameter, -1, newState);
-				}
 			}
 		}
 
