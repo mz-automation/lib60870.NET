@@ -142,7 +142,7 @@ namespace lib60870.CS101
 		private byte[] buffer = new byte[300];
 
 		private LinkLayerParameters linkLayerParameters;
-		private ApplicationLayerParameters parameters = new ApplicationLayerParameters();
+		private ApplicationLayerParameters appLayerParameters;
 
 		private ASDUReceivedHandler asduReceivedHandler = null;
 		private object asduReceivedHandlerParameter = null;
@@ -158,17 +158,26 @@ namespace lib60870.CS101
 			}
 		}
 
-		public CS101Master (SerialPort port, LinkLayerParameters llParameters, LinkLayerMode mode)
+		public CS101Master (SerialPort port, LinkLayerMode mode, LinkLayerParameters llParams = null, ApplicationLayerParameters alParams = null)
 		{
-			this.linkLayerParameters = llParameters;
+			if (llParams == null)
+				this.linkLayerParameters = new LinkLayerParameters ();
+			else
+				this.linkLayerParameters = llParams;
+
+			if (alParams == null)
+				this.appLayerParameters = new ApplicationLayerParameters ();
+			else
+				this.appLayerParameters = alParams;
+
+
 			this.transceiver = new SerialTransceiverFT12 (port, linkLayerParameters, DebugLog);
 
 			linkLayer = new LinkLayer (buffer, linkLayerParameters, transceiver, DebugLog);
 			linkLayer.LinkLayerMode = mode;
 
-			if (mode == LinkLayerMode.BALANCED) {
-
-
+			if (mode == LinkLayerMode.BALANCED) 
+			{
 				linkLayer.DIR = true;
 
 				primaryLinkLayer = new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog);
@@ -177,7 +186,8 @@ namespace lib60870.CS101
 				linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, 0, HandleApplicationLayer, DebugLog));
 
 				userDataQueue = new Queue<BufferFrame> ();
-			} else {
+			} else 
+			{
 				linkLayerUnbalanced = new PrimaryLinkLayerUnbalanced (linkLayer, this, DebugLog);
 				linkLayer.SetPrimaryLinkLayer (linkLayerUnbalanced);
 			}
@@ -185,11 +195,6 @@ namespace lib60870.CS101
 			this.port = port;
 
 			this.fileClient = null;
-		}
-
-		public CS101Master (SerialPort port, LinkLayerMode mode)
-			: this (port, new LinkLayerParameters (), mode)
-		{
 		}
 
 		public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
@@ -220,12 +225,35 @@ namespace lib60870.CS101
 		}
 
 		/// <summary>
-		/// Sets the slave address for the next application layer message/service
+		/// Gets or sets the link layer slave address
 		/// </summary>
-		/// <param name="slaveAddress">Slave address.</param>
+		/// <value>Slave link layer address.</value>
+		public int SlaveAddress 
+		{
+			set 
+			{
+				UseSlaveAddress (value);
+			}
+
+			get
+			{
+				if (primaryLinkLayer == null)
+					return this.slaveAddress;
+				else
+					return primaryLinkLayer.LinkLayerAddressOtherStation;
+			}
+		}
+
+		/// <summary>
+		/// Sets the slave link layer address to be used
+		/// </summary>
+		/// <param name="slaveAddress">Slave link layer address.</param>
 		public void UseSlaveAddress(int slaveAddress)
 		{
-			this.slaveAddress = slaveAddress;
+			if (primaryLinkLayer != null)
+				primaryLinkLayer.LinkLayerAddressOtherStation = slaveAddress;
+			else
+				this.slaveAddress = slaveAddress;
 		}
 
 		void IPrimaryLinkLayerCallbacks.AccessDemand(int slaveAddress)
@@ -241,7 +269,7 @@ namespace lib60870.CS101
 			ASDU asdu;
 
 			try {
-				asdu = new ASDU (parameters, message, start, start + length);
+				asdu = new ASDU (appLayerParameters, message, start, start + length);
 			}
 			catch(ASDUParsingException e) {
 				DebugLog ("ASDU parsing failed: " + e.Message);
@@ -280,7 +308,7 @@ namespace lib60870.CS101
 				//TODO problem -> buffer frame needs own buffer so that the message can be stored.
 				BufferFrame frame = new BufferFrame (buffer, 0);
 
-				asdu.Encode (frame, parameters);
+				asdu.Encode (frame, appLayerParameters);
 
 				linkLayerUnbalanced.SendConfirmed (slaveAddress, frame);
 			} 
@@ -289,7 +317,7 @@ namespace lib60870.CS101
 
 					BufferFrame frame = new BufferFrame (new byte[256], 0);
 
-					asdu.Encode (frame, parameters);
+					asdu.Encode (frame, appLayerParameters);
 
 					userDataQueue.Enqueue (frame);
 				}
@@ -340,7 +368,7 @@ namespace lib60870.CS101
 			ASDU asdu;
 
 			try {
-				asdu = new ASDU (parameters, buffer, userDataStart, userDataStart + userDataLength);
+				asdu = new ASDU (appLayerParameters, buffer, userDataStart, userDataStart + userDataLength);
 			}
 			catch(ASDUParsingException e) {
 				DebugLog ("ASDU parsing failed: " + e.Message);
@@ -367,7 +395,7 @@ namespace lib60870.CS101
 
 		public override void SendInterrogationCommand(CauseOfTransmission cot, int ca, byte qoi)
 		{
-			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
+			ASDU asdu = new ASDU (appLayerParameters, cot, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new InterrogationCommand (0, qoi));
 
@@ -376,7 +404,7 @@ namespace lib60870.CS101
 
 		public override void SendCounterInterrogationCommand(CauseOfTransmission cot, int ca, byte qcc)
 		{
-			ASDU asdu = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
+			ASDU asdu = new ASDU (appLayerParameters, cot, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new CounterInterrogationCommand(0, qcc));
 
@@ -385,7 +413,7 @@ namespace lib60870.CS101
 
 		public override void SendReadCommand(int ca, int ioa)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.REQUEST, false, false, (byte) parameters.OA, ca, false);
+			ASDU asdu = new ASDU (appLayerParameters, CauseOfTransmission.REQUEST, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject(new ReadCommand(ioa));
 
@@ -394,7 +422,7 @@ namespace lib60870.CS101
 
 		public override void SendClockSyncCommand(int ca, CP56Time2a time)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+			ASDU asdu = new ASDU (appLayerParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new ClockSynchronizationCommand (0, time));
 
@@ -403,7 +431,7 @@ namespace lib60870.CS101
 
 		public override void SendTestCommand(int ca)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+			ASDU asdu = new ASDU (appLayerParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new TestCommand ());
 
@@ -412,7 +440,7 @@ namespace lib60870.CS101
 
 		public override void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
 		{
-			ASDU asdu = new ASDU(parameters, CauseOfTransmission.ACTIVATION, false, false, (byte)parameters.OA, ca, false);
+			ASDU asdu = new ASDU(appLayerParameters, CauseOfTransmission.ACTIVATION, false, false, (byte)appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject(new TestCommandWithCP56Time2a(tsc, time));
 
@@ -421,7 +449,7 @@ namespace lib60870.CS101
 
 		public override void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+			ASDU asdu = new ASDU (appLayerParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new ResetProcessCommand(0, qrp));
 
@@ -430,7 +458,7 @@ namespace lib60870.CS101
 
 		public override void SendDelayAcquisitionCommand(CauseOfTransmission cot, int ca, CP16Time2a delay)
 		{
-			ASDU asdu = new ASDU (parameters, CauseOfTransmission.ACTIVATION, false, false, (byte) parameters.OA, ca, false);
+			ASDU asdu = new ASDU (appLayerParameters, CauseOfTransmission.ACTIVATION, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			asdu.AddInformationObject (new DelayAcquisitionCommand (0, delay));
 
@@ -439,7 +467,7 @@ namespace lib60870.CS101
 
 		public override void SendControlCommand(CauseOfTransmission cot, int ca, InformationObject sc)
 		{
-			ASDU controlCommand = new ASDU (parameters, cot, false, false, (byte) parameters.OA, ca, false);
+			ASDU controlCommand = new ASDU (appLayerParameters, cot, false, false, (byte) appLayerParameters.OA, ca, false);
 
 			controlCommand.AddInformationObject (sc);
 
@@ -453,7 +481,7 @@ namespace lib60870.CS101
 
 		public override ApplicationLayerParameters GetApplicationLayerParameters()
 		{
-			return parameters;
+			return appLayerParameters;
 		}
 
 		public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)

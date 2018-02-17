@@ -80,8 +80,10 @@ namespace cs101_master_balanced
 			llParameters.AddressLength = 1;
 			llParameters.UseSingleCharACK = false;
 
-			CS101Master master = new CS101Master (port, llParameters, LinkLayerMode.BALANCED);
+			CS101Master master = new CS101Master (port, LinkLayerMode.BALANCED, llParameters);
 			master.DebugOutput = false;
+			master.OwnAddress = 1;
+			master.SlaveAddress = 2;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
 			master.SetReceivedRawMessageHandler (rcvdRawMessageHandler, null);

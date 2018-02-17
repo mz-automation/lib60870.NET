@@ -66,8 +66,17 @@ namespace lib60870.linklayer
 			return state;
 		}
 
-		public int LinkLayerAddressOtherStation {
-			set { linkLayerAddressOtherStation = value; }
+		public int LinkLayerAddressOtherStation 
+		{
+			set 
+			{ 
+				linkLayerAddressOtherStation = value; 
+			}
+
+			get
+			{
+				return linkLayerAddressOtherStation;
+			}
 		}
 
 		private void SetNewState(LinkLayerState newState)
