@@ -160,7 +160,7 @@ namespace cs101_master_unbalanced
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 
-			master.UseSlaveAddress (1);
+			master.SlaveAddress = 1;
 			master.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
 
 

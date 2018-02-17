@@ -84,6 +84,7 @@ namespace lib60870.linklayer
 			DebugLog("SEND " + BitConverter.ToString (msg, 0, msgSize));
 
 			serialStream.Write (msg, 0, msgSize);
+			serialStream.Flush ();
 		}
 
 		// read the next block of the message

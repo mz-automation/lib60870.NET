@@ -97,9 +97,9 @@ library will be instructed not to send single char ACK messages but use short me
 The new LinkLayerParameters object will be passed to the master constructor in the next step.
 
 
-==== Create and use a new master instance
+==== Create and use a new unbalanced master instance
 
-For unbalanced communication mode the *CS101MasterUnbalanced* class has to be used.
+For balanced and unbalanced communication mode the *CS101Master* class has to be used.
 
 The following code create a new unbalanced master instance and provides the previously set
 link layer parameters. The _SetASDUReceivedHandler_ method provides a callback function for
@@ -109,10 +109,44 @@ handle all communication with the slave with link layer address 1.
 [[app-listing]]
 [source, csharp]
 ----
-CS101MasterUnbalanced master = new CS101MasterUnbalanced(port, llParameters);
+CS101Master master = new CS101Master(port, LinkLayerMode.UNBALANCED, llParameters);
 master.SetASDUReceivedHandler (asduReceivedHandler, null);
 master.AddSlave (1);
 ----
+
+The link layer parameters and application layer parameters are optional parameters. If not
+set default instances of the parameter classes are created and used.
+
+Before sending a command or other request to a specific slave the _SlaveAddress_ property has to be set.
+
+[[app-listing]]
+[source, csharp]
+.Example: Set the slave address before sending a command
+----
+master.SlaveAddress = 1;
+master.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
+----
+
+=== Balanced master
+
+The balanced master is created the same way. Just the link layer mode parameter is different.
+
+[[app-listing]]
+[source, csharp]
+.Example: Creating a balanced CS 101 master
+----
+CS101Master master = new CS101Master (port, LinkLayerMode.BALANCED, llParameters, alParameters);
+master.OwnAddress = 1;
+master.SlaveAddress = 2;
+master.SetASDUReceivedHandler (asduReceivedHandler, null);
+master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
+----
+
+In balanced mode the slave address has only to be set one time, because there is only one client.
+
+The _LinkLayerStateChangedHandler_ can be used to track changes of the link layer state. This
+way it can be detected when there is an error or the other side's link layer is no longer available.
+
 
 === Sending a read request
 
