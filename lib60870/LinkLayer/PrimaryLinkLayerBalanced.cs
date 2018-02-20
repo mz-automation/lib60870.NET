@@ -164,7 +164,7 @@ namespace lib60870.linklayer
 			case FunctionCodeSecondary.STATUS_OF_LINK_OR_ACCESS_DEMAND:	
 				DebugLog ("PLL - received STATUS OF LINK");
 				if (primaryState == PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK) {
-					DebugLog ("PLL - SEND RESET REMOTE LINK");
+					DebugLog ("PLL - SEND RESET REMOTE LINK to address " + linkLayerAddressOtherStation);
 					linkLayer.SendFixedFramePrimary (FunctionCodePrimary.RESET_REMOTE_LINK, linkLayerAddressOtherStation, false, false);
 					lastSendTime = SystemUtils.currentTimeMillis ();
 					waitingForResponse = true;
@@ -228,7 +228,7 @@ namespace lib60870.linklayer
 					}
 				}
 				else {
-					DebugLog ("PLL - SEND RESET REMOTE LINK");
+					DebugLog ("PLL - SEND RESET REMOTE LINK to address " + linkLayerAddressOtherStation);
 					linkLayer.SendFixedFramePrimary (FunctionCodePrimary.RESET_REMOTE_LINK, linkLayerAddressOtherStation, false, false);
 					lastSendTime = SystemUtils.currentTimeMillis ();
 					waitingForResponse = true;

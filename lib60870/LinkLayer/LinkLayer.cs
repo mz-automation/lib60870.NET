@@ -74,7 +74,7 @@ namespace lib60870.linklayer
 	/// </summary>
 	public class LinkLayerParameters {
 		private int addressLength = 1; /* 0/1/2 bytes */
-		private int timeoutForACK = 200; /* timeout for ACKs in ms */
+		private int timeoutForACK = 1000; /* timeout for ACKs in ms */
 		private long timeoutRepeat = 1000; /* timeout for repeating messages when no ACK received in ms */
 		private bool useSingleCharACK = true; /* use single char ACK for ACK (FC=0) or RESP_NO_USER_DATA (FC=9) */
 

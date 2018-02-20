@@ -125,6 +125,8 @@ namespace lib60870
 			private LinkLayerParameters linkLayerParameters;
 			private LinkLayerMode linkLayerMode = LinkLayerMode.UNBALANCED;
 
+			PrimaryLinkLayerBalanced primaryLinkLayerBalanced = null;
+
 			private int linkLayerAddress = 0;
 			private int linkLayerAddressOtherStation; // link layer address of other station in balanced mode
 
@@ -289,6 +291,8 @@ namespace lib60870
 				}
 				set {
 					linkLayerAddressOtherStation = value;
+					if (primaryLinkLayerBalanced != null)
+						primaryLinkLayerBalanced.LinkLayerAddressOtherStation = value;
 				}
 			}
 
@@ -513,8 +517,13 @@ namespace lib60870
 					linkLayer.LinkLayerMode = linkLayerMode;
 
 					if (linkLayerMode == LinkLayerMode.BALANCED) {
-						linkLayer.SetPrimaryLinkLayer (new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog));
-						linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, linkLayerAddress, HandleApplicationLayer, DebugLog));
+
+						PrimaryLinkLayerBalanced primaryLinkLayerBalanced = new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog);
+						primaryLinkLayerBalanced.LinkLayerAddressOtherStation = linkLayerAddressOtherStation;
+
+						linkLayer.SetPrimaryLinkLayer (primaryLinkLayerBalanced);
+
+						linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, linkLayerAddressOtherStation, HandleApplicationLayer, DebugLog));
 					} else {
 						linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerUnbalanced (linkLayer, linkLayerAddress, this, DebugLog));
 					}
