@@ -26,7 +26,7 @@ using System.Collections.Generic;
 
 namespace lib60870.CS101
 {
-	public enum NameOfFile : UInt16 {
+	public enum NameOfFile : ushort {
 		DEFAULT = 0,
 		TRANSPARENT_FILE = 1,
 		DISTURBANCE_DATA = 2,

@@ -85,7 +85,6 @@ namespace lib60870.linklayer
 			serialStream.Write (msg, 0, msgSize);
 			serialStream.Flush ();
 		}
-			
 
 		// read the next block of the message
 		private int ReadBytesWithTimeout(byte[] buffer, int startIndex, int count, int timeout)
@@ -93,7 +92,7 @@ namespace lib60870.linklayer
 			int readByte;
 			int readBytes = 0;
 
-			serialStream.ReadTimeout = timeout;
+			serialStream.ReadTimeout = timeout * count;
 
 			try {
 
@@ -112,7 +111,6 @@ namespace lib60870.linklayer
 			return readBytes;
 		}
 
-
 		public void ReadNextMessage(byte[] buffer, Action<byte[], int> messageHandler) 
 		{
 			// NOTE: there is some basic decoding required to determine message start/end
@@ -130,10 +128,7 @@ namespace lib60870.linklayer
 
 						if (bytesRead == 1) {
 
-							int msgSize = buffer[2];
-
-							buffer [0] = (byte) 0x68;
-							buffer [1] = (byte) msgSize;
+							int msgSize = buffer[1];
 
 							msgSize += 4;
 
@@ -151,12 +146,9 @@ namespace lib60870.linklayer
 						}
 						else {
 							DebugLog("RECV: SYNC ERROR 1!");
-							//port.DiscardInBuffer();
-							serialStream.Flush();
 						}
 					}
 					else if (buffer[0] == 0x10) {
-						buffer [0] = 0x10;
 
 						int msgSize = 3 + linkLayerParameters.AddressLength;
 
@@ -174,13 +166,11 @@ namespace lib60870.linklayer
 					}
 					else if (buffer[0] == 0xe5) {
 						int msgSize = 1;
-						buffer [0] = (byte)read;
 
 						messageHandler(buffer, msgSize);
 					}
 					else {
 						DebugLog("RECV: SYNC ERROR 2! value = " + buffer[0]);
-						serialStream.Flush();
 					}
 				}
 
