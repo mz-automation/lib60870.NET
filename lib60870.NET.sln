@@ -35,6 +35,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs104-server-file", "exampl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-slave-balanced", "examples\cs101-slave-balanced\cs101-slave-balanced.csproj", "{2572DCFC-CA06-4442-B40C-076F3C88C62B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-slave-tcp", "examples\cs101-slave-tcp\cs101-slave-tcp.csproj", "{28B14CE2-3F4F-44EE-9D5F-7BD691DF8D6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs101-master-tcp", "examples\cs101-master-tcp\cs101-master-tcp.csproj", "{74C5485C-8D49-4676-AFD9-0FECC2F325A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -57,6 +61,10 @@ Global
 		{2572DCFC-CA06-4442-B40C-076F3C88C62B}.Debug|x86.Build.0 = Debug|x86
 		{2572DCFC-CA06-4442-B40C-076F3C88C62B}.Release|x86.ActiveCfg = Release|x86
 		{2572DCFC-CA06-4442-B40C-076F3C88C62B}.Release|x86.Build.0 = Release|x86
+		{28B14CE2-3F4F-44EE-9D5F-7BD691DF8D6D}.Debug|x86.ActiveCfg = Debug|x86
+		{28B14CE2-3F4F-44EE-9D5F-7BD691DF8D6D}.Debug|x86.Build.0 = Debug|x86
+		{28B14CE2-3F4F-44EE-9D5F-7BD691DF8D6D}.Release|x86.ActiveCfg = Release|x86
+		{28B14CE2-3F4F-44EE-9D5F-7BD691DF8D6D}.Release|x86.Build.0 = Release|x86
 		{302416B2-D0C2-47D8-8386-882E168CA840}.Debug|x86.ActiveCfg = Debug|x86
 		{302416B2-D0C2-47D8-8386-882E168CA840}.Debug|x86.Build.0 = Debug|x86
 		{302416B2-D0C2-47D8-8386-882E168CA840}.Release|x86.ActiveCfg = Release|x86
@@ -69,6 +77,10 @@ Global
 		{6CDC09F4-A182-4500-A999-B7AF49724778}.Debug|x86.Build.0 = Debug|x86
 		{6CDC09F4-A182-4500-A999-B7AF49724778}.Release|x86.ActiveCfg = Release|x86
 		{6CDC09F4-A182-4500-A999-B7AF49724778}.Release|x86.Build.0 = Release|x86
+		{74C5485C-8D49-4676-AFD9-0FECC2F325A4}.Debug|x86.ActiveCfg = Debug|x86
+		{74C5485C-8D49-4676-AFD9-0FECC2F325A4}.Debug|x86.Build.0 = Debug|x86
+		{74C5485C-8D49-4676-AFD9-0FECC2F325A4}.Release|x86.ActiveCfg = Release|x86
+		{74C5485C-8D49-4676-AFD9-0FECC2F325A4}.Release|x86.Build.0 = Release|x86
 		{7B9B0905-91BE-4D13-849E-44B77E82607B}.Debug|x86.ActiveCfg = Debug|x86
 		{7B9B0905-91BE-4D13-849E-44B77E82607B}.Debug|x86.Build.0 = Debug|x86
 		{7B9B0905-91BE-4D13-849E-44B77E82607B}.Release|x86.ActiveCfg = Release|x86

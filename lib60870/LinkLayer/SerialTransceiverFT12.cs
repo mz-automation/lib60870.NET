@@ -47,12 +47,22 @@ namespace lib60870.linklayer
 		// timeout to wait for next character in a message
 		private int characterTimeout = 200;
 	
-		public SerialTransceiverFT12(SerialPort port, LinkLayerParameters linkLayerParameters, Action<string> debugLog) {
+		public SerialTransceiverFT12(SerialPort port, LinkLayerParameters linkLayerParameters, Action<string> debugLog) 
+		{
 			this.port = port;
 			this.serialStream = port.BaseStream;
 			this.DebugLog = debugLog;
 			this.linkLayerParameters = linkLayerParameters;
 		}
+
+		public SerialTransceiverFT12(Stream serialStream, LinkLayerParameters linkLayerParameters, Action<string> debugLog) 
+		{
+			this.port = null;
+			this.serialStream = serialStream;
+			this.DebugLog = debugLog;
+			this.linkLayerParameters = linkLayerParameters;
+		}
+
 
 		public int BaudRate {
 			get {

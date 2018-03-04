@@ -26,6 +26,7 @@ using System.Collections.Generic;
 
 using lib60870.linklayer;
 using System.Threading;
+using System.IO;
 
 namespace lib60870.CS101
 {
@@ -37,7 +38,7 @@ namespace lib60870.CS101
 
 		internal FileClient fileClient = null;
 
-		protected SerialPort port;
+		protected SerialPort port = null;
 		protected bool running = false;
 
 		private void ReceiveMessageLoop()
@@ -82,10 +83,12 @@ namespace lib60870.CS101
 		/// </summary>
 		public void Start()
 		{
-			if (port.IsOpen == false)
-				port.Open ();
+			if (port != null) {
+				if (port.IsOpen == false)
+					port.Open ();
 
-			port.DiscardInBuffer ();
+				port.DiscardInBuffer ();
+			}
 
 			workerThread = new Thread(ReceiveMessageLoop);
 
@@ -193,6 +196,43 @@ namespace lib60870.CS101
 			}
 
 			this.port = port;
+
+			this.fileClient = null;
+		}
+
+		public CS101Master (Stream serialStream, LinkLayerMode mode, LinkLayerParameters llParams = null, ApplicationLayerParameters alParams = null)
+		{
+			if (llParams == null)
+				this.linkLayerParameters = new LinkLayerParameters ();
+			else
+				this.linkLayerParameters = llParams;
+
+			if (alParams == null)
+				this.appLayerParameters = new ApplicationLayerParameters ();
+			else
+				this.appLayerParameters = alParams;
+
+
+			this.transceiver = new SerialTransceiverFT12 (serialStream, linkLayerParameters, DebugLog);
+
+			linkLayer = new LinkLayer (buffer, linkLayerParameters, transceiver, DebugLog);
+			linkLayer.LinkLayerMode = mode;
+
+			if (mode == LinkLayerMode.BALANCED) 
+			{
+				linkLayer.DIR = true;
+
+				primaryLinkLayer = new PrimaryLinkLayerBalanced (linkLayer, GetUserData, DebugLog);
+
+				linkLayer.SetPrimaryLinkLayer (primaryLinkLayer);
+				linkLayer.SetSecondaryLinkLayer (new SecondaryLinkLayerBalanced (linkLayer, 0, HandleApplicationLayer, DebugLog));
+
+				userDataQueue = new Queue<BufferFrame> ();
+			} else 
+			{
+				linkLayerUnbalanced = new PrimaryLinkLayerUnbalanced (linkLayer, this, DebugLog);
+				linkLayer.SetPrimaryLinkLayer (linkLayerUnbalanced);
+			}
 
 			this.fileClient = null;
 		}

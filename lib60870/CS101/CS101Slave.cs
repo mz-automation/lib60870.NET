@@ -26,6 +26,7 @@ using System.IO.Ports;
 using System.Collections.Generic;
 using lib60870;
 using lib60870.linklayer;
+using System.IO;
 
 namespace lib60870
 {
@@ -120,7 +121,7 @@ namespace lib60870
 			private LinkLayer linkLayer = null;
 
 			private byte[] buffer = new byte[300];
-			private SerialPort port;
+			private SerialPort port = null;
 			private bool running = false;
 			private LinkLayerParameters linkLayerParameters;
 			private LinkLayerMode linkLayerMode = LinkLayerMode.UNBALANCED;
@@ -295,17 +296,31 @@ namespace lib60870
 						primaryLinkLayerBalanced.LinkLayerAddressOtherStation = value;
 				}
 			}
-
-			public CS101Slave(SerialPort port)
-				:this (port, new LinkLayerParameters())
+				
+			public CS101Slave(SerialPort port, LinkLayerParameters parameters = null) 
 			{
-			}
-
-			public CS101Slave(SerialPort port, LinkLayerParameters parameters) {
 				this.port = port;
+
 				linkLayerParameters = parameters;
 
+				if (linkLayerParameters == null)
+					linkLayerParameters = new LinkLayerParameters ();
+
 				transceiver = new SerialTransceiverFT12 (port, linkLayerParameters, DebugLog);
+
+				initialized = false;
+
+				fileServer = new FileServer (this, GetAvailableFiles (), DebugLog);
+			}
+
+			public CS101Slave(Stream serialStream, LinkLayerParameters parameters = null)
+			{
+				linkLayerParameters = parameters;
+
+				if (linkLayerParameters == null)
+					linkLayerParameters = new LinkLayerParameters ();
+
+				transceiver = new SerialTransceiverFT12 (serialStream, linkLayerParameters, DebugLog);
 
 				initialized = false;
 
@@ -541,16 +556,19 @@ namespace lib60870
 			{
 				running = true;
 
-				if (port.IsOpen == false)
-					port.Open ();
+				if (port != null) {
+					if (port.IsOpen == false)
+						port.Open ();
 
-				port.DiscardInBuffer ();
+					port.DiscardInBuffer ();
+				}
 
 				while (running) {
 					Run ();
 				}
 
-				port.Close ();
+				if (port != null) 
+					port.Close ();
 			}
 
 
