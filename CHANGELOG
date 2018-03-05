@@ -1,3 +1,14 @@
+Changes to version 2.1.0
+------------------------
+- support for CS 101 master/slave over TCP/IP
+- refactored CS101Master as a single class for balanced and unbalanced master
+
+Changes to version 2.0.0
+------------------------
+- support for CS 101 master/slave communication
+- support for transmission of transparent files
+- C code forked out
+
 Changes to version 0.9.5
 ------------------------
 - lib60870.NET: add support for server allowing multiple clients using the application layer (ServerMode.CONNECTION_IS_REDUNDANCY_GROUP)

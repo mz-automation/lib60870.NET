@@ -1,4 +1,4 @@
-= lib60870.NET 2.0 User Guide
+= lib60870.NET 2.1 User Guide
 Michael Zillgith
 
 == Introduction
@@ -17,6 +17,8 @@ The list of supported features:
 * Slave/Server supports sending data messages in monitoring direction and commands in reverse direction
 * The list of supported ASDU types can be found in the annex
 * The library supports user defined private ASDU types
+* transmission of transparent files
+* CS 101 protocol over TCP/IP (client/server)
 
 *NOTE:* CS stands for "companion standard" and specifies variants of the communication protocols and services defined in the IEC 60870-5 standard series.
 
@@ -24,8 +26,7 @@ The list of supported features:
 
 For master side programming the following API classes can be used:
 
-* *CS101MasterBalanced* for a CS 101 compliant _balanced mode_ serial connection.
-* *CS101MasterUnbalanced* for a CS 101 compliant _unbalanced mode_ serial connection.
+* *CS101Master* for a CS 101 compliant _balanced mode_ or _unbalanced mode_ serial connection.
 * *Connection* for a CS 104 compliant TCP/IP connection
 
 All of these classes implement the abstract base class *Master* that provides a set of methods to send commands and messages to the slave.
@@ -365,6 +366,37 @@ The return value of the _AddInformationObject_ method indicates if the informati
 === Creating non-standard information object types ===
 
 For lib60870.NET you should derive a new class from the *InformationObject* class.
+
+=== CS 101 protocol over TCP/IP ===
+
+The CS 101 master or slave protocols can also be used over a TCP/IP connection with
+the _TcpServerVirtualSerialPort_ and _TcpClientVirtualSerialPort_ classes. These classes
+can be used to configure the CS 101 master or slave as a TCP/IP client or server.
+
+*NOTE:* This is a non-standard extension! According to the IEC 60870-5 standard TCP/IP has to
+be used according to IEC 60870-5-104 (CS 104).
+
+To use TCP/IP instead of a serial connection you have to create an instance of the
+_TcpServerVirtualSerialPort_ or _TcpClientVirtualSerialPort_ class and handle the instance
+to the constructor of the _CS101Master_ or _CS101Slave_ class.
+
+[[app-listing]]
+[source, csharp]
+.Example CS 101 slave acting as TCP/IP server
+----
+TcpServerVirtualSerialPort port = new TcpServerVirtualSerialPort ();
+port.Start ();
+
+CS101Slave slave = new CS101Slave (port, llParameters);
+
+...
+
+port.Stop ();
+
+----
+
+The _Start_ and _Stop_ methods are used to start and stop the TCP/IP client and server.
+The server class allows only a single client connection.
 
 == ANNEX - Reference information
 

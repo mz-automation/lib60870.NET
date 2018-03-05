@@ -15,7 +15,7 @@ using System.Runtime.CompilerServices;
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
 // The form "{Major}.{Minor}.*" will automatically update the build and revision,
 // and "{Major}.{Minor}.{Build}.*" will update just the revision.
-[assembly: AssemblyVersion ("2.0.*")]
+[assembly: AssemblyVersion ("2.1.*")]
 [assembly: NeutralResourcesLanguage("")]
 [assembly: InternalsVisibleTo("lib60870-tests")]
 [assembly: InternalsVisibleTo("lib60870.NET")]
