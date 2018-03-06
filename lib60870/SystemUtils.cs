@@ -28,21 +28,37 @@ using System.Threading;
 
 namespace lib60870
 {
-
+	/// <summary>
+	/// Some system related helper functions
+	/// </summary>
     public static class SystemUtils
     {
         private static DateTime Jan1st1970 = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+		/// <summary>
+		/// Get the current time in milliseconds since epoch.
+		/// </summary>
+		/// <returns>The current time</returns>
         public static long currentTimeMillis()
         {
             return (long)((DateTime.UtcNow - Jan1st1970).TotalMilliseconds);
         }
 
+		/// <summary>
+		/// Convert a DateTime in milliseconds time
+		/// </summary>
+		/// <returns>The converted time in milliseconds</returns>
+		/// <param name="time">DateTime to convert</param>
         public static long ToTimeMillis(DateTime time)
         {
             return (long)((time.ToUniversalTime() - Jan1st1970).TotalMilliseconds);
         }
 
+		/// <summary>
+		/// Convert a milliseconds time to a DateTime
+		/// </summary>
+		/// <returns>the converted DateTime instance</returns>
+		/// <param name="millis">milliseconds time to convert</param>
         public static DateTime FromMillis(long millis)
         {
             DateTime dtDateTime = Jan1st1970;

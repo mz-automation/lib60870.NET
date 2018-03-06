@@ -25,6 +25,10 @@ using System;
 
 namespace lib60870.CS101
 {
+
+	/// <summary>
+	/// Binary counter reading. Used for tranmission of integrated totals.
+	/// </summary>
 	public class BinaryCounterReading
 	{
 
@@ -35,6 +39,10 @@ namespace lib60870.CS101
 			return encodedValue;
 		}
 
+		/// <summary>
+		/// Gets or sets the counter value.
+		/// </summary>
+		/// <value>The value.</value>
 		public Int32 Value {
 			get {
 				Int32 value = encodedValue [0];
@@ -55,6 +63,10 @@ namespace lib60870.CS101
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the sequence number.
+		/// </summary>
+		/// <value>The sequence number.</value>
 		public int SequenceNumber {
 			get {
 				return (encodedValue [4] & 0x1f);
@@ -68,6 +80,10 @@ namespace lib60870.CS101
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the carry flag
+		/// </summary>
+		/// <value><c>true</c> if carry flag set; otherwise, <c>false</c>.</value>
 		public bool Carry {
 			get {
 				return ((encodedValue[4] & 0x20) == 0x20);
@@ -81,6 +97,10 @@ namespace lib60870.CS101
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the adjusted flag.
+		/// </summary>
+		/// <value><c>true</c> if adjusted flag is set; otherwise, <c>false</c>.</value>
 		public bool Adjusted {
 			get {
 				return ((encodedValue[4] & 0x40) == 0x40);
@@ -94,6 +114,10 @@ namespace lib60870.CS101
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the invalid flag
+		/// </summary>
+		/// <value><c>true</c> if invalid flag is set; otherwise, <c>false</c>.</value>
 		public bool Invalid {
 			get {
 				return ((encodedValue[4] & 0x80) == 0x80);

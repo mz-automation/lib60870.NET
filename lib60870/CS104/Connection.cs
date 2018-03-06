@@ -36,13 +36,35 @@ using lib60870.CS101;
 
 namespace lib60870.CS104
 {
+	/// <summary>
+	/// Connection event for CS 104 client (\ref Connection)
+	/// </summary>
     public enum ConnectionEvent
     {
+		/// <summary>
+		/// The connection has been opened
+		/// </summary>
         OPENED = 0,
+
+		/// <summary>
+		/// The connection has been closed
+		/// </summary>
         CLOSED = 1,
+
+		/// <summary>
+		/// Conformation of START DT command received (server will send and accept application layer messages)
+		/// </summary>
         STARTDT_CON_RECEIVED = 2,
+
+		/// <summary>
+		/// Conformation of STOP DT command received (server will no longer send or accept application layer messages)
+		/// </summary>
         STOPDT_CON_RECEIVED = 3,
-        CONNECT_FAILED = 4
+        
+		/// <summary>
+		/// The connect attempt has failed
+		/// </summary>
+		CONNECT_FAILED = 4
     }
 
     /// <summary>
@@ -64,6 +86,10 @@ namespace lib60870.CS104
             rcvdTestFrConCounter = 0;
         }
 
+		/// <summary>
+		/// Gets or sets the sent message counter.
+		/// </summary>
+		/// <value>The sent message counter.</value>
         public int SentMsgCounter
         {
             get
@@ -76,6 +102,10 @@ namespace lib60870.CS104
             }
         }
 
+		/// <summary>
+		/// Gets or sets the received message counter.
+		/// </summary>
+		/// <value>The received message counter.</value>
         public int RcvdMsgCounter
         {
             get
@@ -126,10 +156,13 @@ namespace lib60870.CS104
     /// </summary>
     public delegate bool ASDUReceivedHandler(object parameter, ASDU asdu);
 
+	/// <summary>
+	/// Callback handler for connection events
+	/// </summary>
     public delegate void ConnectionHandler(object parameter, ConnectionEvent connectionEvent);
 
     /// <summary>
-    /// A single connection to a CS 104 (IEC 60870-5-104) server
+    /// A single connection to a CS 104 (IEC 60870-5-104) server. Implements the \ref Master interface.
     /// </summary>
     public class Connection : Master
     {
@@ -331,17 +364,17 @@ namespace lib60870.CS104
             }
         }
 
-        ASDUReceivedHandler asduReceivedHandler = null;
-        object asduReceivedHandlerParameter = null;
+        private ASDUReceivedHandler asduReceivedHandler = null;
+		private object asduReceivedHandlerParameter = null;
 
-        ConnectionHandler connectionHandler = null;
-        object connectionHandlerParameter = null;
+		private ConnectionHandler connectionHandler = null;
+		private object connectionHandlerParameter = null;
 
-        RawMessageHandler recvRawMessageHandler = null;
-        object recvRawMessageHandlerParameter = null;
+		private RawMessageHandler recvRawMessageHandler = null;
+		private object recvRawMessageHandlerParameter = null;
 
-        RawMessageHandler sentMessageHandler = null;
-        object sentMessageHandlerParameter = null;
+		private RawMessageHandler sentMessageHandler = null;
+		private object sentMessageHandlerParameter = null;
 
         private void SendSMessage()
         {
@@ -649,22 +682,34 @@ namespace lib60870.CS104
             connectionID = connectionCounter;
         }
 
-        public Connection(string hostname)
-        {
-            Setup(hostname, new APCIParameters(), new ApplicationLayerParameters(), 2404);
-        }
-
-
-        public Connection(string hostname, int tcpPort)
+		/// <summary>
+		/// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
+		/// </summary>
+		/// <param name="hostname">hostname of IP address of the CS 104 server</param>
+		/// <param name="tcpPort">TCP port of the CS 104 server</param>
+        public Connection(string hostname, int tcpPort = 2404)
         {
             Setup(hostname, new APCIParameters(), new ApplicationLayerParameters(), tcpPort);
         }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
+		/// </summary>
+		/// <param name="hostname">hostname of IP address of the CS 104 server</param>
+		/// <param name="apciParameters">APCI parameters.</param>
+		/// <param name="alParameters">application layer parameters.</param>
         public Connection(string hostname, APCIParameters apciParameters, ApplicationLayerParameters alParameters)
         {
             Setup(hostname, apciParameters.Clone(), alParameters.Clone(), 2404);
         }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
+		/// </summary>
+		/// <param name="hostname">hostname of IP address of the CS 104 server</param>
+		/// <param name="tcpPort">TCP port of the CS 104 server</param>
+		/// <param name="apciParameters">APCI parameters.</param>
+		/// <param name="alParameters">application layer parameters.</param>
         public Connection(string hostname, int tcpPort, APCIParameters apciParameters, ApplicationLayerParameters alParameters)
         {
             Setup(hostname, apciParameters.Clone(), alParameters.Clone(), tcpPort);
@@ -682,11 +727,19 @@ namespace lib60870.CS104
                 this.tcpPort = 19998;
         }
 
+		/// <summary>
+		/// Gets the conenction statistics.
+		/// </summary>
+		/// <returns>The connection statistics.</returns>
         public ConnectionStatistics GetStatistics()
         {
             return this.statistics;
         }
 
+		/// <summary>
+		/// Sets the connect timeout
+		/// </summary>
+		/// <param name="millies">timeout value in milliseconds (ms)</param>
         public void SetConnectTimeout(int millies)
         {
             this.connectTimeoutInMs = millies;

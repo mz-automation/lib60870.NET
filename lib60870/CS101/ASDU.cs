@@ -51,7 +51,16 @@ namespace lib60870.CS101
 		private byte[] payload = null;
 		private List<InformationObject> informationObjects = null;
 
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="lib60870.CS101.ASDU"/> class.
+		/// </summary>
+		/// <param name="parameters">application layer parameters to be used for encoding/decoding</param>
+		/// <param name="cot">Cause of transmission (COT)</param>
+		/// <param name="isTest">If set to <c>true</c> ASDU is a test ASDU.</param>
+		/// <param name="isNegative">If set to <c>true</c> is negative confirmation.</param>
+		/// <param name="oa">originator address (OA)</param>
+		/// <param name="ca">common address of the ASDU (CA)</param>
+		/// <param name="isSequence">If set to <c>true</c> is a sequence of information objects.</param>
 		public ASDU(ApplicationLayerParameters parameters, CauseOfTransmission cot, bool isTest, bool isNegative, byte oa, int ca, bool isSequence) 
 			: this(parameters, TypeID.M_SP_NA_1, cot, isTest, isNegative, oa, ca, isSequence) {
 			this.hasTypeId = false;
@@ -231,12 +240,20 @@ namespace lib60870.CS101
 				return null;
 		}
 
+		/// <summary>
+		/// Gets the type identifier (TI).
+		/// </summary>
+		/// <value>The type identifier.</value>
 		public TypeID TypeId {
 			get {
 				return this.typeId;
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the cause of transmission (COT)
+		/// </summary>
+		/// <value>The COT value</value>
 		public CauseOfTransmission Cot {
 			get {
 				return this.cot;
@@ -246,18 +263,30 @@ namespace lib60870.CS101
 			}
 		}
 
+		/// <summary>
+		/// Gets the originator address (OA)
+		/// </summary>
+		/// <value>The OA</value>
 		public byte Oa {
 			get {
 				return this.oa;
 			}
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether this instance is a test message.
+		/// </summary>
+		/// <value><c>true</c> if this instance is a test message; otherwise, <c>false</c>.</value>
 		public bool IsTest {
 			get {
 				return this.isTest;
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets a value indicating whether this instance is a negative confirmation.
+		/// </summary>
+		/// <value><c>true</c> if this instance is a negative confirmation; otherwise, <c>false</c>.</value>
 		public bool IsNegative {
 			get {
 				return this.isNegative;
@@ -266,15 +295,23 @@ namespace lib60870.CS101
 				isNegative = value;
 			}
 		}
-
-
-
+			
+		/// <summary>
+		/// Gets the common address of the ASDU (CA)
+		/// </summary>
+		/// <value>The CA value</value>
 		public int Ca {
 			get {
 				return this.ca;
 			}
 		}
 
+		/// <summary>
+		/// Gets a value indicating whether this instance is a sequence of information objects
+		/// </summary>
+		/// A sequence of information objects contains multiple information objects with successive
+		/// information object addresses (IOA).
+		/// <value><c>true</c> if this instance is a sequence; otherwise, <c>false</c>.</value>
 		public bool IsSequence {
 			get {
 				if ((vsq & 0x80) != 0)

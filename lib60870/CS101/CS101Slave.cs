@@ -32,6 +32,9 @@ namespace lib60870
 {
 	namespace CS101 {
 
+		/// <summary>
+		/// CS 101 slave implementation (implements Slave interface)
+		/// </summary>
 		public class CS101Slave : Slave, ISecondaryApplicationLayer, IMasterConnection
 		{
 
@@ -145,6 +148,11 @@ namespace lib60870
 
 			private ApplicationLayerParameters parameters = new ApplicationLayerParameters();
 
+			/// <summary>
+			/// Gets or sets the application layer parameters-
+			/// </summary>
+			/// <remarks>Should be set before starting the communication</remarks>
+			/// <value>application layer parameters.</value>
 			public ApplicationLayerParameters Parameters {
 				get {
 					return this.parameters;
@@ -167,6 +175,10 @@ namespace lib60870
 				}
 			}
 
+			/// <summary>
+			/// Gets or sets the link layer mode (balanced or unbalanced).
+			/// </summary>
+			/// <value>The link layer mode.</value>
 			public LinkLayerMode LinkLayerMode {
 				get {
 					return this.linkLayerMode;
@@ -177,6 +189,9 @@ namespace lib60870
 				}
 			}
 
+			/// <summary>
+			/// Stops the receive message loop
+			/// </summary>
 			public void Stop()
 			{
 				running = false;
@@ -205,11 +220,19 @@ namespace lib60870
 				userDataClass2QueueMaxSize = class2QueueSize;
 			}
 
+			/// <summary>
+			/// Determines whether the user data class 1 queue is full.
+			/// </summary>
+			/// <returns><c>true</c> if the queue  is full; otherwise, <c>false</c>.</returns>
 			public bool IsUserDataClass1QueueFull()
 			{
 				return (userDataClass1Queue.Count == userDataClass1QueueMaxSize);
 			}
 
+			/// <summary>
+			/// Enqueues an ASDU into the class 1 queue (for events, command responses, and other high-priority messages).
+			/// </summary>
+			/// <param name="asdu">ASDU to enqueue</param>
 			public void EnqueueUserDataClass1(ASDU asdu)
 			{
 				lock (userDataClass1Queue) {
@@ -246,11 +269,19 @@ namespace lib60870
 				}
 			}
 
+			/// <summary>
+			/// Determines whether the user data class 2 queue is full.
+			/// </summary>
+			/// <returns><c>true</c> if the queue  is full; otherwise, <c>false</c>.</returns>
 			public bool IsUserDataClass2QueueFull()
 			{
 				return (userDataClass2Queue.Count == userDataClass2QueueMaxSize);
 			}
 
+			/// <summary>
+			/// Enqueues an ASDU into the class 2 queue (for periodic measurments, background scan, and other low-priority data).
+			/// </summary>
+			/// <param name="asdu">ASDU to enqueue</param>
 			public void EnqueueUserDataClass2(ASDU asdu)
 			{
 				lock (userDataClass2Queue) {
@@ -277,6 +308,10 @@ namespace lib60870
 				}
 			}
 
+			/// <summary>
+			/// Gets or sets the own link layer address.
+			/// </summary>
+			/// <value>own link layer address.</value>
 			public int LinkLayerAddress {
 				get {
 					return this.linkLayerAddress;
@@ -286,6 +321,10 @@ namespace lib60870
 				}
 			}
 
+			/// <summary>
+			/// Gets or sets the link layer address of the other station (for balanced mode).
+			/// </summary>
+			/// <value>link layer address of other station.</value>
 			public int LinkLayerAddressOtherStation {
 				get {
 					return this.linkLayerAddressOtherStation;
@@ -297,6 +336,11 @@ namespace lib60870
 				}
 			}
 				
+			/// <summary>
+			/// Initializes a new instance of the <see cref="lib60870.CS101.CS101Slave"/> class.
+			/// </summary>
+			/// <param name="port">serial port instance</param>
+			/// <param name="parameters">link layer parameters</param>
 			public CS101Slave(SerialPort port, LinkLayerParameters parameters = null) 
 			{
 				this.port = port;
@@ -313,6 +357,11 @@ namespace lib60870
 				fileServer = new FileServer (this, GetAvailableFiles (), DebugLog);
 			}
 
+			/// <summary>
+			/// Initializes a new instance of the <see cref="lib60870.CS101.CS101Slave"/> class.
+			/// </summary>
+			/// <param name="serialStream">A stream instance (e.g. TcpClientVirtualSerialPort or TcpServerVirtualSerialPort.</param>
+			/// <param name="parameters">link layer parameters</param>
 			public CS101Slave(Stream serialStream, LinkLayerParameters parameters = null)
 			{
 				linkLayerParameters = parameters;
@@ -519,10 +568,16 @@ namespace lib60870
 
 			}
 				
+			/// <summary>
+			/// Sends a link layer test function.
+			/// </summary>
 			public void SendLinkLayerTestFunction() {
 				linkLayer.SendTestFunction ();
 			}
 				
+			/// <summary>
+			/// Run a the message receiver and state machines once. Can be used if no threads should be used.
+			/// </summary>
 			public void Run() 
 			{
 				if (initialized == false) 
@@ -552,6 +607,12 @@ namespace lib60870
 				linkLayer.Run ();
 			}
 
+
+			/// <summary>
+			/// Starts a loop that handles incoming messages. 
+			/// </summary>
+			/// It is best to be started in a separate thread.
+			/// The loop can be stopped with the Stop method.
 			public void ReceiveMessageLoop() 
 			{
 				running = true;
