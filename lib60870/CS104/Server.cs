@@ -40,6 +40,37 @@ namespace lib60870.CS104
 	/// <returns>true if the connection has to be accepted, false otherwise</returns>
 	public delegate bool ConnectionRequestHandler(object parameter, IPAddress ipAddress);
 
+	/// <summary>
+	/// Connection events for the Server
+	/// </summary>
+	public enum ClientConnectionEvent 
+	{
+		/// <summary>
+		/// A new connection is opened
+		/// </summary>
+		OPENED,
+
+		/// <summary>
+		/// The connection entered active state
+		/// </summary>
+		ACTIVE,
+
+		/// <summary>
+		/// The connection enterend inactive state
+		/// </summary>
+		INACTIVE,
+
+		/// <summary>
+		/// The connection is closed
+		/// </summary>
+		CLOSED
+	}
+
+	public delegate void ConnectionEventHandler (object parameter, ClientConnection connection, ClientConnectionEvent eventType);
+
+	/// <summary>
+	/// Server mode (redundancy group support)
+	/// </summary>
     public enum ServerMode
     {
         /// <summary>
@@ -342,7 +373,7 @@ namespace lib60870.CS104
 		private TlsSecurityInformation securityInfo = null;
 
 		// List of all open connections
-		private List<ServerConnection> allOpenConnections = new List<ServerConnection>();
+		private List<ClientConnection> allOpenConnections = new List<ClientConnection>();
 
 		/// <summary>
 		/// Create a new server using default connection parameters
@@ -398,6 +429,21 @@ namespace lib60870.CS104
 			this.connectionRequestHandler = handler;
 			this.connectionRequestHandlerParameter = parameter;
 		}
+
+		private ConnectionEventHandler connectionEventHandler = null;
+		private object connectionEventHandlerParameter = null;
+
+		/// <summary>
+		/// Sets the connection event handler. The connection event handler will be called whenever a new
+		/// connection was opened, closed, activated, or inactivated.
+		/// </summary>
+		/// <param name="handler">Handler.</param>
+		/// <param name="parameter">Parameter.</param>
+		public void SetConnectionEventHandler(ConnectionEventHandler handler, object parameter)
+		{
+			this.connectionEventHandler = handler;
+			this.connectionEventHandlerParameter = parameter;
+		}
 			
 		/// <summary>
 		/// Gets the number of connected master/client stations.
@@ -438,13 +484,20 @@ namespace lib60870.CS104
 						}
 
 						if (acceptConnection) {
-	                        if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
-								allOpenConnections.Add(new ServerConnection (newSocket, securityInfo, apciParameters, alParameters, this, asduQueue, debugOutput));
-	                        else
-								allOpenConnections.Add(new ServerConnection(newSocket, securityInfo, apciParameters, alParameters, this,
-									new ASDUQueue(maxQueueSize, alParameters, DebugLog), debugOutput));
 
-							//TODO add ConnectionEstablishedHandler
+							ClientConnection connection;
+
+	                        if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
+								connection = new ClientConnection (newSocket, securityInfo, apciParameters, alParameters, this, asduQueue, debugOutput);
+	                        else
+								connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
+									new ASDUQueue(maxQueueSize, alParameters, DebugLog), debugOutput);
+
+							allOpenConnections.Add(connection);
+
+							if (connectionEventHandler != null)
+								connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.OPENED);
+							
 						}
 						else
 							newSocket.Close();
@@ -457,8 +510,11 @@ namespace lib60870.CS104
 			}
 		}
 
-		internal void Remove(ServerConnection connection)
+		internal void Remove(ClientConnection connection)
 		{
+			if (connectionEventHandler != null)
+				connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.CLOSED);
+
 			allOpenConnections.Remove (connection);
 		}
 
@@ -514,11 +570,10 @@ namespace lib60870.CS104
 				listeningSocket.Close();
 				
 				// close all open connection
-				foreach (ServerConnection connection in allOpenConnections) {
+				foreach (ClientConnection connection in allOpenConnections) {
 					connection.Close();
 				}
 					
-
 			} catch (Exception e) {
 				Console.WriteLine (e);
 			}
@@ -538,7 +593,7 @@ namespace lib60870.CS104
             {
                 asduQueue.EnqueueAsdu(asdu);
 
-                foreach (ServerConnection connection in allOpenConnections)
+                foreach (ClientConnection connection in allOpenConnections)
                 {
                     if (connection.IsActive)
                         connection.ASDUReadyToSend();
@@ -546,7 +601,7 @@ namespace lib60870.CS104
             }
             else
             {
-                foreach (ServerConnection connection in allOpenConnections)
+                foreach (ClientConnection connection in allOpenConnections)
                 {
                     if (connection.IsActive)
                     {
@@ -568,14 +623,31 @@ namespace lib60870.CS104
                 asduQueue.MarkASDUAsConfirmed(index, timestamp);
 		}
 
-		internal void Activated(ServerConnection activeConnection)
+		internal void Activated(ClientConnection activeConnection)
 		{
+			if (connectionEventHandler != null)
+				connectionEventHandler (connectionEventHandlerParameter, activeConnection, ClientConnectionEvent.ACTIVE);
+			
 			// deactivate all other connections
 
-			foreach (ServerConnection connection in allOpenConnections) {
-				if (connection != activeConnection)
-					connection.IsActive = false;
+			foreach (ClientConnection connection in allOpenConnections) {
+				if (connection != activeConnection) {
+
+					if (connection.IsActive) {
+
+						if (connectionEventHandler != null)
+							connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.INACTIVE);
+
+						connection.IsActive = false;
+					}
+				}
 			}
+		}
+
+		internal void Deactivated(ClientConnection activeConnection)
+		{
+			if (connectionEventHandler != null)
+				connectionEventHandler (connectionEventHandlerParameter, activeConnection, ClientConnectionEvent.INACTIVE);
 		}
 	}
 	

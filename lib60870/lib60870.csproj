@@ -75,7 +75,6 @@
     <Compile Include="CS104\APCIParameters.cs" />
     <Compile Include="CS104\Connection.cs" />
     <Compile Include="CS104\Server.cs" />
-    <Compile Include="CS104\ServerConnection.cs" />
     <Compile Include="CS104\TlsSecurityInformation.cs" />
     <Compile Include="CS101\Slave.cs" />
     <Compile Include="LinkLayer\LinkLayer.cs" />
@@ -95,6 +94,7 @@
     <Compile Include="CS101\CS101Master.cs" />
     <Compile Include="LinkLayer\TcpServerVirtualSerialPort.cs" />
     <Compile Include="LinkLayer\TcpClientVirtualSerialPort.cs" />
+    <Compile Include="CS104\ClientConnection.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

@@ -22,8 +22,16 @@ namespace cs104_multi_client_server
 				return true;
 			else if (ipAddress.ToString ().Equals ("192.168.178.70"))
 				return true;
+			else if (ipAddress.ToString ().Equals ("192.168.2.9"))
+				return true;
 			else
 				return false;
+		}
+
+		private static void connectionEventHandler(object parameter, ClientConnection connection, ClientConnectionEvent conEvent)
+		{
+			Console.WriteLine ("Connection {0}:{1} - {2}", connection.RemoteEndpoint.Address.ToString (),
+				connection.RemoteEndpoint.Port, conEvent.ToString ());
 		}
 
 		private static bool interrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
@@ -130,6 +138,8 @@ namespace cs104_multi_client_server
 			server.MaxOpenConnections = 2;
 
 			server.SetConnectionRequestHandler (connectionRequestHandler, null);
+
+			server.SetConnectionEventHandler (connectionEventHandler, null);
 
 			server.SetInterrogationHandler (interrogationHandler, null);
 

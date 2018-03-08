@@ -34,7 +34,10 @@ using lib60870.CS101;
 
 namespace lib60870.CS104
 {
-	internal class ServerConnection : IMasterConnection
+	/// <summary>
+	/// Represents a client (master) connection
+	/// </summary>
+	public class ClientConnection : IMasterConnection
 	{
 		private static int connectionsCounter = 0;
 
@@ -124,10 +127,25 @@ namespace lib60870.CS104
 			DebugLog ("ProcessASDUs exit thread");
 		}
 
-		internal ServerConnection(Socket socket, TlsSecurityInformation tlsSecInfo, APCIParameters apciParameters, ApplicationLayerParameters parameters, Server server, ASDUQueue asduQueue, bool debugOutput) 
+		private IPEndPoint remoteEndpoint;
+
+		/// <summary>
+		/// Gets the remote endpoint (client IP address and TCP port)
+		/// </summary>
+		/// <value>The remote IP endpoint</value>
+		public IPEndPoint RemoteEndpoint
+		{
+			get {
+				return remoteEndpoint;
+			}
+		}
+
+		internal ClientConnection(Socket socket, TlsSecurityInformation tlsSecInfo, APCIParameters apciParameters, ApplicationLayerParameters parameters, Server server, ASDUQueue asduQueue, bool debugOutput) 
 		{
 			connectionsCounter++;
 			connectionID = connectionsCounter;
+
+			this.remoteEndpoint = (IPEndPoint) socket.RemoteEndPoint;
 
 			this.apciParameters = apciParameters;
 			this.alParameters = parameters;
@@ -186,12 +204,16 @@ namespace lib60870.CS104
 				return this.isActive;
 			}
 			set {
-				isActive = value;
 
-				if (isActive)
-					DebugLog("is active");
-				else
-					DebugLog("is not active");
+				if (isActive != value) {
+
+					isActive = value;
+
+					if (isActive)
+						DebugLog ("is active");
+					else
+						DebugLog ("is not active");
+				}
 			}
 		}
 
@@ -795,9 +817,11 @@ namespace lib60870.CS104
 
 				DebugLog ("Send STARTDT_CON");
 
-				this.isActive = true;
+				if (this.isActive == false) {
+					this.isActive = true;
 
-				this.server.Activated (this);
+					this.server.Activated (this);
+				}
 
 				socketStream.Write (STARTDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
 			}
@@ -807,7 +831,11 @@ namespace lib60870.CS104
 				
 				DebugLog ("Send STOPDT_CON");
 
-				this.isActive = false;
+				if (this.isActive == true) {
+					this.isActive = false;
+
+					this.server.Deactivated (this);
+				}
 
 				socketStream.Write (STOPDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
 			} 

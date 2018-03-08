@@ -26,6 +26,9 @@ using System.Collections.Generic;
 
 namespace lib60870.CS101
 {
+	/// <summary>
+	/// Name of file (NOF) - describes the type of a file
+	/// </summary>
 	public enum NameOfFile : ushort {
 		DEFAULT = 0,
 		TRANSPARENT_FILE = 1,
@@ -155,6 +158,13 @@ namespace lib60870.CS101
 			frq = msg [startIndex++];
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="lib60870.CS101.FileReady"/> class.
+		/// </summary>
+		/// <param name="objectAddress">information object address (IOA)</param>
+		/// <param name="nof">NOF (file type)</param>
+		/// <param name="lengthOfFile">Length of file.</param>
+		/// <param name="positive">If set to <c>true</c> positive ACK.</param>
 		public FileReady(int objectAddress, NameOfFile nof, int lengthOfFile, bool positive)
 			: base(objectAddress)
 		{
