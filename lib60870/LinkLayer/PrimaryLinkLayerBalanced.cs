@@ -126,10 +126,8 @@ namespace lib60870.linklayer
 				}
 				else if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
 
-					if (sendLinkLayerTestFunction) {
-						nextFcb = !nextFcb;
+					if (sendLinkLayerTestFunction)
 						sendLinkLayerTestFunction = false;
-					}
 						
 					newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 					SetNewState(LinkLayerState.AVAILABLE);
@@ -181,6 +179,10 @@ namespace lib60870.linklayer
 			case FunctionCodeSecondary.LINK_SERVICE_NOT_FUNCTIONING:
 			case FunctionCodeSecondary.LINK_SERVICE_NOT_IMPLEMENTED:
 				DebugLog ("PLL - link layer service not functioning/not implemented in secondary station");
+
+				if (sendLinkLayerTestFunction)
+					sendLinkLayerTestFunction = false;
+
 				if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
 					newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 					SetNewState(LinkLayerState.AVAILABLE);
