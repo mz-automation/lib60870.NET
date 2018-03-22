@@ -25,6 +25,7 @@ using System.IO.Ports;
 using lib60870;
 using lib60870.CS101;
 using lib60870.linklayer;
+using System.Threading;
 
 namespace cs101_master_tcp
 {
@@ -107,6 +108,7 @@ namespace cs101_master_tcp
 					}
 				}
 
+				Thread.Sleep (100);
 			}
 
 			master.Stop ();
