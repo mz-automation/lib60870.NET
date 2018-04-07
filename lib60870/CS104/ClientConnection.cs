@@ -31,6 +31,7 @@ using System.IO;
 
 using lib60870;
 using lib60870.CS101;
+using System.Collections.Concurrent;
 
 namespace lib60870.CS104
 {
@@ -78,7 +79,7 @@ namespace lib60870.CS104
 
 		private Server server;
 
-		private Queue<ASDU> receivedASDUs = null;
+		private ConcurrentQueue<ASDU> receivedASDUs = null;
 		private Thread callbackThread = null;
 		private bool callbackThreadRunning = false;
 
@@ -118,8 +119,15 @@ namespace lib60870.CS104
 
 			while (callbackThreadRunning) {
 
-				while ((receivedASDUs.Count > 0) && (callbackThreadRunning) && (running))
-					HandleASDU (receivedASDUs.Dequeue ());
+				while ((receivedASDUs.Count > 0) && (callbackThreadRunning) && (running)) {
+				
+					ASDU asdu;
+
+					if (receivedASDUs.TryDequeue (out asdu)) {
+						HandleASDU (asdu);
+					}
+						
+				}
 
 				Thread.Sleep (50);
 			}
@@ -158,8 +166,7 @@ namespace lib60870.CS104
 			maxSentASDUs = apciParameters.K;
 			this.sentASDUs = new SentASDU[maxSentASDUs];
 
-			//TODO only needed when connection is activated
-			receivedASDUs = new Queue<ASDU> ();
+			receivedASDUs = new ConcurrentQueue<ASDU> ();
 			waitingASDUsHighPrio = new Queue<BufferFrame> ();
 
 			socketStream = new NetworkStream (socket);

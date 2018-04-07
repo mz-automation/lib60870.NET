@@ -239,7 +239,7 @@ namespace tests
 		}
 
 		[Test()]
-		[Ignore("Ignore to save execution time")]
+		//[Ignore("Ignore to save execution time")]
 		public void TestConnectWhileAlreadyConnected()
 		{
 			ApplicationLayerParameters parameters = new ApplicationLayerParameters ();
@@ -284,7 +284,7 @@ namespace tests
 
 
 		[Test()]
-		[Ignore("Ignore to save execution time")]
+		//[Ignore("Ignore to save execution time")]
 		public void TestConnectSameConnectionMultipleTimes()
 		{
 			ApplicationLayerParameters parameters = new ApplicationLayerParameters ();
@@ -946,7 +946,7 @@ namespace tests
 		}
 			
 		[Test()]
-		[Ignore("Ignore to save execution time")]
+		//[Ignore("Ignore to save execution time")]
 		public void TestSendTestFR() {
 			ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
 			APCIParameters clientApciParamters = new APCIParameters ();
@@ -1002,7 +1002,7 @@ namespace tests
 		/// doesn't receive the TESTFR_CON messages
 		/// </summary>
 		[Test()]
-		[Ignore("Ignore to save execution time")]
+		//[Ignore("Ignore to save execution time")]
 		public void TestSendTestFRTimeoutMaster() {
 			ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
 			APCIParameters clientApciParamters = new APCIParameters ();
@@ -1075,7 +1075,7 @@ namespace tests
 		/// doesn't send the TESTFR_CON messages
 		/// </summary>
 		[Test()]
-		[Ignore("Ignore to save execution time")]
+		//[Ignore("Ignore to save execution time")]
 		public void TestSendTestFRTimeoutSlave() {
 			ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
 			APCIParameters clientApciParamters = new APCIParameters ();
