@@ -66,11 +66,14 @@ namespace lib60870.CS104
 		private int receiveCount = 0;
 
 		private int unconfirmedReceivedIMessages = 0; /* number of unconfirmed messages received */
-		private Int64 lastConfirmationTime = System.Int64.MaxValue; /* timestamp when the last confirmation message was sent */
 
 		/* T3 parameter handling */
 		private UInt64 nextT3Timeout;
 		private int outStandingTestFRConMessages = 0;
+
+		/* T2 parameter handling */
+		private bool timeoutT2Triggered = false;
+		private Int64 lastConfirmationTime = System.Int64.MaxValue; /* timestamp when the last confirmation message was sent */
 
 		private TlsSecurityInformation tlsSecInfo = null;
 
@@ -84,8 +87,6 @@ namespace lib60870.CS104
 		private bool callbackThreadRunning = false;
 
 		private Queue<BufferFrame> waitingASDUsHighPrio = null;
-
-		private bool firstIMessageReceived = false;
 
 		/* data structure for k-size sent ASDU buffer */
 		private struct SentASDU
@@ -317,6 +318,7 @@ namespace lib60870.CS104
 					DebugLog("SEND I (size = " + msgSize + ") : " +	BitConverter.ToString(buffer, 0, msgSize));
 					sendCount = (sendCount + 1) % 32768;
 					unconfirmedReceivedIMessages = 0;
+					timeoutT2Triggered = false;
 				}
 			}
 			catch (System.IO.IOException) {
@@ -768,8 +770,8 @@ namespace lib60870.CS104
 					return false;
 				}
 					
-				if (firstIMessageReceived == false) {
-					firstIMessageReceived = true;
+				if (timeoutT2Triggered == false) {
+					timeoutT2Triggered = true;
 					lastConfirmationTime = currentTime; /* start timeout T2 */
 				}
 
@@ -904,6 +906,7 @@ namespace lib60870.CS104
 
 					lastConfirmationTime = (long) currentTime;
 					unconfirmedReceivedIMessages = 0;
+					timeoutT2Triggered = false;
 					SendSMessage ();
 				}
 			}
@@ -1056,8 +1059,8 @@ namespace lib60870.CS104
 
 								if (unconfirmedReceivedIMessages >= apciParameters.W) {
 									lastConfirmationTime = SystemUtils.currentTimeMillis();
-
 									unconfirmedReceivedIMessages = 0;
+									timeoutT2Triggered = false;
 									SendSMessage ();
 								}	
 							}

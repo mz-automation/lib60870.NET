@@ -236,7 +236,7 @@ namespace cs104_server3
 
 					server.EnqueueASDU (newAsdu);
 
-					waitTime = 1000;
+					waitTime = 5000;
 				}
 			}
 

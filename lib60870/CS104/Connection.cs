@@ -209,7 +209,10 @@ namespace lib60870.CS104
         private Thread workerThread = null;
 
         private int unconfirmedReceivedIMessages; /* number of unconfirmed messages received */
+
+        /* T2 timeout handling */
         private long lastConfirmationTime; /* timestamp when the last confirmation message was sent */
+        private bool timeoutT2Triggered = false;
 
         private Socket socket = null;
         private Stream netStream = null;
@@ -225,7 +228,6 @@ namespace lib60870.CS104
         private bool running = false;
         private bool connecting = false;
         private bool socketError;
-        private bool firstIMessageReceived = false;
         private SocketException lastException;
 
         private static int connectionCounter = 0;
@@ -334,7 +336,7 @@ namespace lib60870.CS104
             receiveSequenceNumber = 0;
             unconfirmedReceivedIMessages = 0;
             lastConfirmationTime = System.Int64.MaxValue;
-            firstIMessageReceived = false;
+            timeoutT2Triggered = false;
             outStandingTestFRConMessages = 0;
 
             uMessageTimeout = 0;
@@ -519,13 +521,13 @@ namespace lib60870.CS104
 
             if (running)
             {
-                //socket.Send (buffer, msgSize, SocketFlags.None);
-
                 netStream.Write(buffer, 0, msgSize);
 
                 sendSequenceNumber = (sendSequenceNumber + 1) % 32768;
                 statistics.SentMsgCounter++;
+
                 unconfirmedReceivedIMessages = 0;
+                timeoutT2Triggered = false;
 
                 if (sentMessageHandler != null)
                 {
@@ -1157,9 +1159,9 @@ namespace lib60870.CS104
             if ((buffer[2] & 1) == 0)
             { /* I format frame */
 
-                if (firstIMessageReceived == false)
+                if (timeoutT2Triggered == false)
                 {
-                    firstIMessageReceived = true;
+                    timeoutT2Triggered = true;
                     lastConfirmationTime = currentTime; /* start timeout T2 */
                 }
 
@@ -1393,10 +1395,11 @@ namespace lib60870.CS104
             if (unconfirmedReceivedIMessages > 0)
             {
                 if (checkConfirmTimeout((long)currentTime))
-                {
-
+				{
                     lastConfirmationTime = (long)currentTime;
+
                     unconfirmedReceivedIMessages = 0;
+                    timeoutT2Triggered = false;
 
                     SendSMessage(); /* send confirmation message */
                 }
@@ -1635,6 +1638,8 @@ namespace lib60870.CS104
                                         lastConfirmationTime = SystemUtils.currentTimeMillis();
 
                                         unconfirmedReceivedIMessages = 0;
+                                        timeoutT2Triggered = false;
+
                                         SendSMessage();
                                     }
 
