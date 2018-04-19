@@ -237,6 +237,17 @@ namespace lib60870.CS101
 			this.fileClient = null;
 		}
 
+		/// <summary>
+		/// Sets the timeouts for receiving messages (in milliseconds)
+		/// </summary>
+		/// <param name="messageTimeout">Timeout to wait for the first character of a message</param>
+		/// <param name="characterTimeout">Timeout to wait for next characters in a message</param>
+		public void SetTimeouts(int messageTimeout, int characterTimeout)
+		{
+			this.transceiver.SetTimeouts (messageTimeout, characterTimeout);
+		}
+
+
 		public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
 		{
 			asduReceivedHandler = handler;

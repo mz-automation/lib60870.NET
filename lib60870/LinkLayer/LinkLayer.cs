@@ -445,7 +445,7 @@ namespace lib60870.linklayer
 			if (msg [0] == 0x68) {
 
 				if (msg [1] != msg [2]) {
-					DebugLog("ERROR: L fields differ!");
+					DebugLog ("ERROR: L fields differ!");
 					return;
 				}
 
@@ -457,7 +457,7 @@ namespace lib60870.linklayer
 
 				// check if message size is reasonable
 				if (msgSize != (userDataStart + userDataLength + 2 /* CS + END */)) {
-					DebugLog("ERROR: Invalid message length");
+					DebugLog ("ERROR: Invalid message length");
 					return;
 				}
 
@@ -467,7 +467,12 @@ namespace lib60870.linklayer
 				csStart = 1;
 				csIndex = 2 + linkLayerParameters.AddressLength;
 
-			} else {
+			} else if (msg [0] == 0xE5) {
+				/* Confirmation message from other slave --> ignore */
+				return;
+			}
+			else
+			{
 				DebugLog("ERROR: Received unexpected message type in unbalanced slave mode!");
 				return;
 			}

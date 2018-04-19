@@ -155,45 +155,36 @@ namespace cs101_master_unbalanced
 			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
 
 			master.AddSlave (1);
-			//master.AddSlave (2);
-			//master.AddSlave (3);
+			master.AddSlave (2);
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 
 			master.SlaveAddress = 1;
-			master.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
+			//master.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
 
 
 			while (running) {
 
+				master.PollSingleSlave(1);
 
 				master.Run ();
 
-				//master.PollSlaves (); // will only return after polling is complete
-				master.PollSingleSlave(1);
-				//master.PollSingleSlave(2);
+				master.PollSingleSlave(2);
+
+				master.Run ();
 
 				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
 
 					lastTimestamp = SystemUtils.currentTimeMillis ();
 
-					//	if (master.GetStateOfSlave (1) == LinkLayerState.AVAILABLE) {
-					//master.UseSlaveAddress (1);
-					//master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
-					//	}
+					master.SlaveAddress = 1;
+					master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
 
-					//					if (master.GetStateOfSlave (2) == LinkLayerState.AVAILABLE) {
-					//						master.SetSlaveAddress (2);
-					//						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
-					//					}
-					//
-					//					if (master.GetStateOfSlave (3) == LinkLayerState.AVAILABLE) {
-					//						master.SetSlaveAddress (3);
-					//						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
-					//					}
+					master.SlaveAddress = 2;
+					master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 2, 20);
+
 				}
-
-				Thread.Sleep (10);
+					
 			}
 
 			port.Close ();

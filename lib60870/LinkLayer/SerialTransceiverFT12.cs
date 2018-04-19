@@ -42,10 +42,10 @@ namespace lib60870.linklayer
 		private LinkLayerParameters linkLayerParameters;
 
 		// timeout used to wait for the message start character
-		private int messageTimeout = 200;
+		private int messageTimeout = 50;
 
 		// timeout to wait for next character in a message
-		private int characterTimeout = 200;
+		private int characterTimeout = 50;
 	
 		public SerialTransceiverFT12(SerialPort port, LinkLayerParameters linkLayerParameters, Action<string> debugLog) 
 		{

@@ -49,7 +49,7 @@ namespace lib60870.linklayer
 		private bool CheckFCB(bool fcb) 
 		{
 			if (fcb != expectedFcb) {
-				Console.WriteLine ("ERROR: Frame count bit (FCB) invalid!");
+				DebugLog ("SLL - ERROR: Frame count bit (FCB) invalid!");
 				//TODO change link status
 				return false;
 			} else {

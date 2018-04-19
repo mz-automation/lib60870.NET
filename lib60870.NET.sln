@@ -134,6 +134,7 @@ Global
 		$5.NamingStyle = None
 		$5.IncludeInstanceMembers = True
 		$5.IncludeStaticEntities = True
+		version = 2.1.0
 		StartupItem = lib60870\lib60870.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution

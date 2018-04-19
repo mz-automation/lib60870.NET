@@ -31,40 +31,47 @@ namespace cs101_slave_unbalanced {
 
 	public class CS101TestSlave {
 
+		private static int slaveAddress = 1;
+
 		private static bool myInterrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
 		{
-			Console.WriteLine("Interrogation for group " + qoi);
+			
+			if (asdu.Ca == slaveAddress) {
 
-			connection.SendACT_CON (asdu, false);
+				Console.WriteLine("Interrogation for group " + qoi);
 
-			// send information objects
-			ASDU newAsdu = new ASDU(connection.GetApplicationLayerParameters(), CauseOfTransmission.INTERROGATED_BY_STATION, 
-									false, false, 2, 1, false);
+				connection.SendACT_CON (asdu, false);
 
-			newAsdu.AddInformationObject (new MeasuredValueScaled (100, -1, new QualityDescriptor ()));
+				// send information objects
+				ASDU newAsdu = new ASDU (connection.GetApplicationLayerParameters (), CauseOfTransmission.INTERROGATED_BY_STATION, 
+					              false, false, 2, slaveAddress, false);
 
-			newAsdu.AddInformationObject (new MeasuredValueScaled (101, 23, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new MeasuredValueScaled (100, -1, new QualityDescriptor ()));
 
-			newAsdu.AddInformationObject (new MeasuredValueScaled (102, 2300, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new MeasuredValueScaled (101, 23, new QualityDescriptor ()));
 
-			connection.SendASDU (newAsdu);
+				newAsdu.AddInformationObject (new MeasuredValueScaled (102, 2300, new QualityDescriptor ()));
 
-			// send sequence of information objects
-			newAsdu = new ASDU (connection.GetApplicationLayerParameters(), CauseOfTransmission.INTERROGATED_BY_STATION, 
-								false, false, 2, 1, true);
+				connection.SendASDU (newAsdu);
 
-			newAsdu.AddInformationObject (new SinglePointInformation (200, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (201, false, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (202, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (203, false, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (204, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (205, false, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (206, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (207, false, new QualityDescriptor ()));
+				// send sequence of information objects
+				newAsdu = new ASDU (connection.GetApplicationLayerParameters (), CauseOfTransmission.INTERROGATED_BY_STATION, 
+					false, false, 2, slaveAddress, true);
 
-			connection.SendASDU (newAsdu);
+				newAsdu.AddInformationObject (new SinglePointInformation (200, true, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new SinglePointInformation (201, false, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new SinglePointInformation (202, true, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new SinglePointInformation (203, false, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new SinglePointInformation (204, true, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new SinglePointInformation (205, false, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new SinglePointInformation (206, true, new QualityDescriptor ()));
+				newAsdu.AddInformationObject (new SinglePointInformation (207, false, new QualityDescriptor ()));
 
-			connection.SendACT_TERM (asdu);
+				connection.SendASDU (newAsdu);
+
+				connection.SendACT_TERM (asdu);
+
+			}
 
 			return true;
 		}
@@ -84,6 +91,9 @@ namespace cs101_slave_unbalanced {
 			if (args.Length > 0)
 				portName = args [0];
 
+			if (args.Length > 1)
+				int.TryParse (args [1], out slaveAddress);
+
 			SerialPort port = new SerialPort ();
 
 			port.PortName = portName;
@@ -97,8 +107,8 @@ namespace cs101_slave_unbalanced {
 			llParameters.UseSingleCharACK = true;
 
 			CS101Slave slave = new CS101Slave (port, llParameters);
-			slave.DebugOutput = true;
-			slave.LinkLayerAddress = 1;
+			slave.DebugOutput = false;
+			slave.LinkLayerAddress = slaveAddress;
 
 			// for using the slave in balanced mode simple change the mode here:
 			slave.LinkLayerMode = lib60870.linklayer.LinkLayerMode.UNBALANCED;
@@ -133,7 +143,7 @@ namespace cs101_slave_unbalanced {
 
 					lastTimestamp = SystemUtils.currentTimeMillis ();
 
-					ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
+					ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.PERIODIC, false, false, 0, slaveAddress, false);
 					newAsdu.AddInformationObject (new MeasuredValueScaled (110, measuredValue, new QualityDescriptor ()));
 					slave.EnqueueUserDataClass2 (newAsdu);
 
@@ -156,7 +166,7 @@ namespace cs101_slave_unbalanced {
 							value = true;
 						}
 
-						ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
+						ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, slaveAddress, false);
 						newAsdu.AddInformationObject (new SinglePointInformation (100, value, new QualityDescriptor ()));
 
 						slave.EnqueueUserDataClass1 (newAsdu);
