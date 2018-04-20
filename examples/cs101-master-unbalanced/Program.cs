@@ -177,12 +177,22 @@ namespace cs101_master_unbalanced
 
 					lastTimestamp = SystemUtils.currentTimeMillis ();
 
-					master.SlaveAddress = 1;
-					master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
+					try {
+						master.SlaveAddress = 1;
+						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
+					}
+					catch (LinkLayerBusyException) {
+						Console.WriteLine ("Slave 1: Link layer busy or not ready");
+					}
 
-					master.SlaveAddress = 2;
-					master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 2, 20);
-
+					try {
+						master.SlaveAddress = 2;
+						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 2, 20);
+					}
+					catch (LinkLayerBusyException) {
+						Console.WriteLine ("Slave 2: Link layer busy or not ready");
+					}
+						
 				}
 					
 			}
