@@ -359,7 +359,7 @@ namespace lib60870.CS101
 		internal StepCommandWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
 			base(parameters, msg, startIndex)
 		{
-			startIndex += parameters.SizeOfIOA + 1; /* skip IOA */
+			startIndex += parameters.SizeOfIOA; /* skip IOA */
 
 			if ((msg.Length - startIndex) < GetEncodedSize())
 				throw new ASDUParsingException("Message too small");
