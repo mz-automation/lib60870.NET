@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\..\examples\cs104-server3\Program.cs" Link="Program.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\lib60870.NET.CORE.2.0\lib60870.NET.CORE.2.0.csproj" />
   </ItemGroup>
 
