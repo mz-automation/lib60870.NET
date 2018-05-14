@@ -412,6 +412,7 @@ namespace lib60870.CS104
 
                     bool seqNoIsValid = false;
                     bool counterOverflowDetected = false;
+					int oldestValidSeqNo = -1;
 
                     if (oldestSentASDU == -1)
                     { /* if k-Buffer is empty */
@@ -420,7 +421,7 @@ namespace lib60870.CS104
                     }
                     else
                     {
-                        // Two cases are required to reflect sequence number overflow
+                        /* Two cases are required to reflect sequence number overflow */
                         if (sentASDUs[oldestSentASDU].seqNo <= sentASDUs[newestSentASDU].seqNo)
                         {
                             if ((seqNo >= sentASDUs[oldestSentASDU].seqNo) &&
@@ -437,9 +438,13 @@ namespace lib60870.CS104
                             counterOverflowDetected = true;
                         }
 
-                        int latestValidSeqNo = (sentASDUs[oldestSentASDU].seqNo - 1) % 32768;
+						/* check if confirmed message was already removed from list */
+						if (sentASDUs[oldestSentASDU].seqNo == 0)
+							oldestValidSeqNo = 32767;
+						else
+							oldestValidSeqNo = sentASDUs[oldestSentASDU].seqNo - 1;
 
-                        if (latestValidSeqNo == seqNo)
+						if (oldestValidSeqNo == seqNo)
                             seqNoIsValid = true;
                     }
 
@@ -451,18 +456,30 @@ namespace lib60870.CS104
 
                     if (oldestSentASDU != -1)
                     {
+
+						/* remove confirmed messages from list */
                         do
                         {
+							/* skip removing messages if confirmed message was already removed */
                             if (counterOverflowDetected == false)
                             {
                                 if (seqNo < sentASDUs[oldestSentASDU].seqNo)
                                     break;
                             }
-                            else
-                            {
-                                if (seqNo == ((sentASDUs[oldestSentASDU].seqNo - 1) % 32768))
-                                    break;
-                            }
+
+							if (seqNo == oldestValidSeqNo)
+                                break;
+
+							if (sentASDUs[oldestSentASDU].seqNo == seqNo) {
+								/* we arrived at the seq# that has been confirmed */
+
+								if (oldestSentASDU == newestSentASDU)
+									oldestSentASDU = -1;
+								else
+									oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
+
+								break;
+							}
 
                             oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
 
@@ -473,9 +490,6 @@ namespace lib60870.CS104
                                 oldestSentASDU = -1;
                                 break;
                             }
-
-                            if (sentASDUs[oldestSentASDU].seqNo == seqNo)
-                                break;
 
                         } while (true);
                     }

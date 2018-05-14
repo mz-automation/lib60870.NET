@@ -680,9 +680,10 @@ namespace lib60870.CS104
 
 				bool seqNoIsValid = false;
 				bool counterOverflowDetected = false;
+				int oldestValidSeqNo = -1;
 
-				if (oldestSentASDU == -1) { /* if k-Buffer is empty */
-
+				if (oldestSentASDU == -1) 
+				{ /* if k-Buffer is empty */
 					if (seqNo == sendCount)
 						seqNoIsValid = true;
 				}
@@ -701,9 +702,12 @@ namespace lib60870.CS104
 						counterOverflowDetected = true;
 					}
 
-					int latestValidSeqNo = (sentASDUs [oldestSentASDU].seqNo - 1) % 32768;
+					if (sentASDUs[oldestSentASDU].seqNo == 0)
+						oldestValidSeqNo = 32767;
+					else
+						oldestValidSeqNo = sentASDUs[oldestSentASDU].seqNo - 1;
 
-					if (latestValidSeqNo == seqNo)
+					if (oldestValidSeqNo == seqNo)
 						seqNoIsValid = true;
 				}
 					
@@ -713,18 +717,18 @@ namespace lib60870.CS104
 				}
 								
 				if (oldestSentASDU != -1) {
-					
+
+					/* remove confirmed messages from list */
 					do {
-						if (counterOverflowDetected == false) {
-							if (seqNo < sentASDUs [oldestSentASDU].seqNo) {
+						/* skip removing messages if confirmed message was already removed */
+						if (counterOverflowDetected == false) 
+						{
+							if (seqNo < sentASDUs [oldestSentASDU].seqNo)
 								break;
-							}
 						}
-						else {
-							if (seqNo == ((sentASDUs [oldestSentASDU].seqNo - 1) % 32768)) {
-								break;
-							}
-						}
+
+						if (seqNo == oldestValidSeqNo)
+							break;
 
 						/* remove from server (low-priority) queue if required */
 						if (sentASDUs [oldestSentASDU].queueIndex != -1) {
@@ -732,15 +736,6 @@ namespace lib60870.CS104
 								sentASDUs [oldestSentASDU].entryTime);
 						}
 
-						oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
-
-						int checkIndex = (newestSentASDU + 1) % maxSentASDUs;
-
-						if (oldestSentASDU == checkIndex) {
-							oldestSentASDU = -1;
-							break;
-						}
-							
 						if (sentASDUs [oldestSentASDU].seqNo == seqNo) {
 							/* we arrived at the seq# that has been confirmed */
 
@@ -749,6 +744,15 @@ namespace lib60870.CS104
 							else 
 								oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
 
+							break;
+						}
+
+						oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
+
+						int checkIndex = (newestSentASDU + 1) % maxSentASDUs;
+
+						if (oldestSentASDU == checkIndex) {
+							oldestSentASDU = -1;
 							break;
 						}
 

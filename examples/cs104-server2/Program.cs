@@ -36,7 +36,7 @@ namespace cs104_server2
 
 			Server server = new Server ();
 
-			server.DebugOutput = true;
+			server.DebugOutput = false;
 			server.MaxQueueSize = 100;
 
 			server.Start ();
@@ -89,7 +89,7 @@ namespace cs104_server2
 					if (newAsdu != null)
 						server.EnqueueASDU (newAsdu);
 
-					waitTime = 2000;
+					waitTime = 1000;
 				}
 			}
 
