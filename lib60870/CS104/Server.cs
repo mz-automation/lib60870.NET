@@ -627,20 +627,25 @@ namespace lib60870.CS104
 		{
 			if (connectionEventHandler != null)
 				connectionEventHandler (connectionEventHandlerParameter, activeConnection, ClientConnectionEvent.ACTIVE);
-			
-			// deactivate all other connections
 
-			foreach (ClientConnection connection in allOpenConnections) {
-				if (connection != activeConnection) {
 
-					if (connection.IsActive) {
+			if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) {
 
-						if (connectionEventHandler != null)
-							connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.INACTIVE);
+				// deactivate all other connections
 
-						connection.IsActive = false;
+				foreach (ClientConnection connection in allOpenConnections) {
+					if (connection != activeConnection) {
+
+						if (connection.IsActive) {
+
+							if (connectionEventHandler != null)
+								connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.INACTIVE);
+
+							connection.IsActive = false;
+						}
 					}
 				}
+
 			}
 		}
 
