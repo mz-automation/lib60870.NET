@@ -107,7 +107,7 @@ namespace cs101_slave_unbalanced {
 			llParameters.UseSingleCharACK = true;
 
 			CS101Slave slave = new CS101Slave (port, llParameters);
-			slave.DebugOutput = false;
+			slave.DebugOutput = true;
 			slave.LinkLayerAddress = slaveAddress;
 
 			// for using the slave in balanced mode simple change the mode here:

@@ -130,7 +130,7 @@ namespace lib60870.linklayer
 			}
 
 			internal void HandleMessage(FunctionCodeSecondary fcs, bool acd, bool dfc, 
-				int address, byte[] msg, int userDataStart, int userDataLength)
+				int addr, byte[] msg, int userDataStart, int userDataLength)
 			{
 				PrimaryLinkLayerState newState = primaryState;
 
@@ -165,7 +165,7 @@ namespace lib60870.linklayer
 
 				case FunctionCodeSecondary.ACK:
 
-					DebugLog ("PLL - received ACK");
+					DebugLog ("[SLAVE " + address + "] PLL - received ACK");
 
 					if (primaryState == PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK) {
 						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
@@ -196,7 +196,7 @@ namespace lib60870.linklayer
 
 				case FunctionCodeSecondary.NACK:
 					
-					DebugLog ("PLL - received NACK");
+					DebugLog ("[SLAVE " + address + "] PLL - received NACK");
 				
 					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
 					
@@ -205,18 +205,20 @@ namespace lib60870.linklayer
 						newState = PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY;
 					}
 
+					waitingForResponse = false;
 					break;
 
 				case FunctionCodeSecondary.STATUS_OF_LINK_OR_ACCESS_DEMAND:
 					
-					DebugLog ("PLL - received STATUS OF LINK");
+					DebugLog ("[SLAVE " + address + "] PLL - received STATUS OF LINK");
 
 					if (primaryState == PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK) {
 						
-						DebugLog ("PLL - SEND RESET REMOTE LINK");
+						DebugLog ("[SLAVE " + address + "] PLL - SEND RESET REMOTE LINK");
 
 						linkLayer.SendFixedFramePrimary (FunctionCodePrimary.RESET_REMOTE_LINK, address, false, false);
 
+						nextFcb = true;
 						lastSendTime = SystemUtils.currentTimeMillis ();
 						waitingForResponse = true;
 						newState = PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK;
@@ -226,13 +228,15 @@ namespace lib60870.linklayer
 						newState = PrimaryLinkLayerState.IDLE;
 					
 						SetState (LinkLayerState.ERROR);
+
+						waitingForResponse = false;
 					}
 
 					break;
 
 				case FunctionCodeSecondary.RESP_USER_DATA:
 					
-					DebugLog ("PLL - received USER DATA");
+					DebugLog ("[SLAVE " + address + "] PLL - received USER DATA");
 
 					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND) {
 						linkLayerUnbalanced.callbacks.UserData (address, msg, userDataStart, userDataLength);
@@ -249,11 +253,13 @@ namespace lib60870.linklayer
 						SetState (LinkLayerState.ERROR);
 					}
 
+					waitingForResponse = false;
+
 					break;
 
 				case FunctionCodeSecondary.RESP_NACK_NO_DATA:
 					
-					DebugLog ("PLL - received RESP NO DATA");
+					DebugLog ("[SLAVE " + address + "] PLL - received RESP NO DATA");
 
 					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND) {
 						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
@@ -268,12 +274,14 @@ namespace lib60870.linklayer
 						SetState (LinkLayerState.ERROR);
 					}
 
+					waitingForResponse = false;
+
 					break;
 
 				case FunctionCodeSecondary.LINK_SERVICE_NOT_FUNCTIONING:
 				case FunctionCodeSecondary.LINK_SERVICE_NOT_IMPLEMENTED:
 					
-					DebugLog ("PLL - link layer service not functioning/not implemented in secondary station ");
+					DebugLog ("[SLAVE " + address + "] PLL - link layer service not functioning/not implemented in secondary station ");
 
 					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
 						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
@@ -281,10 +289,12 @@ namespace lib60870.linklayer
 						SetState (LinkLayerState.AVAILABLE);
 					}
 
+					waitingForResponse = false;
+
 					break;
 
 				default:
-					DebugLog ("UNEXPECTED SECONDARY LINK LAYER MESSAGE");
+					DebugLog ("[SLAVE " + address + "] UNEXPECTED SECONDARY LINK LAYER MESSAGE");
 					break;
 				}
 
@@ -293,7 +303,7 @@ namespace lib60870.linklayer
 						linkLayerUnbalanced.callbacks.AccessDemand (address);
 				}
 
-				DebugLog ("PLL RECV - old state: " + primaryState.ToString () + " new state: " + newState.ToString ());
+				DebugLog ("[SLAVE " + address + "] PLL RECV - old state: " + primaryState.ToString () + " new state: " + newState.ToString ());
 
 				primaryState = newState;
 			}
@@ -301,6 +311,8 @@ namespace lib60870.linklayer
 			public void RunStateMachine()
 			{
 				PrimaryLinkLayerState newState = primaryState;
+
+				long currentTime =  SystemUtils.currentTimeMillis ();
 
 				switch (primaryState) {
 
@@ -318,7 +330,7 @@ namespace lib60870.linklayer
 
 					if (waitingForResponse) {
 						
-						if (SystemUtils.currentTimeMillis () > (lastSendTime + linkLayer.TimeoutForACK)) {
+						if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
 							linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_LINK_STATUS, address, false, false);
 
 							lastSendTime = SystemUtils.currentTimeMillis ();
@@ -327,12 +339,16 @@ namespace lib60870.linklayer
 					}
 					else {
 						
-						DebugLog ("PLL - SEND RESET REMOTE LINK");
+						DebugLog ("[SLAVE " + address + "] PLL - SEND RESET REMOTE LINK");
 
 						linkLayer.SendFixedFramePrimary (FunctionCodePrimary.RESET_REMOTE_LINK, address, false, false);
 
-						lastSendTime = SystemUtils.currentTimeMillis ();
+						lastSendTime = currentTime;
+						originalSendTime = lastSendTime;
 						waitingForResponse = true;
+
+						nextFcb = true;
+
 						newState = PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK; 
 					}
 
@@ -341,7 +357,7 @@ namespace lib60870.linklayer
 				case PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK:
 
 					if (waitingForResponse) {
-						if (SystemUtils.currentTimeMillis () > (lastSendTime + linkLayer.TimeoutForACK)) {
+						if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
 							waitingForResponse = false;
 							newState = PrimaryLinkLayerState.IDLE;
 
@@ -358,12 +374,12 @@ namespace lib60870.linklayer
 				case PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE:
 
 					if (sendLinkLayerTestFunction) {
-						DebugLog ("PLL - SEND TEST LINK");
+						DebugLog ("[SLAVE " + address + "] PLL - SEND TEST LINK");
 
 						linkLayer.SendFixedFramePrimary (FunctionCodePrimary.TEST_FUNCTION_FOR_LINK, address, nextFcb, true);
 
 						nextFcb = !nextFcb;
-						lastSendTime = SystemUtils.currentTimeMillis ();
+						lastSendTime = currentTime;
 						originalSendTime = lastSendTime;
 						waitingForResponse = true;
 
@@ -371,41 +387,46 @@ namespace lib60870.linklayer
 					} else if (requestClass1Data || requestClass2Data) {
 
 						if (requestClass1Data) {
-							DebugLog ("PLL - SEND FC 10 - REQ UD 1");
+							DebugLog ("[SLAVE " + address + "] PLL - SEND FC 10 - REQ UD 1");
 
 							linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_1, address, nextFcb, true);
 						} else {
-							DebugLog ("PLL - SEND FC 11 - REQ UD 2");
+							DebugLog ("[SLAVE " + address + "] PLL - SEND FC 11 - REQ UD 2");
 
 							linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_2, address, nextFcb, true);
 						}
 
 						nextFcb = !nextFcb;
-						lastSendTime = SystemUtils.currentTimeMillis ();
+
+						lastSendTime = currentTime;
 						originalSendTime = lastSendTime;
 						waitingForResponse = true;
 						newState = PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND;
 					}
 					else {
-						BufferFrame asdu = nextMessage;
 
-						if (asdu != null) {
+						if (dontSendMessages == false) {
 
-							DebugLog ("PLL - SEND FC 03 - USER DATA CONFIRMED");
+							BufferFrame asdu = nextMessage;
 
-							linkLayer.SendVariableLengthFramePrimary (FunctionCodePrimary.USER_DATA_CONFIRMED, address, nextFcb, true, asdu);
+							if (asdu != null) {
 
-							lastSentASDU = nextMessage;
-							nextMessage = null;
+								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 03 - USER DATA CONFIRMED");
+
+								linkLayer.SendVariableLengthFramePrimary (FunctionCodePrimary.USER_DATA_CONFIRMED, address, nextFcb, true, asdu);
+
+								lastSentASDU = nextMessage;
+								nextMessage = null;
 
 
-							nextFcb = !nextFcb;
+								nextFcb = !nextFcb;
 
-							lastSendTime = SystemUtils.currentTimeMillis ();
-							originalSendTime = lastSendTime;
-							waitingForResponse = true;
+								lastSendTime = currentTime;
+								originalSendTime = lastSendTime;
+								waitingForResponse = true;
 
-							newState = PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM;
+								newState = PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM;
+							}
 						}
 					}
 
@@ -413,31 +434,31 @@ namespace lib60870.linklayer
 
 				case PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM:
 
-					if (SystemUtils.currentTimeMillis () > (lastSendTime + linkLayer.TimeoutForACK)) {
+					if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
 
-						if (SystemUtils.currentTimeMillis () > (originalSendTime + linkLayer.TimeoutRepeat)) {
-							DebugLog ("TIMEOUT: ASDU not confirmed after repeated transmission");
+						if (currentTime > (originalSendTime + linkLayer.TimeoutRepeat)) {
+							DebugLog ("[SLAVE " + address + "] TIMEOUT SC: ASDU not confirmed after repeated transmission");
 							newState = PrimaryLinkLayerState.IDLE;
 
 							SetState (LinkLayerState.ERROR);
 						} else {
-							DebugLog ("TIMEOUT: 1 ASDU not confirmed");
+							DebugLog ("[SLAVE " + address + "] TIMEOUT SC: 1 ASDU not confirmed");
 
 							if (sendLinkLayerTestFunction) {
 
-								DebugLog ("PLL - SEND FC 02 - RESET REMOTE LINK [REPEAT]");
+								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 02 - RESET REMOTE LINK [REPEAT]");
 
 								linkLayer.SendFixedFramePrimary (FunctionCodePrimary.TEST_FUNCTION_FOR_LINK, address, !nextFcb, true);
 							
 							} else {
 
-								DebugLog ("PLL - SEND FC 03 - USER DATA CONFIRMED [REPEAT]");
+								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 03 - USER DATA CONFIRMED [REPEAT]");
 
 								linkLayer.SendVariableLengthFramePrimary (FunctionCodePrimary.USER_DATA_CONFIRMED, address, !nextFcb, true, lastSentASDU);
 							
 							}
 
-							lastSendTime = SystemUtils.currentTimeMillis ();
+							lastSendTime = currentTime;
 						}
 					}
 
@@ -445,31 +466,30 @@ namespace lib60870.linklayer
 
 				case PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND:
 
-					if (SystemUtils.currentTimeMillis () > (lastSendTime + linkLayer.TimeoutForACK)) {
+					if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
 
-						if (SystemUtils.currentTimeMillis () > (originalSendTime + linkLayer.TimeoutRepeat)) {
-							DebugLog ("TIMEOUT: ASDU not confirmed after repeated transmission");
-
+						if (currentTime > (originalSendTime + linkLayer.TimeoutRepeat)) {
+							DebugLog ("[SLAVE " + address + "] TIMEOUT: ASDU not confirmed after repeated transmission");
 							newState = PrimaryLinkLayerState.IDLE;
 							requestClass1Data = false;
 							requestClass2Data = false;
 
 							SetState (LinkLayerState.ERROR);
 						} else {
-							DebugLog ("TIMEOUT: ASDU not confirmed");
+							DebugLog ("[SLAVE " + address + "] TIMEOUT: ASDU not confirmed");
 
 							if (requestClass1Data) {
-								DebugLog ("PLL - SEND FC 10 - REQ UD 1 [REPEAT]");
+								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 10 - REQ UD 1 [REPEAT]");
 
 								linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_1, address, !nextFcb, true);
 							} else if (requestClass2Data) {
 
-								DebugLog ("PLL - SEND FC 11 - REQ UD 2 [REPEAT]");
+								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 11 - REQ UD 2 [REPEAT]");
 
 								linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_2, address, !nextFcb, true);
 							}
 								
-							lastSendTime = SystemUtils.currentTimeMillis ();
+							lastSendTime = currentTime;
 						}
 					}
 
@@ -482,7 +502,7 @@ namespace lib60870.linklayer
 				}
 
 				if (primaryState != newState)
-					DebugLog ("PLL - old state: " + primaryState.ToString () + " new state: " + newState.ToString ());
+					DebugLog ("[SLAVE " + address + "] PLL - old state: " + primaryState.ToString () + " new state: " + newState.ToString ());
 
 				primaryState = newState;
 

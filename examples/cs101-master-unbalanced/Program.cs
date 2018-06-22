@@ -33,7 +33,7 @@ namespace cs101_master_unbalanced
 	{
 		private static bool asduReceivedHandler(object parameter, int slaveAddress, ASDU asdu)
 		{
-			Console.WriteLine (asdu.ToString ());
+			Console.WriteLine ("Slave: {0} - {1}", slaveAddress, asdu.ToString ());
 
 			if (asdu.TypeId == TypeID.M_SP_NA_1) {
 
@@ -94,8 +94,6 @@ namespace cs101_master_unbalanced
 					Console.WriteLine ("   " + msv.Quality.ToString ());
 				}
 
-			} else {
-				Console.WriteLine ("Unknown message type!");
 			}
 
 			return true;
@@ -129,7 +127,7 @@ namespace cs101_master_unbalanced
 				running = false;
 			};
 
-			string portName = "/dev/ttyUSB3";
+			string portName = "/dev/ttyUSB0";
 
 			if (args.Length > 0)
 				portName = args [0];
@@ -156,6 +154,7 @@ namespace cs101_master_unbalanced
 
 			master.AddSlave (1);
 			master.AddSlave (2);
+			master.AddSlave (3);
 
 			long lastTimestamp = SystemUtils.currentTimeMillis ();
 
@@ -173,7 +172,11 @@ namespace cs101_master_unbalanced
 
 				master.Run ();
 
-				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
+				master.PollSingleSlave(3);
+
+				master.Run ();
+
+				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 20000) {
 
 					lastTimestamp = SystemUtils.currentTimeMillis ();
 
@@ -193,6 +196,13 @@ namespace cs101_master_unbalanced
 						Console.WriteLine ("Slave 2: Link layer busy or not ready");
 					}
 						
+					try {
+						master.SlaveAddress = 3;
+						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 3, 20);
+					}
+					catch (LinkLayerBusyException) {
+						Console.WriteLine ("Slave 2: Link layer busy or not ready");
+					}
 				}
 					
 			}
