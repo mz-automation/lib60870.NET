@@ -468,6 +468,9 @@ namespace lib60870.CS104
 					Socket newSocket = listeningSocket.Accept ();
 
 					if (newSocket != null) {
+
+						newSocket.NoDelay = true;
+
 						DebugLog("New connection");
 
 						IPEndPoint ipEndPoint = (IPEndPoint) newSocket.RemoteEndPoint;
