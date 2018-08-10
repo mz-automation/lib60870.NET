@@ -556,7 +556,6 @@ namespace lib60870.CS101
 					i++;
 
 					if (directoryAsdu == null) {
-						Console.WriteLine ("Send directory ASDU");
 						directoryAsdu = new ASDU (masterConnection.GetApplicationLayerParameters (), cot, false, false, 0, currentCa, true);
 					}
 
@@ -569,12 +568,15 @@ namespace lib60870.CS101
 
 					InformationObject io = new FileDirectory(currentIOA, file.provider.GetNameOfFile(), file.provider.GetFileSize(), sof, new CP56Time2a(file.provider.GetFileDate()));
 
-					directoryAsdu.AddInformationObject (io);
+					if (!directoryAsdu.AddInformationObject (io) == false) {
+						masterConnection.SendASDU(directoryAsdu);
+
+						directoryAsdu = new ASDU(masterConnection.GetApplicationLayerParameters(), cot, false, false, 0, currentCa, true);
+						directoryAsdu.AddInformationObject(io);
+					}
 				}
 
 				if (directoryAsdu != null) {
-
-					Console.WriteLine ("Send directory ASDU");
 					masterConnection.SendASDU (directoryAsdu);
 				}
 
