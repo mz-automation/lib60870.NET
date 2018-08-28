@@ -568,7 +568,7 @@ namespace lib60870.CS101
 
 					InformationObject io = new FileDirectory(currentIOA, file.provider.GetNameOfFile(), file.provider.GetFileSize(), sof, new CP56Time2a(file.provider.GetFileDate()));
 
-					if (!directoryAsdu.AddInformationObject (io) == false) {
+					if (directoryAsdu.AddInformationObject (io) == false) {
 						masterConnection.SendASDU(directoryAsdu);
 
 						directoryAsdu = new ASDU(masterConnection.GetApplicationLayerParameters(), cot, false, false, 0, currentCa, true);
