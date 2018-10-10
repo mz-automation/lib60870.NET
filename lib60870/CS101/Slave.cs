@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright 2017 MZ Automation GmbH
+ *  Copyright 2017-2018 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *
@@ -25,6 +25,26 @@ using System.Collections.Generic;
 
 namespace lib60870.CS101
 {
+    [Serializable]
+    public class ASDUQueueException : Exception
+    {
+        public ASDUQueueException()
+        {
+        }
+
+
+        public ASDUQueueException (string message) 
+            : base(message)
+        {
+        }
+
+        public ASDUQueueException (string message, Exception innerException)
+            : base (message, innerException)
+        {
+            
+        } 
+    }
+
 	/// <summary>
 	/// Provides functions to be used in Slave callbacks to send data back to the master
 	/// </summary>

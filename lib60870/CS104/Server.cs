@@ -84,6 +84,27 @@ namespace lib60870.CS104
         CONNECTION_IS_REDUNDANCY_GROUP
     }
 
+	/// <summary>
+	/// Specifies queue behavior when queue is full
+	/// </summary>
+	public enum EnqueueMode
+	{
+		/// <summary>
+		/// Remove the oldest ASDU from the queue and add the new ASDU.
+		/// </summary>
+		REMOVE_OLDEST,
+
+		/// <summary>
+		/// Don't add the new ASDU when the queue is full.
+		/// </summary>
+		IGNORE,
+
+		/// <summary>
+		/// Don't add the new ASDU when the queue is full and throw an exception.
+		/// </summary>
+		THROW_EXCEPTION
+	}
+
     internal class ASDUQueue
     {
         private enum QueueEntryState
@@ -107,11 +128,13 @@ namespace lib60870.CS104
         private int numberOfAsduInQueue = 0;
         private int maxQueueSize;
 
+		private EnqueueMode enqueueMode;
+
 		private ApplicationLayerParameters parameters;
 
         private Action<string> DebugLog = null;
 
-		public ASDUQueue(int maxQueueSize, ApplicationLayerParameters parameters, Action<string> DebugLog)
+		public ASDUQueue(int maxQueueSize, EnqueueMode enqueueMode, ApplicationLayerParameters parameters, Action<string> DebugLog)
         {
             enqueuedASDUs = new ASDUQueueEntry[maxQueueSize];
 
@@ -121,6 +144,7 @@ namespace lib60870.CS104
                 enqueuedASDUs[i].state = QueueEntryState.NOT_USED;
             }
 
+			this.enqueueMode = enqueueMode;
             this.oldestQueueEntry = -1;
             this.latestQueueEntry = -1;
             this.numberOfAsduInQueue = 0;
@@ -146,20 +170,41 @@ namespace lib60870.CS104
                     enqueuedASDUs[0].entryTimestamp = SystemUtils.currentTimeMillis();
                     enqueuedASDUs[0].state = QueueEntryState.WAITING_FOR_TRANSMISSION;
                 }
-                else
+				else
                 {
-                    latestQueueEntry = (latestQueueEntry + 1) % maxQueueSize;
+                    bool enqueue = true;
 
-                    if (latestQueueEntry == oldestQueueEntry)
-                        oldestQueueEntry = (oldestQueueEntry + 1) % maxQueueSize;
-                    else
-                        numberOfAsduInQueue++;
+                    if (numberOfAsduInQueue == maxQueueSize)
+                    {
+                        if (enqueueMode == EnqueueMode.REMOVE_OLDEST)
+                        {
+                        }
+                        else if (enqueueMode == EnqueueMode.IGNORE)
+                        {
+                            DebugLog("Queue is full. Ignore new ASDU.");
+                            enqueue = false;
+                        }
+                        else if (enqueueMode == EnqueueMode.THROW_EXCEPTION)
+                        {
+                            throw new ASDUQueueException("Event queue is full.");
+                        }
+                    }
 
-                    enqueuedASDUs[latestQueueEntry].asdu.ResetFrame();
-                    asdu.Encode(enqueuedASDUs[latestQueueEntry].asdu, parameters);
+                    if (enqueue)
+                    {
+                        latestQueueEntry = (latestQueueEntry + 1) % maxQueueSize;
 
-                    enqueuedASDUs[latestQueueEntry].entryTimestamp = SystemUtils.currentTimeMillis();
-                    enqueuedASDUs[latestQueueEntry].state = QueueEntryState.WAITING_FOR_TRANSMISSION;
+                        if (latestQueueEntry == oldestQueueEntry)
+                            oldestQueueEntry = (oldestQueueEntry + 1) % maxQueueSize;
+                        else
+                            numberOfAsduInQueue++;
+
+                        enqueuedASDUs[latestQueueEntry].asdu.ResetFrame();
+                        asdu.Encode(enqueuedASDUs[latestQueueEntry].asdu, parameters);
+
+                        enqueuedASDUs[latestQueueEntry].entryTimestamp = SystemUtils.currentTimeMillis();
+                        enqueuedASDUs[latestQueueEntry].state = QueueEntryState.WAITING_FOR_TRANSMISSION;
+                    }
                 }
             }
 
@@ -326,6 +371,19 @@ namespace lib60870.CS104
             get { return serverMode; }
             set { serverMode = value; }
         }
+
+		private EnqueueMode enqueueMode = EnqueueMode.REMOVE_OLDEST;
+
+		/// <summary>
+		/// Gets or sets the mode of ASDU queue behaviour. Default mode is
+		/// EnqueueMode.REMOVE_OLDEST.
+		/// </summary>
+		/// <value>the mode of ASDU queue behaviour</value>
+		public EnqueueMode EnqueueMode
+		{
+			get { return enqueueMode; }
+			set { enqueueMode = value; }
+		}
 			
 		private void DebugLog(string msg)
 		{
@@ -494,7 +552,7 @@ namespace lib60870.CS104
 								connection = new ClientConnection (newSocket, securityInfo, apciParameters, alParameters, this, asduQueue, debugOutput);
 	                        else
 								connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
-									new ASDUQueue(maxQueueSize, alParameters, DebugLog), debugOutput);
+                                    new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog), debugOutput);
 
 							allOpenConnections.Add(connection);
 
@@ -557,9 +615,9 @@ namespace lib60870.CS104
 			Thread acceptThread = new Thread(ServerAcceptThread);
 
             if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
-				asduQueue = new ASDUQueue(maxQueueSize, alParameters, DebugLog);
+                asduQueue = new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog);
 
-			acceptThread.Start ();
+            acceptThread.Start ();
 		}
 
 		/// <summary>
@@ -590,6 +648,7 @@ namespace lib60870.CS104
 		/// If an active connection exists the ASDU will be sent to the active client immediately. Otherwhise
 		/// the ASDU will be added to the transmission queue for later transmission.
 		/// <param name="asdu">ASDU to be sent</param>
+        /// <exception cref="lib60870.CS101.ASDUQueueException">when the ASDU queue is full and mode is EnqueueMode.THROW_EXCEPTION.</exception>
 		public void EnqueueASDU(ASDU asdu)
 		{
             if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)

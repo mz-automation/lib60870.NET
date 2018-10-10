@@ -112,6 +112,7 @@ namespace cs104_server
 			server.DebugOutput = true;
 
 			server.MaxQueueSize = 10;
+            server.EnqueueMode = EnqueueMode.REMOVE_OLDEST;
 
 			server.SetInterrogationHandler (interrogationHandler, null);
 
@@ -139,7 +140,7 @@ namespace cs104_server
 				
 					server.EnqueueASDU (newAsdu);
 
-					waitTime = 5000;
+					waitTime = 1000;
 				}
 			}
 
