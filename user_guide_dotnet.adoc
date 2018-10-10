@@ -1,9 +1,12 @@
-= lib60870.NET 2.1 User Guide
+= lib60870.NET 2.2 User Guide
 Michael Zillgith
 
 == Introduction
 
-lib60870.NET is a new implementation of the IEC 60870-5 protocol for client (master station) and server (controlled station). The library implements all data types of the IEC 60870-5-101/104 specifications. *lib60870.NET* is a pure C#/.NET implementation. It is designed to be as easy to use as possible. Since it is using only standardized .NET features it is compatible with Windows systems and the Microsoft .NET implementation as well as on Linux and other operating systems running with Mono.
+lib60870.NET is an implementation of the IEC 60870-5 protocol for client (master station) and server (controlled station).
+The library implements all data types of the IEC 60870-5-101/104 specifications. *lib60870.NET* is a pure C#/.NET implementation.
+It is designed to be as easy to use as possible. Since it is using only standardized .NET features it is compatible with Windows systems
+and the Microsoft .NET implementation as well as on Linux and other operating systems running with Mono.
 
 The client/server API is strictly asynchronous. You send the requests with non-blocking functions and will have to handle the response and other events in callback functions.
 
@@ -13,12 +16,14 @@ The list of supported features:
 * CS 104 (IEC 60870-5-104) client and server TCP/IP communication
 * CS 104 supports encrypted and authenticated TLS communication
 * CS 104 uses the CS 101 application layer
+* CS 104 slave supports multiple redundancy groups
 * Master/Client supports sending system commands, process commands, parameter commands, and data messages in reverse direction.
 * Slave/Server supports sending data messages in monitoring direction and commands in reverse direction
 * The list of supported ASDU types can be found in the annex
 * The library supports user defined private ASDU types
 * transmission of transparent files
 * CS 101 protocol over TCP/IP (client/server)
+* Support for .NET Standard, Mono, and .NET core 2.0
 
 *NOTE:* CS stands for "companion standard" and specifies variants of the communication protocols and services defined in the IEC 60870-5 standard series.
 
@@ -227,15 +232,61 @@ After the server instance is created it can be configured
 
 === Server mode
 
-The server provides two different modes.
+The server provides three different modes.
 
-The default mode (_SINGLE_REDUNDANCY_GROUP_) allows only a *single active client connection*. An active client connection is a connection where ASDUs are sent. All other connections are standby connections. There is a single queue for events. Events are also stored when no client is connected or when no connection is active.
+The default mode (_SINGLE_REDUNDANCY_GROUP_) allows only a *single active client connection*. An active client connection is a connection
+where ASDUs (application data units) are sent. All other connections are only standby connections that don't send application layer data.
+There is a single queue for events. Events are also stored when no client is connected or when no connection is active.
 
-The second mode (_CONNECION_IS_REDUNDANCY_GROUP_) allows *multiple active client connections*. Every connection has its own event queue. The event queue will be deleted when the client connection is closed. This mode has to be used when more then one client has to access the application data.
+
+The second mode (_CONNECTION_IS_REDUNDANCY_GROUP_) allows *multiple active client connections*. Every connection has its own event queue.
+The event queue will be deleted when the client connection is closed. This mode can be used when more than one client has to access the
+application data. This mode is easy to use. But the drawback of this mode is that events are lost when no client is connected.
+
+The third mode (_MULTIPLE_REDUNDANCY_GROUPS_) allows *multiple active client connections* while preserving events when no client is
+connected. In this mode clients can be assigned to specific redundancy groups. The assignment is based on the IP address of the client.
+A redundancy group can have multiple simultaneous connections but only one of these connections can be active. The number of activated
+connections is restricted by the number of redundancy groups. Each redundancy group has a dedicated event queue.
+
 
 The server mode can be set with the _ServerMode_ property of the _Server_ class.
 
-  server.ServerMode = ServerMode.CONNECION_IS_REDUNDANCY_GROUP;
+  server.ServerMode = ServerMode.CONNECTION_IS_REDUNDANCY_GROUP;
+
+=== Define multiple redundancy groups
+
+Redundancy groups only have to be created explicitly when using the servermode _MULTIPLE_REDUNDANCY_GROUPS_. You can assign multiple
+IP addresses to a redundancy group. Incoming connections from one of these IP addresses will then automatically be assigned to this
+redundancy group.
+
+When a redundancy group has no assigned IP address it works as a "catch all" group. This means that all incoming connections that
+are not assigned to one of the other groups will end up in this group.
+
+[[app-listing]]
+[source, csharp]
+.Example how to define multipe redundancy groups
+----
+/* Configure a server with three redundancy groups */
+
+server.ServerMode = ServerMode.MULTIPLE_REDUNDANCY_GROUPS;
+
+RedundancyGroup redGroup1 = new RedundancyGroup("red-group-1");
+redGroup1.AddAllowedClient("192.168.2.9");
+
+RedundancyGroup redGroup2 = new RedundancyGroup("red-group-2");
+redGroup2.AddAllowedClient("192.168.2.223");
+redGroup2.AddAllowedClient("192.168.2.222");
+
+/* add a "catch all" redundancy groups - all other connections are handled by this group */
+RedundancyGroup redGroup3 = new RedundancyGroup("catch all");
+
+server.AddRedundancyGroup(redGroup1);
+server.AddRedundancyGroup(redGroup2);
+server.AddRedundancyGroup(redGroup3);
+----
+
+
+
 
 === Restrict the number of client connections
 
