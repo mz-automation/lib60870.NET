@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016 MZ Automation GmbH
+ *  Copyright 2016-2018 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *
@@ -78,10 +78,17 @@ namespace lib60870.CS104
         /// All other connections are standy connections.
         /// </summary>
         SINGLE_REDUNDANCY_GROUP,
+
         /// <summary>
         /// Every connection is an own redundancy group. This enables simple multi-client server.
         /// </summary>
-        CONNECTION_IS_REDUNDANCY_GROUP
+        CONNECTION_IS_REDUNDANCY_GROUP,
+
+        /// <summary>
+        /// Mutliple redundancy groups. Each redundancy group can have only a single active connection.
+        /// Each redundancy group has its own event queue.
+        /// </summary>
+        MULTIPLE_REDUNDANCY_GROUPS
     }
 
 	/// <summary>
@@ -345,12 +352,147 @@ namespace lib60870.CS104
         }
     }
 
+    /// <summary>
+    /// Representation of a redundancy group. A redundancy group is a group of connections that share a unique
+    /// event queue. Only one connection in a redundancy group can be active.
+    /// </summary>
+    public class RedundancyGroup
+    {
+        internal ASDUQueue asduQueue = null;
+        internal Server server = null;
+
+        private string name = "";
+
+        // if list is empty this is the "catch-all" redundancy group that handles clients
+        // that are not assigned to a specific redundancyGroup
+        private List<IPAddress> AllowedClients = null;
+
+        private List<ClientConnection> connections = new List<ClientConnection>();
+
+        public RedundancyGroup()
+        {
+        }
+
+        public RedundancyGroup(string name)
+        {
+            this.name = name;
+        }
+
+        public string Name
+        {
+            get { return name; }
+        }
+            
+        public bool IsCatchAll
+        {
+            get {
+                if (AllowedClients == null)
+                    return true;
+                else
+                    return false;
+            }
+        }
+
+        public void AddAllowedClient(IPAddress ipAddress)
+        {
+            if (AllowedClients == null)
+                AllowedClients = new List<IPAddress>();
+
+            AllowedClients.Add(ipAddress);
+        }
+
+        public void AddAllowedClient(string ipString)
+        {
+            IPAddress ipAddress = IPAddress.Parse(ipString);
+
+            AddAllowedClient(ipAddress);
+        }
+
+        internal void AddConnection(ClientConnection connection)
+        {
+            connections.Add(connection);
+        }
+
+        internal void RemoveConnection(ClientConnection connection)
+        {
+            connections.Remove(connection);
+        }
+
+        internal bool Matches(IPAddress ipAddress) 
+        {
+            bool matches = false;
+
+            if (AllowedClients != null)
+            {
+                foreach (IPAddress allowedClient in AllowedClients)
+                {
+                    if (allowedClient.Equals(ipAddress))
+                    {
+                        matches = true;
+                        break;
+                    }
+                }
+            }
+                
+            return matches;
+        }
+
+        private bool HasConnection(ClientConnection con)
+        {
+            foreach (ClientConnection connection in connections)
+            {
+                if (connection == con)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal void Activate(ClientConnection activeConnection)
+        {
+            if (HasConnection(activeConnection))
+            {
+
+                foreach (ClientConnection connection in connections)
+                {
+                    if (connection != activeConnection)
+                    {
+
+                        if (connection.IsActive)
+                        {
+                            server.CallConnectionEventHandler(connection, ClientConnectionEvent.INACTIVE);
+                            connection.IsActive = false;
+                        }
+                    }
+                }
+
+            }
+        }
+
+        public void EnqueueASDU(ASDU asdu)
+        {
+            if (asduQueue != null)
+            {
+                asduQueue.EnqueueAsdu(asdu);
+
+                /* inform active connection that there is a new ASDU */
+                foreach (ClientConnection connection in connections)
+                {
+                    if (connection.IsActive)
+                        connection.ASDUReadyToSend();
+                }
+            }
+        }
+    }
+
 	/// <summary>
 	/// This class represents a single IEC 60870-5 server (slave or controlled station). It is also the
-	/// main access to the server API.
+	/// main access to the CS 104 server API.
 	/// </summary>
-	public class Server : CS101.Slave {
-
+	public class Server : CS101.Slave 
+    {
 		private string localHostname = "0.0.0.0";
 		private int localPort = 2404;
 
@@ -361,11 +503,14 @@ namespace lib60870.CS104
 		private int maxQueueSize = 1000;
 		private int maxOpenConnections = 10;
 
-        // only required for single redundancy group mode
-        private ASDUQueue asduQueue = null;
+        private List<RedundancyGroup> redGroups = new List<RedundancyGroup>();
 
-        private ServerMode serverMode;
+        private ServerMode serverMode = ServerMode.SINGLE_REDUNDANCY_GROUP;
 
+        /// <summary>
+        /// Gets or sets the server mode (behavior regarding redundancy groups)
+        /// </summary>
+        /// <value>The server mode.</value>
         public ServerMode ServerMode
         {
             get { return serverMode; }
@@ -473,6 +618,15 @@ namespace lib60870.CS104
 				this.localPort = 19998;
 		}
 
+        /// <summary>
+        /// Adds a redundancy group to the server. Each redundancy group has its own event queue.
+        /// </summary>
+        /// <param name="redundancyGroup">Redundancy group.</param>
+        public void AddRedundancyGroup(RedundancyGroup redundancyGroup)
+        {
+            redGroups.Add(redundancyGroup);
+        }
+
 		public ConnectionRequestHandler connectionRequestHandler = null;
 		public object connectionRequestHandlerParameter = null;
 
@@ -535,6 +689,7 @@ namespace lib60870.CS104
           
 						DebugLog("  from IP: " + ipEndPoint.Address.ToString());
 
+                                                
 						bool acceptConnection = true;
 
 						if (OpenConnections >= maxOpenConnections)
@@ -546,18 +701,53 @@ namespace lib60870.CS104
 
 						if (acceptConnection) {
 
-							ClientConnection connection;
+							ClientConnection connection = null;
 
-	                        if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
-								connection = new ClientConnection (newSocket, securityInfo, apciParameters, alParameters, this, asduQueue, debugOutput);
-	                        else
-								connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
-                                    new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog), debugOutput);
+                            if ((serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) || (serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS)) 
+                            {
+                                RedundancyGroup catchAllGroup = null;
 
-							allOpenConnections.Add(connection);
+                                RedundancyGroup matchingGroup = null;
 
-							if (connectionEventHandler != null)
-								connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.OPENED);
+                                /* get matching redundancy group */
+                                foreach (RedundancyGroup redGroup in redGroups) {
+                                    if (redGroup.Matches(ipEndPoint.Address)) {
+                                        matchingGroup = redGroup;
+                                        break;
+                                    }
+
+                                    if (redGroup.IsCatchAll)
+                                        catchAllGroup = redGroup;
+                                }
+
+                                if (matchingGroup == null)
+                                    matchingGroup = catchAllGroup;
+
+                                if (matchingGroup != null) {
+
+                                    connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
+                                        matchingGroup.asduQueue, debugOutput);
+
+                                    matchingGroup.AddConnection(connection);
+
+                                    DebugLog("Add connection to group " + matchingGroup.Name);
+                                }
+                                else {
+                                    DebugLog("Found no matching redundancy group -> close connection");
+                                    newSocket.Close();
+                                }
+
+                            }
+                            else {
+                                connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
+                                                                       new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog), debugOutput);
+                            }
+
+                            if (connection != null) {
+    							allOpenConnections.Add(connection);
+
+                                CallConnectionEventHandler(connection, ClientConnectionEvent.OPENED);
+                            }
 							
 						}
 						else
@@ -573,8 +763,15 @@ namespace lib60870.CS104
 
 		internal void Remove(ClientConnection connection)
 		{
-			if (connectionEventHandler != null)
-				connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.CLOSED);
+            CallConnectionEventHandler(connection, ClientConnectionEvent.CLOSED);
+
+            if ((serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS) || (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP))
+            {
+                foreach (RedundancyGroup redGroup in redGroups)
+                {
+                    redGroup.RemoveConnection(connection);
+                }
+            }
 
 			allOpenConnections.Remove (connection);
 		}
@@ -615,7 +812,28 @@ namespace lib60870.CS104
 			Thread acceptThread = new Thread(ServerAcceptThread);
 
             if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
-                asduQueue = new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog);
+            {
+                if (redGroups.Count > 0)
+                {
+                    RedundancyGroup singleGroup = redGroups[0];
+                    redGroups.Clear();
+                    redGroups.Add(singleGroup);
+                }
+                else
+                {
+                    RedundancyGroup singleGroup = new RedundancyGroup();
+                    redGroups.Add(singleGroup);
+                }
+            }
+           
+            if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP || serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS)
+            {
+                foreach (RedundancyGroup redGroup in redGroups)
+                {
+                    redGroup.asduQueue = new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog);
+                    redGroup.server = this;
+                }
+            }
 
             acceptThread.Start ();
 		}
@@ -636,7 +854,7 @@ namespace lib60870.CS104
 				}
 					
 			} catch (Exception e) {
-				Console.WriteLine (e);
+                DebugLog("Exception: " + e.Message);
 			}
 
 			listeningSocket.Close();
@@ -651,17 +869,8 @@ namespace lib60870.CS104
         /// <exception cref="lib60870.CS101.ASDUQueueException">when the ASDU queue is full and mode is EnqueueMode.THROW_EXCEPTION.</exception>
 		public void EnqueueASDU(ASDU asdu)
 		{
-            if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
-            {
-                asduQueue.EnqueueAsdu(asdu);
 
-                foreach (ClientConnection connection in allOpenConnections)
-                {
-                    if (connection.IsActive)
-                        connection.ASDUReadyToSend();
-                }
-            }
-            else
+            if (serverMode == ServerMode.CONNECTION_IS_REDUNDANCY_GROUP)
             {
                 foreach (ClientConnection connection in allOpenConnections)
                 {
@@ -672,49 +881,39 @@ namespace lib60870.CS104
                     }
                 }
             }
+            else
+            {
+                foreach (RedundancyGroup redGroup in redGroups)
+                {
+                    redGroup.EnqueueASDU(asdu);
+                }
+            }
 		}
 
-		internal void UnmarkAllASDUs() {
-            if (asduQueue != null)
-                asduQueue.UnmarkAllASDUs();
-		}
-
-		internal void MarkASDUAsConfirmed(int index, long timestamp)
-		{
-            if (asduQueue != null)
-                asduQueue.MarkASDUAsConfirmed(index, timestamp);
-		}
+        internal void CallConnectionEventHandler(ClientConnection connection, ClientConnectionEvent e)
+        {
+            if (connectionEventHandler != null)
+                connectionEventHandler(connectionEventHandlerParameter, connection, e);
+        }
+            
 
 		internal void Activated(ClientConnection activeConnection)
 		{
-			if (connectionEventHandler != null)
-				connectionEventHandler (connectionEventHandlerParameter, activeConnection, ClientConnectionEvent.ACTIVE);
+            CallConnectionEventHandler(activeConnection, ClientConnectionEvent.ACTIVE);
 
+            if ((serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) || (serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS))
+            {
+                foreach (RedundancyGroup redGroup in redGroups)
+                {
+                    redGroup.Activate(activeConnection);
+                }
 
-			if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) {
-
-				// deactivate all other connections
-
-				foreach (ClientConnection connection in allOpenConnections) {
-					if (connection != activeConnection) {
-
-						if (connection.IsActive) {
-
-							if (connectionEventHandler != null)
-								connectionEventHandler (connectionEventHandlerParameter, connection, ClientConnectionEvent.INACTIVE);
-
-							connection.IsActive = false;
-						}
-					}
-				}
-
-			}
+            }
 		}
 
 		internal void Deactivated(ClientConnection activeConnection)
 		{
-			if (connectionEventHandler != null)
-				connectionEventHandler (connectionEventHandlerParameter, activeConnection, ClientConnectionEvent.INACTIVE);
+            CallConnectionEventHandler(activeConnection, ClientConnectionEvent.INACTIVE);
 		}
 	}
 	

@@ -104,7 +104,6 @@ namespace lib60870.CS104
 		private int newestSentASDU = -1;
 		private SentASDU[] sentASDUs = null;
 
-        // only available if the server has multiple redundancy groups
         private ASDUQueue asduQueue = null;
 
 		private FileServer fileServer;
@@ -732,7 +731,7 @@ namespace lib60870.CS104
 
 						/* remove from server (low-priority) queue if required */
 						if (sentASDUs [oldestSentASDU].queueIndex != -1) {
-							server.MarkASDUAsConfirmed (sentASDUs [oldestSentASDU].queueIndex,
+                            asduQueue.MarkASDUAsConfirmed (sentASDUs [oldestSentASDU].queueIndex,
 								sentASDUs [oldestSentASDU].entryTime);
 						}
 
@@ -1116,9 +1115,9 @@ namespace lib60870.CS104
 				DebugLog( e.ToString());
 			}
 
-			// unmark unconfirmed messages in server queue if k-buffer not empty
-			if (oldestSentASDU != -1)
-				server.UnmarkAllASDUs ();
+			// unmark unconfirmed messages in queue if k-buffer not empty
+            if (oldestSentASDU != -1)
+                asduQueue.UnmarkAllASDUs();
 
 			server.Remove (this);
 

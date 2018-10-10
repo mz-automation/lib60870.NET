@@ -1,3 +1,14 @@
+Changes to version 2.2.0
+------------------------
+- CS104 server: support for multiple redundancy groups
+- CS104 server: Added new property ("EnqueuMode") to control behavior when event queue is full
+- file service: fixed problem with large directories (#3)
+- CS104 server: set TCP nodelay for new socket
+- CS101 unbalanced master: fixed state machine problem with multiple slaves (some responses don't change state and master keeps locked on the slave)
+- CS101 unbalanced master: reset slave specific FCB value after reset link message
+- CS 104 server: fixed bug - deactivate old connections in CONNECTION_IS_REDUNDANCY_GROUP mode
+- added project files for .NET core 2.0 (only for CS104 because SerialPort is not supported by .NET core)
+
 Changes to version 2.1.0
 ------------------------
 - support for CS 101 master/slave over TCP/IP
