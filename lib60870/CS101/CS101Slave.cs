@@ -413,6 +413,7 @@ namespace lib60870
 						}
 					} else {
 						asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+						asdu.IsNegative = true;
 						this.SendASDU (asdu);
 					}
 
@@ -432,6 +433,7 @@ namespace lib60870
 						}
 					} else {
 						asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+						asdu.IsNegative = true;
 						this.SendASDU (asdu);
 					}
 
@@ -455,6 +457,7 @@ namespace lib60870
 
 					} else {
 						asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+						asdu.IsNegative = true;
 						this.SendASDU (asdu);
 					}
 
@@ -477,6 +480,7 @@ namespace lib60870
 
 					} else {
 						asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+						asdu.IsNegative = true;
 						this.SendASDU (asdu);
 					}
 
@@ -487,7 +491,10 @@ namespace lib60870
 					DebugLog("Rcvd test command C_TS_NA_1");
 
 					if (asdu.Cot != CauseOfTransmission.ACTIVATION)
+					{
 						asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+						asdu.IsNegative = true;
+					}
 					else
 						asdu.Cot = CauseOfTransmission.ACTIVATION_CON;
 
@@ -514,6 +521,7 @@ namespace lib60870
 
 					} else {
 						asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+						asdu.IsNegative = true;
 						this.SendASDU (asdu);
 					}
 
@@ -535,6 +543,7 @@ namespace lib60870
 						}
 					} else {
 						asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+						asdu.IsNegative = true;
 						this.SendASDU (asdu);
 					}
 
@@ -551,6 +560,7 @@ namespace lib60870
 
 				if (messageHandled == false) {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_TYPE_ID;
+					asdu.IsNegative = true;
 					this.SendASDU (asdu);
 				}
 
