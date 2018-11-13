@@ -1676,7 +1676,7 @@ namespace lib60870.CS104
                                 }
 
                                 if (suspendThread)
-                                    Thread.Sleep(10);
+                                    Thread.Sleep(1);
 
                             }
                             catch (SocketException)

@@ -154,7 +154,7 @@ namespace lib60870.CS101
 
 		private byte qpm;
 
-		public float QPM {
+		public byte QPM {
 			get {
 				return qpm;
 			}
@@ -220,7 +220,7 @@ namespace lib60870.CS101
 
 		private byte qpm;
 
-		public float QPM {
+		public byte QPM {
 			get {
 				return qpm;
 			}
