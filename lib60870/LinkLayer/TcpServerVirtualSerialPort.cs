@@ -28,6 +28,16 @@ using System.Threading;
 
 namespace lib60870.linklayer
 {
+
+    /// <summary>
+    /// Connection event handler. Can be used to track connections and accept/deny specific clients.
+    /// </summary>
+    /// <param name="parameter">User provided paramter</param>
+    /// <param name="ipAddress">IP address of the client</param>
+    /// <param name="connect">true when client is connecting, false when disconnected</param>
+    /// <returns>true when connection is accepted, false otherwise</returns>
+    public delegate bool TcpConnectionEventHandler(object parameter, IPAddress ipAddress, bool connect);
+
 	public class TcpServerVirtualSerialPort : Stream
 	{
 		private int readTimeout = 0;
@@ -43,6 +53,9 @@ namespace lib60870.linklayer
 		Socket conSocket = null;
 		Stream socketStream = null;
 		Thread acceptThread;
+
+        TcpConnectionEventHandler connectionEventHandler = null;
+        object connectionEventHandlerParameter;
 
 		private void DebugLog(string msg)
 		{
@@ -65,6 +78,16 @@ namespace lib60870.linklayer
 		{
 		}
 
+        public void SetConnectionRequestHandler(TcpConnectionEventHandler handler, object parameter)
+        {
+            this.connectionEventHandler = handler;
+            this.connectionEventHandlerParameter = parameter;
+        }
+
+        /// <summary>
+        /// Sets the local address to used
+        /// </summary>
+        /// <param name="localAddress">Local address. Use "0.0.0.0" for all interfaces(default)</param>
 		public void SetLocalAddress(string localAddress)
 		{
 			localHostname = localAddress;
@@ -96,6 +119,9 @@ namespace lib60870.linklayer
 
 						bool acceptConnection = true;
 
+                        if (connectionEventHandler != null)
+                            acceptConnection = connectionEventHandler(connectionEventHandlerParameter, ipEndPoint.Address, true);
+
 						if (acceptConnection) {
 
 							conSocket = newSocket;
@@ -111,10 +137,16 @@ namespace lib60870.linklayer
 							}
 
 							connected = false;
+
+                            if (connectionEventHandler != null)
+                                connectionEventHandler(connectionEventHandlerParameter, ipEndPoint.Address, false);
+
+                            socketStream.Close();
 							socketStream = null;
+                            conSocket.Close();
 							conSocket = null;
 
-							DebugLog("Connection from " + ipEndPoint.Address.ToString() + "closed");
+							DebugLog("Connection from " + ipEndPoint.Address.ToString() + " closed");
 						}
 						else
 							newSocket.Close();
@@ -139,7 +171,7 @@ namespace lib60870.linklayer
 
 				listeningSocket.Bind (localEP);
 
-				listeningSocket.Listen (100);
+				listeningSocket.Listen (1);
 
 				acceptThread = new Thread (ServerAcceptThread);
 
@@ -151,6 +183,7 @@ namespace lib60870.linklayer
 		{
 			if (running == true) {
 				running = false;
+                connected = false;
 				listeningSocket.Close ();
 
 				acceptThread.Join ();

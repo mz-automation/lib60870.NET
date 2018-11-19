@@ -26,6 +26,7 @@ using lib60870;
 using lib60870.CS101;
 using System.Collections.Generic;
 using lib60870.linklayer;
+using System.Threading;
 
 namespace cs101_slave_balanced
 {
@@ -163,6 +164,8 @@ namespace cs101_slave_balanced
 						slave.EnqueueUserDataClass1 (newAsdu);
 					}
 				}
+
+                Thread.Sleep(1);
 			}
 
 		}

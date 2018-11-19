@@ -26,6 +26,7 @@ using lib60870;
 using lib60870.CS101;
 using System.Collections.Generic;
 using lib60870.linklayer;
+using System.Threading;
 
 namespace cs101_slave_tcp
 {
@@ -93,8 +94,8 @@ namespace cs101_slave_tcp
 
 			CS101Slave slave = new CS101Slave (port, llParameters);
 			slave.DebugOutput = true;
-			slave.LinkLayerAddress = 1;
-			slave.LinkLayerAddressOtherStation = 3;
+			slave.LinkLayerAddress = 3;
+			slave.LinkLayerAddressOtherStation = 1;
 
 			slave.LinkLayerMode = lib60870.linklayer.LinkLayerMode.BALANCED;
 
@@ -157,6 +158,8 @@ namespace cs101_slave_tcp
 						slave.EnqueueUserDataClass1 (newAsdu);
 					}
 				}
+
+                Thread.Sleep(1);
 			}
 
 			port.Stop ();

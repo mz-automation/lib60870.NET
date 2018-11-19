@@ -28,6 +28,10 @@ using System.Threading;
 
 namespace lib60870.linklayer
 {
+
+    /// <summary>
+    /// TCP client virtual serial port. Can be used to tunnel CS 101 protocol over TCP/IP.
+    /// </summary>
 	public class TcpClientVirtualSerialPort : Stream
 	{
 		private int readTimeout = 0;
@@ -54,6 +58,17 @@ namespace lib60870.linklayer
 			}
 		}
 
+
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="lib60870.linklayer.TcpClientVirtualSerialPort"/> is connected to a server
+        /// </summary>
+        /// <value><c>true</c> if connected; otherwise, <c>false</c>.</value>
+		public bool Connected {
+			get {
+				return this.connected;
+			}
+		}
+
 		public bool DebugOutput {
 			get {
 				return this.debugOutput;
@@ -63,6 +78,11 @@ namespace lib60870.linklayer
 			}
 		}
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="lib60870.linklayer.TcpClientVirtualSerialPort"/> class.
+        /// </summary>
+        /// <param name="hostname">IP address of the server</param>
+        /// <param name="tcpPort">TCP port of the server</param>
 		public TcpClientVirtualSerialPort(String hostname, int tcpPort = 2404)
 		{
 			this.hostname = hostname;
@@ -84,18 +104,22 @@ namespace lib60870.linklayer
 				throw new SocketException(87); // wrong argument
 			}
 
+			if (!running)
+				return;
+
 			// Create a TCP/IP  socket.
 			conSocket = new Socket(AddressFamily.InterNetwork,
 				SocketType.Stream, ProtocolType.Tcp);
 
 			var result = conSocket.BeginConnect(remoteEP, null, null);
 
-			bool success = result.AsyncWaitHandle.WaitOne(connectTimeoutInMs, true);
-			if (success)
-			{
-				try
-				{
-					conSocket.EndConnect(result);
+			if (!running)
+				return;
+
+			bool success = result.AsyncWaitHandle.WaitOne (connectTimeoutInMs, true);
+			if (success) {
+				try {
+					conSocket.EndConnect (result);
 					conSocket.NoDelay = true;
 				}
 				catch (ObjectDisposedException)
@@ -138,24 +162,46 @@ namespace lib60870.linklayer
 						if (conSocket.Connected == false)
 							break;
 
+						if (running == false)
+							break;
+
 						Thread.Sleep(10);
 					}
 
-					connected = false;
-					socketStream = null;
-					conSocket.Close();
-					conSocket = null;
+                                        connected = false;
 
-				} catch (SocketException) {
+					if (!this.running)
+						return;
+
+					if (socketStream != null) {
+						socketStream.Close();
+						conSocket.Dispose();
+						socketStream = null;
+					}
+
+
+					if (conSocket != null) {
+						conSocket.Close();
+						conSocket.Dispose();
+						conSocket = null;
+
+					}
+
+				} catch (SocketException e) {
+                    DebugLog("Failed to connect: " + e.Message);
 					connected = false;
 					socketStream = null;
 					conSocket = null;
 				}
 					
-				Thread.Sleep (waitRetryConnect);
+				if (running)
+					Thread.Sleep (waitRetryConnect);
 			}
 		}
 
+        /// <summary>
+        /// Start the virtual serial port (connect to server)
+        /// </summary>
 		public void Start() 
 		{
 			if (running == false) {
@@ -165,14 +211,33 @@ namespace lib60870.linklayer
 			}
 		}
 
-
+        /// <summary>
+        /// Stop the virtual serial port
+        /// </summary>
 		public void Stop()
 		{
 			if (running == true) {
 				running = false;
+				this.connected = false;
 
-				if (conSocket != null)
+				if (socketStream != null) {
+					socketStream.Close ();
+					socketStream.Dispose ();
+					socketStream = null;
+				}
+
+				if (conSocket != null) {
+				
+					try {
+						conSocket.Shutdown(SocketShutdown.Both);	
+					}
+					catch (SocketException) {
+					}
+
 					conSocket.Close ();
+					conSocket.Dispose();
+					conSocket = null;
+				}
 
 				connectionThread.Join ();
 			}
@@ -187,13 +252,21 @@ namespace lib60870.linklayer
 		{
 			if (socketStream != null) {
 
-				if (conSocket.Poll (ReadTimeout, SelectMode.SelectRead)) {
-					if (connected)
-						return socketStream.Read (buffer, offset, count);
-					else
+				try {
+					if (conSocket.Poll (ReadTimeout, SelectMode.SelectRead)) {
+						if (connected)
+							return socketStream.Read (buffer, offset, count);
+						else
+							return 0;
+					} else
 						return 0;
-				} else
+				}
+				catch (Exception e) {
+					Console.WriteLine (e.ToString ());
+					this.connected = false;
 					return 0;
+				}
+
 			}
 			else
 				return 0;

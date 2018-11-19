@@ -665,7 +665,6 @@ namespace lib60870.linklayer
 
 		}
 
-
 		void HandleMessageAction(byte[] msg, int msgSize)
 		{
 			DebugLog ("RECV " + BitConverter.ToString (msg, 0, msgSize));
@@ -690,8 +689,7 @@ namespace lib60870.linklayer
 			} else
 				DebugLog ("Message ignored because of raw message handler");
 		}
-
-
+            
 		public void Run() 
 		{
 			transceiver.ReadNextMessage (buffer, HandleMessageAction);
@@ -700,7 +698,6 @@ namespace lib60870.linklayer
 				primaryLinkLayer.RunStateMachine ();
 				secondaryLinkLayer.RunStateMachine ();
 			} else {
-				//TODO avoid redirection by LinkLayer class
 				if (primaryLinkLayer != null)
 					primaryLinkLayer.RunStateMachine ();
 				else if (secondaryLinkLayer != null)

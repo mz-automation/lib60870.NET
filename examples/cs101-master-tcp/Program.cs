@@ -62,7 +62,7 @@ namespace cs101_master_tcp
 				running = false;
 			};
 
-			string hostname = "localhost";
+			string hostname = "127.0.0.1";
 			int tcpPort = 2404;
 
 			if (args.Length > 0)
@@ -73,18 +73,18 @@ namespace cs101_master_tcp
 
 			// Setup virtual serial port
 			TcpClientVirtualSerialPort port = new TcpClientVirtualSerialPort(hostname, tcpPort);
-
+			port.DebugOutput = false;
 			port.Start ();
 
 			// Setup balanced CS101 master
 			LinkLayerParameters llParameters = new LinkLayerParameters();
 			llParameters.AddressLength = 1;
-			llParameters.UseSingleCharACK = false;
+			llParameters.UseSingleCharACK = true;
 
 			CS101Master master = new CS101Master (port, LinkLayerMode.BALANCED, llParameters);
 			master.DebugOutput = false;
 			master.OwnAddress = 1;
-			master.SlaveAddress = 2;
+            master.SlaveAddress = 3;
 			master.SetASDUReceivedHandler (asduReceivedHandler, null);
 			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
 			master.SetReceivedRawMessageHandler (rcvdRawMessageHandler, null);
