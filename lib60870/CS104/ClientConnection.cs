@@ -119,17 +119,24 @@ namespace lib60870.CS104
 
 			while (callbackThreadRunning) {
 
-				while ((receivedASDUs.Count > 0) && (callbackThreadRunning) && (running)) {
-				
-					ASDU asdu;
+                try {
+    				while ((receivedASDUs.Count > 0) && (callbackThreadRunning) && (running)) {
+    				
+    					ASDU asdu;
 
-					if (receivedASDUs.TryDequeue (out asdu)) {
-						HandleASDU (asdu);
-					}
-						
-				}
+    					if (receivedASDUs.TryDequeue (out asdu)) {
+    						HandleASDU (asdu);
+    					}
+    						
+				    }
 
-				Thread.Sleep (50);
+                    Thread.Sleep (50);
+                }
+                catch (ASDUParsingException) {
+                    DebugLog("Failed to parse ASDU --> close connection");
+                    running = false;
+                }
+
 			}
 
 			DebugLog ("ProcessASDUs exit thread");
@@ -341,32 +348,36 @@ namespace lib60870.CS104
 				return false;
 		}
 
-		private void PrintSendBuffer() {
+        private void PrintSendBuffer() 
+        {
+            if (debugOutput)
+            {
+                if (oldestSentASDU != -1)
+                {
 
-			if (oldestSentASDU != -1) {
+                    int currentIndex = oldestSentASDU;
 
-				int currentIndex = oldestSentASDU;
+                    int nextIndex = 0;
 
-				int nextIndex = 0;
+                    DebugLog("------k-buffer------");
 
-				DebugLog ("------k-buffer------");
+                    do
+                    {
+                        DebugLog(currentIndex + " : S " + sentASDUs[currentIndex].seqNo + " : time " +
+                            sentASDUs[currentIndex].sentTime + " : " + sentASDUs[currentIndex].queueIndex);
 
-				do {
-					DebugLog (currentIndex + " : S " + sentASDUs[currentIndex].seqNo + " : time " +
-						sentASDUs[currentIndex].sentTime + " : " + sentASDUs[currentIndex].queueIndex);
+                        if (currentIndex == newestSentASDU)
+                            nextIndex = -1;
+                        else
+                            currentIndex = (currentIndex + 1) % maxSentASDUs;
 
-					if (currentIndex == newestSentASDU)
-						nextIndex = -1;
-					else
-						currentIndex = (currentIndex + 1) % maxSentASDUs;
+                    } while (nextIndex != -1);
 
-				} while (nextIndex != -1);
-
-				DebugLog ("--------------------");
+                    DebugLog("--------------------");
 					
-			}
-
-		}
+                }
+            }
+        }
 
 		private void sendNextAvailableASDU() 
 		{
@@ -529,6 +540,7 @@ namespace lib60870.CS104
 					}
 				} else {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					asdu.IsNegative = true;
 					this.SendASDUInternal (asdu);
 				}
 
@@ -548,6 +560,7 @@ namespace lib60870.CS104
 					}
 				} else {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					asdu.IsNegative = true;
 					this.SendASDUInternal (asdu);
 				}
 
@@ -571,6 +584,7 @@ namespace lib60870.CS104
 
 				} else {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					asdu.IsNegative = true;
 					this.SendASDUInternal (asdu);
 				}
 
@@ -593,6 +607,7 @@ namespace lib60870.CS104
 
 				} else {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					asdu.IsNegative = true;
 					this.SendASDUInternal (asdu);
 				}
 
@@ -603,7 +618,10 @@ namespace lib60870.CS104
 				DebugLog("Rcvd test command C_TS_NA_1");
 
 				if (asdu.Cot != CauseOfTransmission.ACTIVATION)
+				{
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					asdu.IsNegative = true;
+				}
 				else
 					asdu.Cot = CauseOfTransmission.ACTIVATION_CON;
 
@@ -630,6 +648,7 @@ namespace lib60870.CS104
 
 				} else {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					asdu.IsNegative = true;
 					this.SendASDUInternal (asdu);
 				}
 
@@ -651,6 +670,7 @@ namespace lib60870.CS104
 					}
 				} else {
 					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+					asdu.IsNegative = true;
 					this.SendASDUInternal (asdu);
 				}
 
@@ -666,6 +686,7 @@ namespace lib60870.CS104
 
 			if (messageHandled == false) {
 				asdu.Cot = CauseOfTransmission.UNKNOWN_TYPE_ID;
+				asdu.IsNegative = true;
 				this.SendASDUInternal (asdu);
 			}
 

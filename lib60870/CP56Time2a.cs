@@ -65,8 +65,27 @@ namespace lib60870
 			if (this.Year < (startYear % 100))
 				baseYear += 100;
 
-			DateTime value = new DateTime (baseYear + this.Year, this.Month, this.DayOfMonth, this.Hour, this.Minute, this.Second, this.Millisecond);
-		
+            int month = this.Month;
+
+            if (month == 0)
+                month = 1;
+
+            int dayOfMonth = this.DayOfMonth;
+
+            if (dayOfMonth == 0)
+                dayOfMonth = 1;
+
+            DateTime value;
+
+            try
+            {
+                value = new DateTime(baseYear + this.Year, month, dayOfMonth, this.Hour, this.Minute, this.Second, this.Millisecond);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                value = new DateTime(0);
+            }
+
 			return value;
 		}
 

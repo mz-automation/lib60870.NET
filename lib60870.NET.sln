@@ -173,7 +173,7 @@ Global
 		$7.inheritsSet = Mono
 		$7.inheritsScope = text/x-csharp
 		$7.scope = text/x-csharp
-		version = 2.1.0
+		version = 2.2.0
 		StartupItem = lib60870\lib60870.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
