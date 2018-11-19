@@ -236,7 +236,6 @@ namespace lib60870.CS104
             if (enqueuedASDUs == null)
                 return null;
 
-            //lock (enqueuedASDUs) {
             if (numberOfAsduInQueue > 0)
             {
 
@@ -265,7 +264,6 @@ namespace lib60870.CS104
 
                 return null;
             }
-            //}
 
             return null;
         }
@@ -476,13 +474,6 @@ namespace lib60870.CS104
             if (asduQueue != null)
             {
                 asduQueue.EnqueueAsdu(asdu);
-
-                /* inform active connection that there is a new ASDU */
-                foreach (ClientConnection connection in connections)
-                {
-                    if (connection.IsActive)
-                        connection.ASDUReadyToSend();
-                }
             }
         }
     }
@@ -877,7 +868,6 @@ namespace lib60870.CS104
                     if (connection.IsActive)
                     {
                         connection.GetASDUQueue().EnqueueAsdu(asdu);
-                        connection.ASDUReadyToSend();
                     }
                 }
             }
