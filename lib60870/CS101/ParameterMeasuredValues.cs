@@ -24,25 +24,30 @@ using System;
 namespace lib60870.CS101
 {
 
-	public class ParameterNormalizedValue : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 3;
-		}
+    public class ParameterNormalizedValue : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 3;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.P_ME_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.P_ME_NA_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		private ScaledValue scaledValue;
+        private ScaledValue scaledValue;
 
         public short RawValue
         {
@@ -76,255 +81,287 @@ namespace lib60870.CS101
 
         private byte qpm;
 
-		public byte QPM {
-			get {
-				return qpm;
-			}
-		}
+        public byte QPM
+        {
+            get
+            {
+                return qpm;
+            }
+        }
 
-		public ParameterNormalizedValue (int objectAddress, float normalizedValue, byte qpm) :
-			base (objectAddress)
-		{
+        public ParameterNormalizedValue(int objectAddress, float normalizedValue, byte qpm)
+            : base(objectAddress)
+        {
             scaledValue = new ScaledValue();
 
-			this.NormalizedValue = normalizedValue;
+            this.NormalizedValue = normalizedValue;
 
-			this.qpm = qpm;
-		}
+            this.qpm = qpm;
+        }
 
-        public ParameterNormalizedValue (int objectAddress, short rawValue, byte qpm) :
-            base (objectAddress)
+        public ParameterNormalizedValue(int objectAddress, short rawValue, byte qpm)
+            : base(objectAddress)
         {
             scaledValue = new ScaledValue(rawValue);
             this.qpm = qpm;
         }
 
-		internal ParameterNormalizedValue (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal ParameterNormalizedValue(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			scaledValue = new ScaledValue (msg, startIndex);
-			startIndex += 2;
+            scaledValue = new ScaledValue(msg, startIndex);
+            startIndex += 2;
 
-			/* parse QDS (quality) */
-			qpm = msg [startIndex++];
-		}
+            /* parse QDS (quality) */
+            qpm = msg[startIndex++];
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.AppendBytes (scaledValue.GetEncodedValue ());
+            frame.AppendBytes(scaledValue.GetEncodedValue());
 
-			frame.SetNextByte (qpm);
-		}
-	}
+            frame.SetNextByte(qpm);
+        }
+    }
 
-	public class ParameterScaledValue : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 3;
-		}
+    public class ParameterScaledValue : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 3;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.P_ME_NB_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.P_ME_NB_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		private ScaledValue scaledValue;
+        private ScaledValue scaledValue;
 
-		public ScaledValue ScaledValue {
-			get {
-				return scaledValue;
-			}
-			set {
-				scaledValue = value;
-			}
-		}
+        public ScaledValue ScaledValue
+        {
+            get
+            {
+                return scaledValue;
+            }
+            set
+            {
+                scaledValue = value;
+            }
+        }
 
-		private byte qpm;
+        private byte qpm;
 
-		public byte QPM {
-			get {
-				return qpm;
-			}
-		}
+        public byte QPM
+        {
+            get
+            {
+                return qpm;
+            }
+        }
 
-		public ParameterScaledValue (int objectAddress, ScaledValue value, byte qpm) :
-			base (objectAddress)
-		{
-			scaledValue = value;
+        public ParameterScaledValue(int objectAddress, ScaledValue value, byte qpm)
+            : base(objectAddress)
+        {
+            scaledValue = value;
 
-			this.qpm = qpm;
-		}
+            this.qpm = qpm;
+        }
 
-		internal ParameterScaledValue (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal ParameterScaledValue(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			scaledValue = new ScaledValue (msg, startIndex);
-			startIndex += 2;
+            scaledValue = new ScaledValue(msg, startIndex);
+            startIndex += 2;
 
-			/* parse QDS (quality) */
-			qpm = msg [startIndex++];
-		}
+            /* parse QDS (quality) */
+            qpm = msg[startIndex++];
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.AppendBytes (scaledValue.GetEncodedValue ());
+            frame.AppendBytes(scaledValue.GetEncodedValue());
 
-			frame.SetNextByte (qpm);
-		}
-	}
+            frame.SetNextByte(qpm);
+        }
+    }
 
-	public class ParameterFloatValue : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 5;
-		}
+    public class ParameterFloatValue : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 5;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.P_ME_NC_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.P_ME_NC_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		private float value;
+        private float value;
 
-		public float Value {
-			get {
-				return this.value;
-			}
-		}
+        public float Value
+        {
+            get
+            {
+                return this.value;
+            }
+        }
 
-		private byte qpm;
+        private byte qpm;
 
-		public byte QPM {
-			get {
-				return qpm;
-			}
-		}
+        public byte QPM
+        {
+            get
+            {
+                return qpm;
+            }
+        }
 
-		public ParameterFloatValue (int objectAddress, float value, byte qpm) :
-			base (objectAddress)
-		{
-			this.value = value;
+        public ParameterFloatValue(int objectAddress, float value, byte qpm)
+            : base(objectAddress)
+        {
+            this.value = value;
 
-			this.qpm = qpm;
-		}
+            this.qpm = qpm;
+        }
 
-		internal ParameterFloatValue (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal ParameterFloatValue(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			/* parse float value */
-			value = System.BitConverter.ToSingle (msg, startIndex);
-			startIndex += 4;
+            /* parse float value */
+            value = System.BitConverter.ToSingle(msg, startIndex);
+            startIndex += 4;
 
-			/* parse QDS (quality) */
-			qpm = msg [startIndex++];
-		}
+            /* parse QDS (quality) */
+            qpm = msg[startIndex++];
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			byte[] floatEncoded = BitConverter.GetBytes (value);
+            byte[] floatEncoded = BitConverter.GetBytes(value);
 
-			if (BitConverter.IsLittleEndian == false)
-				Array.Reverse (floatEncoded);
+            if (BitConverter.IsLittleEndian == false)
+                Array.Reverse(floatEncoded);
 
-			frame.AppendBytes (floatEncoded);
+            frame.AppendBytes(floatEncoded);
 
-			frame.SetNextByte (qpm);
-		}
+            frame.SetNextByte(qpm);
+        }
 
-	}
+    }
 
-	public class ParameterActivation : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 1;
-		}
+    public class ParameterActivation : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 1;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.P_AC_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.P_AC_NA_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		private byte qpa;
+        private byte qpa;
 
-		public static byte NOT_USED = 0;
-		public static byte DE_ACT_PREV_LOADED_PARAMETER = 1;
-		public static byte DE_ACT_OBJECT_PARAMETER = 2;
-		public static byte DE_ACT_OBJECT_TRANSMISSION= 3;
+        public static byte NOT_USED = 0;
+        public static byte DE_ACT_PREV_LOADED_PARAMETER = 1;
+        public static byte DE_ACT_OBJECT_PARAMETER = 2;
+        public static byte DE_ACT_OBJECT_TRANSMISSION = 3;
 
-		/// <summary>
-		/// Gets the Qualifier of Parameter Activation (QPA)
-		/// </summary>
-		/// <value>The QPA value</value>
-		public byte QPA {
-			get {
-				return qpa;
-			}
-		}
+        /// <summary>
+        /// Gets the Qualifier of Parameter Activation (QPA)
+        /// </summary>
+        /// <value>The QPA value</value>
+        public byte QPA
+        {
+            get
+            {
+                return qpa;
+            }
+        }
 
-		public ParameterActivation (int objectAddress, byte qpa) :
-			base (objectAddress)
-		{
-			this.qpa = qpa;
-		}
+        public ParameterActivation(int objectAddress, byte qpa)
+            : base(objectAddress)
+        {
+            this.qpa = qpa;
+        }
 
-		internal ParameterActivation (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal ParameterActivation(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			/* parse QPA */
-			qpa = msg [startIndex++];
-		}
+            /* parse QPA */
+            qpa = msg[startIndex++];
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.SetNextByte (qpa);
-		}
+            frame.SetNextByte(qpa);
+        }
 
-	}
+    }
 
 
 }

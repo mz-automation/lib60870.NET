@@ -29,19 +29,19 @@ using System.Threading;
 
 namespace lib60870
 {
-	/// <summary>
-	/// Abstract class to encode an application layer frame
-	/// </summary>
-	public abstract class Frame
-	{
-		public abstract void ResetFrame ();
+    /// <summary>
+    /// Abstract class to encode an application layer frame
+    /// </summary>
+    public abstract class Frame
+    {
+        public abstract void ResetFrame();
 
-		public abstract void SetNextByte (byte value);
+        public abstract void SetNextByte(byte value);
 
-		public abstract void AppendBytes (byte[] bytes);
+        public abstract void AppendBytes(byte[] bytes);
 
-		public abstract int GetMsgSize ();
+        public abstract int GetMsgSize();
 
-		public abstract byte[] GetBuffer ();
-	}
+        public abstract byte[] GetBuffer();
+    }
 }

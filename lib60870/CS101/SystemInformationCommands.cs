@@ -24,165 +24,191 @@ using System;
 namespace lib60870.CS101
 {
 
-	public class QualifierOfInterrogation 
-	{	
-		public static byte STATION = 20;
-		public static byte GROUP_1 = 21;
-		public static byte GROUP_2 = 22;
-		public static byte GROUP_3 = 23;
-		public static byte GROUP_4 = 24;
-		public static byte GROUP_5 = 25;
-		public static byte GROUP_6 = 26;
-		public static byte GROUP_7 = 27;
-		public static byte GROUP_8 = 28;
-		public static byte GROUP_9 = 29;
-		public static byte GROUP_10 = 30;
-		public static byte GROUP_11 = 31;
-		public static byte GROUP_12 = 32;
-		public static byte GROUP_13 = 33;
-		public static byte GROUP_14 = 34;
-		public static byte GROUP_15 = 35;
-		public static byte GROUP_16 = 36;
-	}
+    public class QualifierOfInterrogation
+    {
+        public static byte STATION = 20;
+        public static byte GROUP_1 = 21;
+        public static byte GROUP_2 = 22;
+        public static byte GROUP_3 = 23;
+        public static byte GROUP_4 = 24;
+        public static byte GROUP_5 = 25;
+        public static byte GROUP_6 = 26;
+        public static byte GROUP_7 = 27;
+        public static byte GROUP_8 = 28;
+        public static byte GROUP_9 = 29;
+        public static byte GROUP_10 = 30;
+        public static byte GROUP_11 = 31;
+        public static byte GROUP_12 = 32;
+        public static byte GROUP_13 = 33;
+        public static byte GROUP_14 = 34;
+        public static byte GROUP_15 = 35;
+        public static byte GROUP_16 = 36;
+    }
 
-	public class InterrogationCommand : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 1;
-		}
+    public class InterrogationCommand : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 1;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.C_IC_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.C_IC_NA_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		byte qoi;
+        byte qoi;
 
-		public byte QOI {
-			get {
-				return this.qoi;
-			}
-			set {
-				qoi = value;
-			}
-		}
+        public byte QOI
+        {
+            get
+            {
+                return this.qoi;
+            }
+            set
+            {
+                qoi = value;
+            }
+        }
 
-		public InterrogationCommand (int ioa, byte qoi) : base(ioa)
-		{
-			this.qoi = qoi;
-		}
+        public InterrogationCommand(int ioa, byte qoi)
+            : base(ioa)
+        {
+            this.qoi = qoi;
+        }
 
-		internal InterrogationCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal InterrogationCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			qoi = msg [startIndex++];
-		}
+            qoi = msg[startIndex++];
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.SetNextByte (qoi);
-		}
+            frame.SetNextByte(qoi);
+        }
 
-	}
-		
-	public class CounterInterrogationCommand : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 1;
-		}
+    }
 
-		override public TypeID Type {
-			get {
-				return TypeID.C_CI_NA_1;
-			}
-		}
+    public class CounterInterrogationCommand : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 1;
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.C_CI_NA_1;
+            }
+        }
 
-		byte qcc;
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		/// <summary>
-		/// Gets or sets the QCC (Qualifier of counter interrogation).
-		/// </summary>
-		/// <value>The QCC</value>
-		public byte QCC {
-			get {
-				return this.qcc;
-			}
-			set {
-				qcc = value;
-			}
-		}
+        byte qcc;
 
-		public CounterInterrogationCommand (int ioa, byte qoi) : base(ioa)
-		{
-			this.qcc = qoi;
-		}
+        /// <summary>
+        /// Gets or sets the QCC (Qualifier of counter interrogation).
+        /// </summary>
+        /// <value>The QCC</value>
+        public byte QCC
+        {
+            get
+            {
+                return this.qcc;
+            }
+            set
+            {
+                qcc = value;
+            }
+        }
 
-		internal CounterInterrogationCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        public CounterInterrogationCommand(int ioa, byte qoi)
+            : base(ioa)
+        {
+            this.qcc = qoi;
+        }
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+        internal CounterInterrogationCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			qcc = msg [startIndex++];
-		}
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+            qcc = msg[startIndex++];
+        }
 
-			frame.SetNextByte (qcc);
-		}
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-	}
+            frame.SetNextByte(qcc);
+        }
+
+    }
 
 
-	public class ReadCommand : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 0;
-		}
+    public class ReadCommand : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 0;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.C_RD_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.C_RD_NA_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		public ReadCommand (int ioa) : base(ioa)
-		{
-		}
+        public ReadCommand(int ioa)
+            : base(ioa)
+        {
+        }
 
-		internal ReadCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-		}
-	}
+        internal ReadCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+        }
+    }
 
     public class TestCommandWithCP56Time2a : InformationObject
     {
@@ -243,32 +269,34 @@ namespace lib60870.CS101
             }
         }
 
-        public TestCommandWithCP56Time2a() : base(0)
+        public TestCommandWithCP56Time2a()
+            : base(0)
         {
             time = new CP56Time2a();
         }
 
-        public TestCommandWithCP56Time2a(ushort tsc, CP56Time2a time) : base(0)
+        public TestCommandWithCP56Time2a(ushort tsc, CP56Time2a time)
+            : base(0)
         {
             this.time = time;
             this.tsc = tsc;
         }
 
-		internal TestCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-		base(parameters, msg, startIndex, false)
-		{
+        internal TestCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
             startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
             tsc = msg[startIndex++];
-            tsc += (ushort) (msg[startIndex++] * 256);
+            tsc += (ushort)(msg[startIndex++] * 256);
 
             time = new CP56Time2a(msg, startIndex);
         }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
 
@@ -279,222 +307,261 @@ namespace lib60870.CS101
         }
     }
 
-	public class TestCommand : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 2;
-		}
+    public class TestCommand : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 2;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.C_TS_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.C_TS_NA_1;
+            }
+        }
 
-		private bool valid = true;
+        private bool valid = true;
 
-		public bool Valid {
-			get {
-				return valid;
-			}
-		}
+        public bool Valid
+        {
+            get
+            {
+                return valid;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		public TestCommand () : base(0)
-		{
-		}
+        public TestCommand()
+            : base(0)
+        {
+        }
 
 
-		internal TestCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-		base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal TestCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			if (msg [startIndex++] != 0xcc)
-				valid = false;
+            if (msg[startIndex++] != 0xcc)
+                valid = false;
 
-			if (msg [startIndex] != 0x55)
-				valid = false;
-		}
+            if (msg[startIndex] != 0x55)
+                valid = false;
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.SetNextByte (0xcc);
-			frame.SetNextByte (0x55);
-		}
-	}
+            frame.SetNextByte(0xcc);
+            frame.SetNextByte(0x55);
+        }
+    }
 
-	public class ClockSynchronizationCommand : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 7;
-		}
+    public class ClockSynchronizationCommand : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 7;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.C_CS_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.C_CS_NA_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		private CP56Time2a newTime;
+        private CP56Time2a newTime;
 
-		public CP56Time2a NewTime {
-			get {
-				return this.newTime;
-			}
-			set {
-				newTime = value;
-			}
-		}
+        public CP56Time2a NewTime
+        {
+            get
+            {
+                return this.newTime;
+            }
+            set
+            {
+                newTime = value;
+            }
+        }
 
-		public ClockSynchronizationCommand (int ioa, CP56Time2a newTime) : base(ioa)
-		{
-			this.newTime = newTime;
-		}
+        public ClockSynchronizationCommand(int ioa, CP56Time2a newTime)
+            : base(ioa)
+        {
+            this.newTime = newTime;
+        }
 
-		internal ClockSynchronizationCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal ClockSynchronizationCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			/* parse CP56Time2a (time stamp) */
-			newTime = new CP56Time2a (msg, startIndex);
-		}
+            /* parse CP56Time2a (time stamp) */
+            newTime = new CP56Time2a(msg, startIndex);
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.AppendBytes (newTime.GetEncodedValue ());
-		}
-	}
+            frame.AppendBytes(newTime.GetEncodedValue());
+        }
+    }
 
-	public class ResetProcessCommand : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 1;
-		}
+    public class ResetProcessCommand : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 1;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.C_RP_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.C_RP_NA_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		byte qrp;
+        byte qrp;
 
-		/// <summary>
-		/// Gets or sets the QRP (Qualifier of reset process command).
-		/// </summary>
-		/// <value>The QRP</value>
-		public byte QRP {
-			get {
-				return this.qrp;
-			}
-			set {
-				qrp = value;
-			}
-		}
+        /// <summary>
+        /// Gets or sets the QRP (Qualifier of reset process command).
+        /// </summary>
+        /// <value>The QRP</value>
+        public byte QRP
+        {
+            get
+            {
+                return this.qrp;
+            }
+            set
+            {
+                qrp = value;
+            }
+        }
 
-		public ResetProcessCommand (int ioa, byte qrp) : base(ioa)
-		{
-			this.qrp = qrp;
-		}
+        public ResetProcessCommand(int ioa, byte qrp)
+            : base(ioa)
+        {
+            this.qrp = qrp;
+        }
 
-		internal ResetProcessCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal ResetProcessCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			qrp = msg [startIndex++];
-		}
+            qrp = msg[startIndex++];
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.SetNextByte (qrp);
-		}
+            frame.SetNextByte(qrp);
+        }
 
-	}
+    }
 
-	public class DelayAcquisitionCommand : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 2;
-		}
+    public class DelayAcquisitionCommand : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 2;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.C_CD_NA_1;
-			}
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.C_CD_NA_1;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		private CP16Time2a delay;
+        private CP16Time2a delay;
 
-		public CP16Time2a Delay {
-			get {
-				return this.delay;
-			}
-			set {
-				delay = value;
-			}
-		}
+        public CP16Time2a Delay
+        {
+            get
+            {
+                return this.delay;
+            }
+            set
+            {
+                delay = value;
+            }
+        }
 
-		public DelayAcquisitionCommand (int ioa, CP16Time2a delay) : base(ioa)
-		{
-			this.delay = delay;
-		}
+        public DelayAcquisitionCommand(int ioa, CP16Time2a delay)
+            : base(ioa)
+        {
+            this.delay = delay;
+        }
 
-		internal DelayAcquisitionCommand (ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-			base(parameters, msg, startIndex, false)
-		{
-			startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal DelayAcquisitionCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
+        {
+            startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			/* parse CP16Time2a (time stamp) */
-			delay = new CP16Time2a (msg, startIndex);
-		}
+            /* parse CP16Time2a (time stamp) */
+            delay = new CP16Time2a(msg, startIndex);
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.AppendBytes (delay.GetEncodedValue ());
-		}
-	}
+            frame.AppendBytes(delay.GetEncodedValue());
+        }
+    }
 
 }
 

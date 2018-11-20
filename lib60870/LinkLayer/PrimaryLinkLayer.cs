@@ -26,56 +26,53 @@ using System.Collections.Generic;
 
 namespace lib60870.linklayer
 {
+    public class LinkLayerBusyException : lib60870.ConnectionException
+    {
+        public LinkLayerBusyException(string message)
+            : base(message)
+        {
+        }
 
+        public LinkLayerBusyException(string message, Exception e)
+            : base(message, e)
+        {
+        }
+    }
 
+    internal interface IPrimaryLinkLayerCallbacks
+    {
 
-	public class LinkLayerBusyException : lib60870.ConnectionException
-	{
-		public LinkLayerBusyException(string message)
-			:base(message)
-		{
-		}
+        /// <summary>
+        /// Indicate an access demand request form the client (ACD bit set in response)
+        /// </summary>
+        /// <param name="slaveAddress">address of the slave that requested the access demand</param>
+        void AccessDemand(int slaveAddress);
 
-		public LinkLayerBusyException(string message, Exception e)
-			:base(message, e)
-		{
-		}
-	}
+        /// <summary>
+        /// User data (application layer data) received from a slave
+        /// </summary>
+        /// <param name="slaveAddress">address of the slave that sent the data</param>
+        /// <param name="message">buffer containing the received message</param>
+        /// <param name="start">start of user data in the buffer</param>
+        /// <param name="length">length of user data in the buffer</param>
+        void UserData(int slaveAddress, byte[] message, int start, int length);
 
-	internal interface IPrimaryLinkLayerCallbacks {
+        /// <summary>
+        /// A former request to the slave (UD Class 1, UD Class 2, confirmed...) resulted in a timeout
+        /// Station does not respond indication
+        /// </summary>
+        /// <param name="slaveAddress">address of the slave that caused the timeout</param>
+        void Timeout(int slaveAddress);
+    }
 
-		/// <summary>
-		/// Indicate an access demand request form the client (ACD bit set in response)
-		/// </summary>
-		/// <param name="slaveAddress">address of the slave that requested the access demand</param>
-		void AccessDemand(int slaveAddress);
+    internal abstract class PrimaryLinkLayer
+    {
+        public abstract void HandleMessage(FunctionCodeSecondary fcs, bool dir, bool dfc, 
+                                     int address, byte[] msg, int userDataStart, int userDataLength);
 
-		/// <summary>
-		/// User data (application layer data) received from a slave
-		/// </summary>
-		/// <param name="slaveAddress">address of the slave that sent the data</param>
-		/// <param name="message">buffer containing the received message</param>
-		/// <param name="start">start of user data in the buffer</param>
-		/// <param name="length">length of user data in the buffer</param>
-		void UserData(int slaveAddress, byte[] message, int start, int length);
+        public abstract void RunStateMachine();
 
-		/// <summary>
-		/// A former request to the slave (UD Class 1, UD Class 2, confirmed...) resulted in a timeout
-		/// Station does not respond indication
-		/// </summary>
-		/// <param name="slaveAddress">address of the slave that caused the timeout</param>
-		void Timeout(int slaveAddress);
-	}
-	
-	internal abstract class PrimaryLinkLayer
-	{
-		public abstract void HandleMessage(FunctionCodeSecondary fcs, bool dir, bool dfc, 
-			int address, byte[] msg, int userDataStart, int userDataLength);
-		public abstract void RunStateMachine();
-		public abstract void SendLinkLayerTestFunction();
-	}
-		
-
-
+        public abstract void SendLinkLayerTestFunction();
+    }
 
 }

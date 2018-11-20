@@ -25,37 +25,47 @@ using System;
 
 namespace lib60870.CS101
 {
+    /// <summary>
+    /// Measured value normalized without quality information object (M_ME_ND_1)
+    /// </summary>
+    public class MeasuredValueNormalizedWithoutQuality : InformationObject
+    {
+        override public int GetEncodedSize()
+        {
+            return 2;
+        }
 
-	public class MeasuredValueNormalizedWithoutQuality : InformationObject
-	{
-		override public int GetEncodedSize() {
-			return 2;
-		}
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.M_ME_ND_1;
+            }
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.M_ME_ND_1;
-			}
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        private ScaledValue scaledValue;
 
-		private ScaledValue scaledValue;
+        public short RawValue
+        {
+            get
+            {
+                return scaledValue.ShortValue;
+            }
+            set
+            {
+                scaledValue.ShortValue = value;
+            }
+        }
 
-		public short RawValue {
-			get {
-				return scaledValue.ShortValue;
-			}
-			set {
-				scaledValue.ShortValue = value;
-			}
-		}
-
-		public float NormalizedValue
+        public float NormalizedValue
         {
             get
             {
@@ -73,220 +83,252 @@ namespace lib60870.CS101
             }
         }
 
-        public MeasuredValueNormalizedWithoutQuality (int objectAddress, float normalizedValue)
-			: base(objectAddress)
-		{
+        public MeasuredValueNormalizedWithoutQuality(int objectAddress, float normalizedValue)
+            : base(objectAddress)
+        {
             this.scaledValue = new ScaledValue();
             this.NormalizedValue = normalizedValue;
-		}
+        }
 
-		public MeasuredValueNormalizedWithoutQuality(int objectAddress, short rawValue)
-			:base (objectAddress)
-		{
-			this.scaledValue = new ScaledValue (rawValue);
-		}
+        public MeasuredValueNormalizedWithoutQuality(int objectAddress, short rawValue)
+            : base(objectAddress)
+        {
+            this.scaledValue = new ScaledValue(rawValue);
+        }
 
-		internal MeasuredValueNormalizedWithoutQuality (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-		base(parameters, msg, startIndex, isSequence)
-		{
-			if (!isSequence)
-				startIndex += parameters.SizeOfIOA; /* skip IOA */
+        internal MeasuredValueNormalizedWithoutQuality(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
+            : base(parameters, msg, startIndex, isSequence)
+        {
+            if (!isSequence)
+                startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-			scaledValue = new ScaledValue (msg, startIndex);
-		}
+            scaledValue = new ScaledValue(msg, startIndex);
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-			frame.AppendBytes (scaledValue.GetEncodedValue ());
-		}
-	}
+            frame.AppendBytes(scaledValue.GetEncodedValue());
+        }
+    }
+
+    /// <summary>
+    /// Measured value normalized information object (M_ME_NA_1)
+    /// </summary>
+    public class MeasuredValueNormalized : MeasuredValueNormalizedWithoutQuality
+    {
+        override public int GetEncodedSize()
+        {
+            return 3;
+        }
+
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.M_ME_NA_1;
+            }
+        }
+
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        private QualityDescriptor quality;
+
+        public QualityDescriptor Quality
+        {
+            get
+            {
+                return this.quality;
+            }
+        }
+
+        public MeasuredValueNormalized(int objectAddress, float value, QualityDescriptor quality)
+            : base(objectAddress, value)
+        {
+            this.quality = quality;
+        }
+
+        public MeasuredValueNormalized(int objectAddress, short value, QualityDescriptor quality)
+            : base(objectAddress, value)
+        {
+            this.quality = quality;
+        }
+
+        internal MeasuredValueNormalized(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
+            : base(parameters, msg, startIndex, isSequence)
+        {
+            if (!isSequence)
+                startIndex += parameters.SizeOfIOA; /* skip IOA */
+
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
+
+            startIndex += 2; /* normalized value */
+
+            /* parse QDS (quality) */
+            quality = new QualityDescriptor(msg[startIndex++]);
+        }
+
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
+
+            frame.SetNextByte(quality.EncodedValue);
+        }
+    }
+
+    /// <summary>
+    /// Measured value normalized with CP24Time2a time tag (M_ME_TA_1)
+    /// </summary>
+    public class MeasuredValueNormalizedWithCP24Time2a : MeasuredValueNormalized
+    {
+        override public int GetEncodedSize()
+        {
+            return 6;
+        }
+
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.M_ME_TA_1;
+            }
+        }
+
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        private CP24Time2a timestamp;
+
+        public CP24Time2a Timestamp
+        {
+            get
+            {
+                return this.timestamp;
+            }
+        }
 
 
-	public class MeasuredValueNormalized : MeasuredValueNormalizedWithoutQuality
-	{
-		override public int GetEncodedSize() {
-			return 3;
-		}
+        public MeasuredValueNormalizedWithCP24Time2a(int objectAddress, float value, QualityDescriptor quality, CP24Time2a timestamp)
+            : base(objectAddress, value, quality)
+        {
+            this.timestamp = timestamp;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.M_ME_NA_1;
-			}
-		}
+        public MeasuredValueNormalizedWithCP24Time2a(int objectAddress, short value, QualityDescriptor quality, CP24Time2a timestamp)
+            : base(objectAddress, value, quality)
+        {
+            this.timestamp = timestamp;
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return true;
-			}
-		}
+        internal MeasuredValueNormalizedWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
+            : base(parameters, msg, startIndex, isSequence)
+        {
+            if (!isSequence)
+                startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-		private QualityDescriptor quality;
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-		public QualityDescriptor Quality {
-			get {
-				return this.quality;
-			}
-		}
+            startIndex += 3; /* normalized value + quality */
 
-		public MeasuredValueNormalized (int objectAddress, float value, QualityDescriptor quality)
-			: base(objectAddress, value)
-		{
-			this.quality = quality;
-		}
+            /* parse CP24Time2a (time stamp) */
+            timestamp = new CP24Time2a(msg, startIndex);
+        }
 
-		public MeasuredValueNormalized (int objectAddress, short value, QualityDescriptor quality)
-			: base(objectAddress, value)
-		{
-			this.quality = quality;
-		}
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-		internal MeasuredValueNormalized (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-			base(parameters, msg, startIndex, isSequence)
-		{
-			if (!isSequence)
-				startIndex += parameters.SizeOfIOA; /* skip IOA */
+            frame.AppendBytes(timestamp.GetEncodedValue());
+        }
+    }
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+    /// <summary>
+    /// Measured value normalized with CP56Time2a time tag (M_ME_TD_1)
+    /// </summary>
+    public class MeasuredValueNormalizedWithCP56Time2a : MeasuredValueNormalized
+    {
+        override public int GetEncodedSize()
+        {
+            return 10;
+        }
 
-			startIndex += 2; /* normalized value */
+        override public TypeID Type
+        {
+            get
+            {
+                return TypeID.M_ME_TD_1;
+            }
+        }
 
-			/* parse QDS (quality) */
-			quality = new QualityDescriptor (msg [startIndex++]);
-		}
+        override public bool SupportsSequence
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
+        private CP56Time2a timestamp;
 
-			frame.SetNextByte (quality.EncodedValue);
-		}
-	}
-	
+        public CP56Time2a Timestamp
+        {
+            get
+            {
+                return this.timestamp;
+            }
+        }
 
-	public class MeasuredValueNormalizedWithCP24Time2a : MeasuredValueNormalized
-	{
-		override public int GetEncodedSize() {
-			return 6;
-		}
+        public MeasuredValueNormalizedWithCP56Time2a(int objectAddress, float value, QualityDescriptor quality, CP56Time2a timestamp)
+            : base(objectAddress, value, quality)
+        {
+            this.timestamp = timestamp;
+        }
 
-		override public TypeID Type {
-			get {
-				return TypeID.M_ME_TA_1;
-			}
-		}
+        public MeasuredValueNormalizedWithCP56Time2a(int objectAddress, short value, QualityDescriptor quality, CP56Time2a timestamp)
+            : base(objectAddress, value, quality)
+        {
+            this.timestamp = timestamp;
+        }
 
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
+        internal MeasuredValueNormalizedWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
+            : base(parameters, msg, startIndex, isSequence)
+        {
+            if (!isSequence)
+                startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-		private CP24Time2a timestamp;
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
-		public CP24Time2a Timestamp {
-			get {
-				return this.timestamp;
-			}
-		}
+            startIndex += 3; /* normalized value + quality */
 
+            /* parse CP56Time2a (time stamp) */
+            timestamp = new CP56Time2a(msg, startIndex);
+        }
 
-		public MeasuredValueNormalizedWithCP24Time2a (int objectAddress, float value, QualityDescriptor quality, CP24Time2a timestamp)
-			: base(objectAddress, value, quality)
-		{
-			this.timestamp = timestamp;
-		}
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        {
+            base.Encode(frame, parameters, isSequence);
 
-		public MeasuredValueNormalizedWithCP24Time2a (int objectAddress, short value, QualityDescriptor quality, CP24Time2a timestamp)
-			: base(objectAddress, value, quality)
-		{
-			this.timestamp = timestamp;
-		}
-
-		internal MeasuredValueNormalizedWithCP24Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-		base(parameters, msg, startIndex, isSequence)
-		{
-			if (!isSequence)
-				startIndex += parameters.SizeOfIOA; /* skip IOA */
-
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
-
-			startIndex += 3; /* normalized value + quality */
-
-			/* parse CP24Time2a (time stamp) */
-			timestamp = new CP24Time2a (msg, startIndex);
-		}
-
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
-
-			frame.AppendBytes (timestamp.GetEncodedValue ());
-		}
-	}
-
-	public class MeasuredValueNormalizedWithCP56Time2a : MeasuredValueNormalized
-	{
-		override public int GetEncodedSize() {
-			return 10;
-		}
-
-		override public TypeID Type {
-			get {
-				return TypeID.M_ME_TD_1;
-			}
-		}
-
-		override public bool SupportsSequence {
-			get {
-				return false;
-			}
-		}
-
-		private CP56Time2a timestamp;
-
-		public CP56Time2a Timestamp {
-			get {
-				return this.timestamp;
-			}
-		}
-
-		public MeasuredValueNormalizedWithCP56Time2a (int objectAddress, float value, QualityDescriptor quality, CP56Time2a timestamp)
-			: base(objectAddress, value, quality)
-		{
-			this.timestamp = timestamp;
-		}
-
-		public MeasuredValueNormalizedWithCP56Time2a (int objectAddress, short value, QualityDescriptor quality, CP56Time2a timestamp)
-			: base(objectAddress, value, quality)
-		{
-			this.timestamp = timestamp;
-		}
-
-		internal MeasuredValueNormalizedWithCP56Time2a (ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence) :
-		base(parameters, msg, startIndex, isSequence)
-		{
-			if (!isSequence)
-				startIndex += parameters.SizeOfIOA; /* skip IOA */
-
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
-
-			startIndex += 3; /* normalized value + quality */
-
-			/* parse CP56Time2a (time stamp) */
-			timestamp = new CP56Time2a (msg, startIndex);
-		}
-
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence) {
-			base.Encode(frame, parameters, isSequence);
-
-			frame.AppendBytes (timestamp.GetEncodedValue ());
-		}
-	}
+            frame.AppendBytes(timestamp.GetEncodedValue());
+        }
+    }
 
 }
 

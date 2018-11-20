@@ -32,45 +32,45 @@ using lib60870.CS101;
 namespace lib60870.CS104
 {
 	
-	/// <summary>
-	/// Connection request handler is called when a client tries to connect to the server.
-	/// </summary>
-	/// <param name="parameter">User provided parameter</param>
-	/// <param name="ipAddress">IP address of the connecting client</param>
-	/// <returns>true if the connection has to be accepted, false otherwise</returns>
-	public delegate bool ConnectionRequestHandler(object parameter, IPAddress ipAddress);
+    /// <summary>
+    /// Connection request handler is called when a client tries to connect to the server.
+    /// </summary>
+    /// <param name="parameter">User provided parameter</param>
+    /// <param name="ipAddress">IP address of the connecting client</param>
+    /// <returns>true if the connection has to be accepted, false otherwise</returns>
+	public delegate bool ConnectionRequestHandler(object parameter,IPAddress ipAddress);
 
-	/// <summary>
-	/// Connection events for the Server
-	/// </summary>
-	public enum ClientConnectionEvent 
-	{
-		/// <summary>
-		/// A new connection is opened
-		/// </summary>
-		OPENED,
+    /// <summary>
+    /// Connection events for the Server
+    /// </summary>
+    public enum ClientConnectionEvent
+    {
+        /// <summary>
+        /// A new connection is opened
+        /// </summary>
+        OPENED,
 
-		/// <summary>
-		/// The connection entered active state
-		/// </summary>
-		ACTIVE,
+        /// <summary>
+        /// The connection entered active state
+        /// </summary>
+        ACTIVE,
 
-		/// <summary>
-		/// The connection enterend inactive state
-		/// </summary>
-		INACTIVE,
+        /// <summary>
+        /// The connection enterend inactive state
+        /// </summary>
+        INACTIVE,
 
-		/// <summary>
-		/// The connection is closed
-		/// </summary>
-		CLOSED
-	}
+        /// <summary>
+        /// The connection is closed
+        /// </summary>
+        CLOSED
+    }
 
-	public delegate void ConnectionEventHandler (object parameter, ClientConnection connection, ClientConnectionEvent eventType);
+    public delegate void ConnectionEventHandler(object parameter,ClientConnection connection,ClientConnectionEvent eventType);
 
-	/// <summary>
-	/// Server mode (redundancy group support)
-	/// </summary>
+    /// <summary>
+    /// Server mode (redundancy group support)
+    /// </summary>
     public enum ServerMode
     {
         /// <summary>
@@ -91,26 +91,26 @@ namespace lib60870.CS104
         MULTIPLE_REDUNDANCY_GROUPS
     }
 
-	/// <summary>
-	/// Specifies queue behavior when queue is full
-	/// </summary>
-	public enum EnqueueMode
-	{
-		/// <summary>
-		/// Remove the oldest ASDU from the queue and add the new ASDU.
-		/// </summary>
-		REMOVE_OLDEST,
+    /// <summary>
+    /// Specifies queue behavior when queue is full
+    /// </summary>
+    public enum EnqueueMode
+    {
+        /// <summary>
+        /// Remove the oldest ASDU from the queue and add the new ASDU.
+        /// </summary>
+        REMOVE_OLDEST,
 
-		/// <summary>
-		/// Don't add the new ASDU when the queue is full.
-		/// </summary>
-		IGNORE,
+        /// <summary>
+        /// Don't add the new ASDU when the queue is full.
+        /// </summary>
+        IGNORE,
 
-		/// <summary>
-		/// Don't add the new ASDU when the queue is full and throw an exception.
-		/// </summary>
-		THROW_EXCEPTION
-	}
+        /// <summary>
+        /// Don't add the new ASDU when the queue is full and throw an exception.
+        /// </summary>
+        THROW_EXCEPTION
+    }
 
     internal class ASDUQueue
     {
@@ -135,13 +135,13 @@ namespace lib60870.CS104
         private int numberOfAsduInQueue = 0;
         private int maxQueueSize;
 
-		private EnqueueMode enqueueMode;
+        private EnqueueMode enqueueMode;
 
-		private ApplicationLayerParameters parameters;
+        private ApplicationLayerParameters parameters;
 
         private Action<string> DebugLog = null;
 
-		public ASDUQueue(int maxQueueSize, EnqueueMode enqueueMode, ApplicationLayerParameters parameters, Action<string> DebugLog)
+        public ASDUQueue(int maxQueueSize, EnqueueMode enqueueMode, ApplicationLayerParameters parameters, Action<string> DebugLog)
         {
             enqueuedASDUs = new ASDUQueueEntry[maxQueueSize];
 
@@ -151,7 +151,7 @@ namespace lib60870.CS104
                 enqueuedASDUs[i].state = QueueEntryState.NOT_USED;
             }
 
-			this.enqueueMode = enqueueMode;
+            this.enqueueMode = enqueueMode;
             this.oldestQueueEntry = -1;
             this.latestQueueEntry = -1;
             this.numberOfAsduInQueue = 0;
@@ -177,7 +177,7 @@ namespace lib60870.CS104
                     enqueuedASDUs[0].entryTimestamp = SystemUtils.currentTimeMillis();
                     enqueuedASDUs[0].state = QueueEntryState.WAITING_FOR_TRANSMISSION;
                 }
-				else
+                else
                 {
                     bool enqueue = true;
 
@@ -380,10 +380,11 @@ namespace lib60870.CS104
         {
             get { return name; }
         }
-            
+
         public bool IsCatchAll
         {
-            get {
+            get
+            {
                 if (AllowedClients == null)
                     return true;
                 else
@@ -416,7 +417,7 @@ namespace lib60870.CS104
             connections.Remove(connection);
         }
 
-        internal bool Matches(IPAddress ipAddress) 
+        internal bool Matches(IPAddress ipAddress)
         {
             bool matches = false;
 
@@ -478,21 +479,21 @@ namespace lib60870.CS104
         }
     }
 
-	/// <summary>
-	/// This class represents a single IEC 60870-5 server (slave or controlled station). It is also the
-	/// main access to the CS 104 server API.
-	/// </summary>
-	public class Server : CS101.Slave 
+    /// <summary>
+    /// This class represents a single IEC 60870-5 server (slave or controlled station). It is also the
+    /// main access to the CS 104 server API.
+    /// </summary>
+    public class Server : CS101.Slave
     {
-		private string localHostname = "0.0.0.0";
-		private int localPort = 2404;
+        private string localHostname = "0.0.0.0";
+        private int localPort = 2404;
 
-		private bool running = false;
+        private bool running = false;
 
-		private Socket listeningSocket;
+        private Socket listeningSocket;
 
-		private int maxQueueSize = 1000;
-		private int maxOpenConnections = 10;
+        private int maxQueueSize = 1000;
+        private int maxOpenConnections = 10;
 
         private List<RedundancyGroup> redGroups = new List<RedundancyGroup>();
 
@@ -508,106 +509,115 @@ namespace lib60870.CS104
             set { serverMode = value; }
         }
 
-		private EnqueueMode enqueueMode = EnqueueMode.REMOVE_OLDEST;
+        private EnqueueMode enqueueMode = EnqueueMode.REMOVE_OLDEST;
 
-		/// <summary>
-		/// Gets or sets the mode of ASDU queue behaviour. Default mode is
-		/// EnqueueMode.REMOVE_OLDEST.
-		/// </summary>
-		/// <value>the mode of ASDU queue behaviour</value>
-		public EnqueueMode EnqueueMode
-		{
-			get { return enqueueMode; }
-			set { enqueueMode = value; }
-		}
-			
-		private void DebugLog(string msg)
-		{
-			if (debugOutput) {
-				Console.Write ("CS104 SLAVE: ");
-				Console.WriteLine (msg);
-			}
-		}
+        /// <summary>
+        /// Gets or sets the mode of ASDU queue behaviour. Default mode is
+        /// EnqueueMode.REMOVE_OLDEST.
+        /// </summary>
+        /// <value>the mode of ASDU queue behaviour</value>
+        public EnqueueMode EnqueueMode
+        {
+            get { return enqueueMode; }
+            set { enqueueMode = value; }
+        }
 
-		/// <summary>
-		/// Gets or sets the maximum size of the ASDU queue. Setting this property has no
-		/// effect after calling the Start method.
-		/// </summary>
-		/// <value>The size of the max queue.</value>
-		public int MaxQueueSize {
-			get {
-				return this.maxQueueSize;
-			}
-			set {
-				maxQueueSize = value;
-			}
-		}
+        private void DebugLog(string msg)
+        {
+            if (debugOutput)
+            {
+                Console.Write("CS104 SLAVE: ");
+                Console.WriteLine(msg);
+            }
+        }
 
-		/// <summary>
-		/// Gets or sets the maximum number of open TCP connections
-		/// </summary>
-		/// <value>The maximum number of open TCP connections.</value>
-		public int MaxOpenConnections {
-			get {
-				return this.maxOpenConnections;
-			}
-			set {
-				maxOpenConnections = value;
-			}
-		}
+        /// <summary>
+        /// Gets or sets the maximum size of the ASDU queue. Setting this property has no
+        /// effect after calling the Start method.
+        /// </summary>
+        /// <value>The size of the max queue.</value>
+        public int MaxQueueSize
+        {
+            get
+            {
+                return this.maxQueueSize;
+            }
+            set
+            {
+                maxQueueSize = value;
+            }
+        }
 
-		private APCIParameters apciParameters;
-		private ApplicationLayerParameters alParameters;
+        /// <summary>
+        /// Gets or sets the maximum number of open TCP connections
+        /// </summary>
+        /// <value>The maximum number of open TCP connections.</value>
+        public int MaxOpenConnections
+        {
+            get
+            {
+                return this.maxOpenConnections;
+            }
+            set
+            {
+                maxOpenConnections = value;
+            }
+        }
 
-		public ApplicationLayerParameters GetApplicationLayerParameters()
-		{
-			return alParameters;
-		}
+        private APCIParameters apciParameters;
+        private ApplicationLayerParameters alParameters;
 
-		private TlsSecurityInformation securityInfo = null;
+        public ApplicationLayerParameters GetApplicationLayerParameters()
+        {
+            return alParameters;
+        }
 
-		// List of all open connections
-		private List<ClientConnection> allOpenConnections = new List<ClientConnection>();
+        private TlsSecurityInformation securityInfo = null;
 
-		/// <summary>
-		/// Create a new server using default connection parameters
-		/// </summary>
-		public Server()
-		{
-			this.apciParameters = new APCIParameters ();
-			this.alParameters = new ApplicationLayerParameters ();
-		}
+        // List of all open connections
+        private List<ClientConnection> allOpenConnections = new List<ClientConnection>();
 
-
-		public Server (TlsSecurityInformation securityInfo)
-		{
-			this.apciParameters = new APCIParameters ();
-			this.alParameters = new ApplicationLayerParameters ();
-
-			this.securityInfo = securityInfo;
-
-			if (securityInfo != null)
-				this.localPort = 19998;
-		}
+        /// <summary>
+        /// Create a new server using default connection parameters
+        /// </summary>
+        public Server()
+        {
+            this.apciParameters = new APCIParameters();
+            this.alParameters = new ApplicationLayerParameters();
+        }
 
 
-		/// <summary>
-		/// Create a new server using the provided connection parameters.
-		/// </summary>
-		/// <param name="parameters">Connection parameters</param>
-		public Server(APCIParameters apciParameters, ApplicationLayerParameters alParameters) {
-			this.apciParameters = apciParameters;
-			this.alParameters = alParameters;
-		}
+        public Server(TlsSecurityInformation securityInfo)
+        {
+            this.apciParameters = new APCIParameters();
+            this.alParameters = new ApplicationLayerParameters();
 
-		public Server(APCIParameters apciParameters, ApplicationLayerParameters alParameters, TlsSecurityInformation securityInfo) {
-			this.apciParameters = apciParameters;
-			this.alParameters = alParameters;
-			this.securityInfo = securityInfo;
+            this.securityInfo = securityInfo;
 
-			if (securityInfo != null)
-				this.localPort = 19998;
-		}
+            if (securityInfo != null)
+                this.localPort = 19998;
+        }
+
+
+        /// <summary>
+        /// Create a new server using the provided connection parameters.
+        /// </summary>
+        /// <param name="parameters">Connection parameters</param>
+        public Server(APCIParameters apciParameters, ApplicationLayerParameters alParameters)
+        {
+            this.apciParameters = apciParameters;
+            this.alParameters = alParameters;
+        }
+
+        public Server(APCIParameters apciParameters, ApplicationLayerParameters alParameters, TlsSecurityInformation securityInfo)
+        {
+            this.apciParameters = apciParameters;
+            this.alParameters = alParameters;
+            this.securityInfo = securityInfo;
+
+            if (securityInfo != null)
+                this.localPort = 19998;
+        }
 
         /// <summary>
         /// Adds a redundancy group to the server. Each redundancy group has its own event queue.
@@ -618,91 +628,100 @@ namespace lib60870.CS104
             redGroups.Add(redundancyGroup);
         }
 
-		public ConnectionRequestHandler connectionRequestHandler = null;
-		public object connectionRequestHandlerParameter = null;
+        public ConnectionRequestHandler connectionRequestHandler = null;
+        public object connectionRequestHandlerParameter = null;
 
-		/// <summary>
-		/// Sets a callback handler for connection request. The user can allow (returning true) or deny (returning false)
-		/// the connection attempt. If no handler is installed every new connection will be accepted. 
-		/// </summary>
-		/// <param name="handler">Handler.</param>
-		/// <param name="parameter">Parameter.</param>
-		public void SetConnectionRequestHandler(ConnectionRequestHandler handler, object parameter)
-		{
-			this.connectionRequestHandler = handler;
-			this.connectionRequestHandlerParameter = parameter;
-		}
+        /// <summary>
+        /// Sets a callback handler for connection request. The user can allow (returning true) or deny (returning false)
+        /// the connection attempt. If no handler is installed every new connection will be accepted. 
+        /// </summary>
+        /// <param name="handler">Handler.</param>
+        /// <param name="parameter">Parameter.</param>
+        public void SetConnectionRequestHandler(ConnectionRequestHandler handler, object parameter)
+        {
+            this.connectionRequestHandler = handler;
+            this.connectionRequestHandlerParameter = parameter;
+        }
 
-		private ConnectionEventHandler connectionEventHandler = null;
-		private object connectionEventHandlerParameter = null;
+        private ConnectionEventHandler connectionEventHandler = null;
+        private object connectionEventHandlerParameter = null;
 
-		/// <summary>
-		/// Sets the connection event handler. The connection event handler will be called whenever a new
-		/// connection was opened, closed, activated, or inactivated.
-		/// </summary>
-		/// <param name="handler">Handler.</param>
-		/// <param name="parameter">Parameter.</param>
-		public void SetConnectionEventHandler(ConnectionEventHandler handler, object parameter)
-		{
-			this.connectionEventHandler = handler;
-			this.connectionEventHandlerParameter = parameter;
-		}
-			
-		/// <summary>
-		/// Gets the number of connected master/client stations.
-		/// </summary>
-		/// <value>The number of open connections.</value>
-		public int OpenConnections {
-			get {
-				return this.allOpenConnections.Count;
-			}
-		}
+        /// <summary>
+        /// Sets the connection event handler. The connection event handler will be called whenever a new
+        /// connection was opened, closed, activated, or inactivated.
+        /// </summary>
+        /// <param name="handler">Handler.</param>
+        /// <param name="parameter">Parameter.</param>
+        public void SetConnectionEventHandler(ConnectionEventHandler handler, object parameter)
+        {
+            this.connectionEventHandler = handler;
+            this.connectionEventHandlerParameter = parameter;
+        }
 
-		private void ServerAcceptThread()
-		{
-			running = true;
+        /// <summary>
+        /// Gets the number of connected master/client stations.
+        /// </summary>
+        /// <value>The number of open connections.</value>
+        public int OpenConnections
+        {
+            get
+            {
+                return this.allOpenConnections.Count;
+            }
+        }
 
-			DebugLog("Waiting for connections...");
+        private void ServerAcceptThread()
+        {
+            running = true;
 
-			while (running) {
+            DebugLog("Waiting for connections...");
 
-				try {
+            while (running)
+            {
+
+                try
+                {
 					
-					Socket newSocket = listeningSocket.Accept ();
+                    Socket newSocket = listeningSocket.Accept();
 
-					if (newSocket != null) {
+                    if (newSocket != null)
+                    {
 
-						newSocket.NoDelay = true;
+                        newSocket.NoDelay = true;
 
-						DebugLog("New connection");
+                        DebugLog("New connection");
 
-						IPEndPoint ipEndPoint = (IPEndPoint) newSocket.RemoteEndPoint;
+                        IPEndPoint ipEndPoint = (IPEndPoint)newSocket.RemoteEndPoint;
           
-						DebugLog("  from IP: " + ipEndPoint.Address.ToString());
+                        DebugLog("  from IP: " + ipEndPoint.Address.ToString());
 
                                                 
-						bool acceptConnection = true;
+                        bool acceptConnection = true;
 
-						if (OpenConnections >= maxOpenConnections)
-							acceptConnection = false;
+                        if (OpenConnections >= maxOpenConnections)
+                            acceptConnection = false;
 
-						if (acceptConnection && (connectionRequestHandler != null)) {
-							acceptConnection = connectionRequestHandler(connectionRequestHandlerParameter, ipEndPoint.Address);
-						}
+                        if (acceptConnection && (connectionRequestHandler != null))
+                        {
+                            acceptConnection = connectionRequestHandler(connectionRequestHandlerParameter, ipEndPoint.Address);
+                        }
 
-						if (acceptConnection) {
+                        if (acceptConnection)
+                        {
 
-							ClientConnection connection = null;
+                            ClientConnection connection = null;
 
-                            if ((serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) || (serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS)) 
+                            if ((serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) || (serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS))
                             {
                                 RedundancyGroup catchAllGroup = null;
 
                                 RedundancyGroup matchingGroup = null;
 
                                 /* get matching redundancy group */
-                                foreach (RedundancyGroup redGroup in redGroups) {
-                                    if (redGroup.Matches(ipEndPoint.Address)) {
+                                foreach (RedundancyGroup redGroup in redGroups)
+                                {
+                                    if (redGroup.Matches(ipEndPoint.Address))
+                                    {
                                         matchingGroup = redGroup;
                                         break;
                                     }
@@ -714,7 +733,8 @@ namespace lib60870.CS104
                                 if (matchingGroup == null)
                                     matchingGroup = catchAllGroup;
 
-                                if (matchingGroup != null) {
+                                if (matchingGroup != null)
+                                {
 
                                     connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
                                         matchingGroup.asduQueue, debugOutput);
@@ -723,37 +743,42 @@ namespace lib60870.CS104
 
                                     DebugLog("Add connection to group " + matchingGroup.Name);
                                 }
-                                else {
+                                else
+                                {
                                     DebugLog("Found no matching redundancy group -> close connection");
                                     newSocket.Close();
                                 }
 
                             }
-                            else {
+                            else
+                            {
                                 connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
-                                                                       new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog), debugOutput);
+                                    new ASDUQueue(maxQueueSize, enqueueMode, alParameters, DebugLog), debugOutput);
                             }
 
-                            if (connection != null) {
-    							allOpenConnections.Add(connection);
+                            if (connection != null)
+                            {
+                                allOpenConnections.Add(connection);
 
                                 CallConnectionEventHandler(connection, ClientConnectionEvent.OPENED);
                             }
 							
-						}
-						else
-							newSocket.Close();
+                        }
+                        else
+                            newSocket.Close();
                     }
 
-				} catch (Exception) {
-					running = false;
-				}
+                }
+                catch (Exception)
+                {
+                    running = false;
+                }
 					
-			}
-		}
+            }
+        }
 
-		internal void Remove(ClientConnection connection)
-		{
+        internal void Remove(ClientConnection connection)
+        {
             CallConnectionEventHandler(connection, ClientConnectionEvent.CLOSED);
 
             if ((serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS) || (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP))
@@ -764,43 +789,45 @@ namespace lib60870.CS104
                 }
             }
 
-			allOpenConnections.Remove (connection);
-		}
+            allOpenConnections.Remove(connection);
+        }
 
-		/// <summary>
-		/// Sets the local IP address to bind the server. Default is "0.0.0.0" for
-		/// all interfaces
-		/// </summary>
-		/// <param name="localAddress">Local IP address or hostname to bind.</param>
-		public void SetLocalAddress(string localAddress) {
-			this.localHostname = localAddress;
-		}
+        /// <summary>
+        /// Sets the local IP address to bind the server. Default is "0.0.0.0" for
+        /// all interfaces
+        /// </summary>
+        /// <param name="localAddress">Local IP address or hostname to bind.</param>
+        public void SetLocalAddress(string localAddress)
+        {
+            this.localHostname = localAddress;
+        }
 
-		/// <summary>
-		/// Sets the local TCP port to bind to. Default is 2404.
-		/// </summary>
-		/// <param name="tcpPort">Local TCP port to bind.</param>
-		public void SetLocalPort(int tcpPort) {
-			this.localPort = tcpPort;
-		}
+        /// <summary>
+        /// Sets the local TCP port to bind to. Default is 2404.
+        /// </summary>
+        /// <param name="tcpPort">Local TCP port to bind.</param>
+        public void SetLocalPort(int tcpPort)
+        {
+            this.localPort = tcpPort;
+        }
 
-		/// <summary>
-		/// Start the server. Listen to client connections.
-		/// </summary>
-		public void Start() 
-		{
-			IPAddress ipAddress = IPAddress.Parse(localHostname);
-			IPEndPoint localEP = new IPEndPoint(ipAddress, localPort);
+        /// <summary>
+        /// Start the server. Listen to client connections.
+        /// </summary>
+        public void Start()
+        {
+            IPAddress ipAddress = IPAddress.Parse(localHostname);
+            IPEndPoint localEP = new IPEndPoint(ipAddress, localPort);
 
-			// Create a TCP/IP  socket.
-			listeningSocket = new Socket(AddressFamily.InterNetwork, 
-			                           SocketType.Stream, ProtocolType.Tcp );
+            // Create a TCP/IP  socket.
+            listeningSocket = new Socket(AddressFamily.InterNetwork, 
+                SocketType.Stream, ProtocolType.Tcp);
 
-			listeningSocket.Bind (localEP);
+            listeningSocket.Bind(localEP);
 
-			listeningSocket.Listen (100);
+            listeningSocket.Listen(100);
 
-			Thread acceptThread = new Thread(ServerAcceptThread);
+            Thread acceptThread = new Thread(ServerAcceptThread);
 
             if (serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP)
             {
@@ -826,40 +853,44 @@ namespace lib60870.CS104
                 }
             }
 
-            acceptThread.Start ();
-		}
+            acceptThread.Start();
+        }
 
-		/// <summary>
-		/// Stop the server. Close all open client connections.
-		/// </summary>
-		public void Stop()
-		{
-			running = false;
+        /// <summary>
+        /// Stop the server. Close all open client connections.
+        /// </summary>
+        public void Stop()
+        {
+            running = false;
 
-			try {
-				listeningSocket.Close();
+            try
+            {
+                listeningSocket.Close();
 				
-				// close all open connection
-				foreach (ClientConnection connection in allOpenConnections) {
-					connection.Close();
-				}
+                // close all open connection
+                foreach (ClientConnection connection in allOpenConnections)
+                {
+                    connection.Close();
+                }
 					
-			} catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 DebugLog("Exception: " + e.Message);
-			}
+            }
 
-			listeningSocket.Close();
-		}
+            listeningSocket.Close();
+        }
 
-		/// <summary>
-		/// Enqueues the ASDU to the transmission queue.
-		/// </summary>
-		/// If an active connection exists the ASDU will be sent to the active client immediately. Otherwhise
-		/// the ASDU will be added to the transmission queue for later transmission.
-		/// <param name="asdu">ASDU to be sent</param>
+        /// <summary>
+        /// Enqueues the ASDU to the transmission queue.
+        /// </summary>
+        /// If an active connection exists the ASDU will be sent to the active client immediately. Otherwhise
+        /// the ASDU will be added to the transmission queue for later transmission.
+        /// <param name="asdu">ASDU to be sent</param>
         /// <exception cref="lib60870.CS101.ASDUQueueException">when the ASDU queue is full and mode is EnqueueMode.THROW_EXCEPTION.</exception>
-		public void EnqueueASDU(ASDU asdu)
-		{
+        public void EnqueueASDU(ASDU asdu)
+        {
 
             if (serverMode == ServerMode.CONNECTION_IS_REDUNDANCY_GROUP)
             {
@@ -878,17 +909,17 @@ namespace lib60870.CS104
                     redGroup.EnqueueASDU(asdu);
                 }
             }
-		}
+        }
 
         internal void CallConnectionEventHandler(ClientConnection connection, ClientConnectionEvent e)
         {
             if (connectionEventHandler != null)
                 connectionEventHandler(connectionEventHandlerParameter, connection, e);
         }
-            
 
-		internal void Activated(ClientConnection activeConnection)
-		{
+
+        internal void Activated(ClientConnection activeConnection)
+        {
             CallConnectionEventHandler(activeConnection, ClientConnectionEvent.ACTIVE);
 
             if ((serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) || (serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS))
@@ -899,12 +930,12 @@ namespace lib60870.CS104
                 }
 
             }
-		}
+        }
 
-		internal void Deactivated(ClientConnection activeConnection)
-		{
+        internal void Deactivated(ClientConnection activeConnection)
+        {
             CallConnectionEventHandler(activeConnection, ClientConnectionEvent.INACTIVE);
-		}
-	}
+        }
+    }
 	
 }

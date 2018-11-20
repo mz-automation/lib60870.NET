@@ -33,186 +33,190 @@ namespace lib60870.CS101
         }
 
 
-        public ASDUQueueException (string message) 
+        public ASDUQueueException(string message)
             : base(message)
         {
         }
 
-        public ASDUQueueException (string message, Exception innerException)
-            : base (message, innerException)
+        public ASDUQueueException(string message, Exception innerException)
+            : base(message, innerException)
         {
             
-        } 
+        }
     }
 
-	/// <summary>
-	/// Provides functions to be used in Slave callbacks to send data back to the master
-	/// </summary>
-	public interface IMasterConnection 
-	{
-		void SendASDU (ASDU asdu);
+    /// <summary>
+    /// Provides functions to be used in Slave callbacks to send data back to the master
+    /// </summary>
+    public interface IMasterConnection
+    {
+        void SendASDU(ASDU asdu);
 
-		void SendACT_CON (ASDU asdu, bool negative);
+        void SendACT_CON(ASDU asdu, bool negative);
 
-		void SendACT_TERM (ASDU asdu);
+        void SendACT_TERM(ASDU asdu);
 
-		ApplicationLayerParameters GetApplicationLayerParameters();
-	}
+        ApplicationLayerParameters GetApplicationLayerParameters();
+    }
 
-	/// <summary>
-	/// Handler for interrogation command (C_IC_NA_1 - 100).
-	/// </summary>
-	public delegate bool InterrogationHandler (object parameter, IMasterConnection connection, ASDU asdu, byte qoi);
+    /// <summary>
+    /// Handler for interrogation command (C_IC_NA_1 - 100).
+    /// </summary>
+	public delegate bool InterrogationHandler(object parameter,IMasterConnection connection,ASDU asdu,byte qoi);
 
-	/// <summary>
-	/// Handler for counter interrogation command (C_CI_NA_1 - 101).
-	/// </summary>
-	public delegate bool CounterInterrogationHandler (object parameter, IMasterConnection connection, ASDU asdu, byte qoi);
+    /// <summary>
+    /// Handler for counter interrogation command (C_CI_NA_1 - 101).
+    /// </summary>
+	public delegate bool CounterInterrogationHandler(object parameter,IMasterConnection connection,ASDU asdu,byte qoi);
 
-	/// <summary>
-	/// Handler for read command (C_RD_NA_1 - 102)
-	/// </summary>
-	public delegate bool ReadHandler (object parameter, IMasterConnection connection, ASDU asdu, int ioa);
+    /// <summary>
+    /// Handler for read command (C_RD_NA_1 - 102)
+    /// </summary>
+	public delegate bool ReadHandler(object parameter,IMasterConnection connection,ASDU asdu,int ioa);
 
-	/// <summary>
-	/// Handler for clock synchronization command (C_CS_NA_1 - 103)
-	/// </summary>
-	public delegate bool ClockSynchronizationHandler (object parameter, IMasterConnection connection, ASDU asdu, CP56Time2a newTime);
+    /// <summary>
+    /// Handler for clock synchronization command (C_CS_NA_1 - 103)
+    /// </summary>
+	public delegate bool ClockSynchronizationHandler(object parameter,IMasterConnection connection,ASDU asdu,CP56Time2a newTime);
 
-	/// <summary>
-	/// Handler for reset process command (C_RP_NA_1 - 105)
-	/// </summary>
-	public delegate bool ResetProcessHandler (object parameter, IMasterConnection connection, ASDU asdu, byte  qrp);
+    /// <summary>
+    /// Handler for reset process command (C_RP_NA_1 - 105)
+    /// </summary>
+	public delegate bool ResetProcessHandler(object parameter,IMasterConnection connection,ASDU asdu,byte  qrp);
 
-	/// <summary>
-	/// Handler for delay acquisition command (C_CD_NA:1 - 106)
-	/// </summary>
-	public delegate bool DelayAcquisitionHandler (object parameter, IMasterConnection connection, ASDU asdu, CP16Time2a delayTime);
+    /// <summary>
+    /// Handler for delay acquisition command (C_CD_NA:1 - 106)
+    /// </summary>
+	public delegate bool DelayAcquisitionHandler(object parameter,IMasterConnection connection,ASDU asdu,CP16Time2a delayTime);
 
 
-	/// <summary>
-	/// Handler for ASDUs that are not handled by other handlers (default handler)
-	/// </summary>
-	public delegate bool ASDUHandler (object parameter, IMasterConnection connection, ASDU asdu);
+    /// <summary>
+    /// Handler for ASDUs that are not handled by other handlers (default handler)
+    /// </summary>
+	public delegate bool ASDUHandler(object parameter,IMasterConnection connection,ASDU asdu);
 
-	public class Slave {
+    public class Slave
+    {
 
-		protected bool debugOutput;
+        protected bool debugOutput;
 
-		public bool DebugOutput {
-			get {
-				return this.debugOutput;
-			}
-			set {
-				debugOutput = value;
-			}
-		}
+        public bool DebugOutput
+        {
+            get
+            {
+                return this.debugOutput;
+            }
+            set
+            {
+                debugOutput = value;
+            }
+        }
 
-		public InterrogationHandler interrogationHandler = null;
-		public object InterrogationHandlerParameter = null;
+        public InterrogationHandler interrogationHandler = null;
+        public object InterrogationHandlerParameter = null;
 
-		public CounterInterrogationHandler counterInterrogationHandler = null;
-		public object counterInterrogationHandlerParameter = null;
+        public CounterInterrogationHandler counterInterrogationHandler = null;
+        public object counterInterrogationHandlerParameter = null;
 
-		public ReadHandler readHandler = null;
-		public object readHandlerParameter = null;
+        public ReadHandler readHandler = null;
+        public object readHandlerParameter = null;
 
-		public ClockSynchronizationHandler clockSynchronizationHandler = null;
-		public object clockSynchronizationHandlerParameter = null;
+        public ClockSynchronizationHandler clockSynchronizationHandler = null;
+        public object clockSynchronizationHandlerParameter = null;
 
-		public ResetProcessHandler resetProcessHandler = null;
-		public object resetProcessHandlerParameter = null;
+        public ResetProcessHandler resetProcessHandler = null;
+        public object resetProcessHandlerParameter = null;
 
-		public DelayAcquisitionHandler delayAcquisitionHandler = null;
-		public object delayAcquisitionHandlerParameter = null;
+        public DelayAcquisitionHandler delayAcquisitionHandler = null;
+        public object delayAcquisitionHandlerParameter = null;
 
-		public  ASDUHandler asduHandler = null;
-		public object asduHandlerParameter = null;
+        public  ASDUHandler asduHandler = null;
+        public object asduHandlerParameter = null;
 
-		protected FileReadyHandler fileReadyHandler = null;
-		protected object fileReadyHandlerParameter = null;
+        protected FileReadyHandler fileReadyHandler = null;
+        protected object fileReadyHandlerParameter = null;
 
-		/// <summary>
-		/// Sets a callback for interrogaton requests.
-		/// </summary>
-		/// <param name="handler">The interrogation request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetInterrogationHandler(InterrogationHandler handler, object parameter)
-		{
-			this.interrogationHandler = handler;
-			this.InterrogationHandlerParameter = parameter;
-		}
+        /// <summary>
+        /// Sets a callback for interrogaton requests.
+        /// </summary>
+        /// <param name="handler">The interrogation request handler callback function</param>
+        /// <param name="parameter">user provided parameter that is passed to the callback</param>
+        public void SetInterrogationHandler(InterrogationHandler handler, object parameter)
+        {
+            this.interrogationHandler = handler;
+            this.InterrogationHandlerParameter = parameter;
+        }
 
-		/// <summary>
-		/// Sets a callback for counter interrogaton requests.
-		/// </summary>
-		/// <param name="handler">The counter interrogation request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetCounterInterrogationHandler(CounterInterrogationHandler handler, object parameter)
-		{
-			this.counterInterrogationHandler = handler;
-			this.counterInterrogationHandlerParameter = parameter;
-		}
+        /// <summary>
+        /// Sets a callback for counter interrogaton requests.
+        /// </summary>
+        /// <param name="handler">The counter interrogation request handler callback function</param>
+        /// <param name="parameter">user provided parameter that is passed to the callback</param>
+        public void SetCounterInterrogationHandler(CounterInterrogationHandler handler, object parameter)
+        {
+            this.counterInterrogationHandler = handler;
+            this.counterInterrogationHandlerParameter = parameter;
+        }
 
-		/// <summary>
-		/// Sets a callback for read requests.
-		/// </summary>
-		/// <param name="handler">The read request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetReadHandler(ReadHandler handler, object parameter)
-		{
-			this.readHandler = handler;
-			this.readHandlerParameter = parameter;
-		}
+        /// <summary>
+        /// Sets a callback for read requests.
+        /// </summary>
+        /// <param name="handler">The read request handler callback function</param>
+        /// <param name="parameter">user provided parameter that is passed to the callback</param>
+        public void SetReadHandler(ReadHandler handler, object parameter)
+        {
+            this.readHandler = handler;
+            this.readHandlerParameter = parameter;
+        }
 
-		/// <summary>
-		/// Sets a callback for the clock synchronization request.
-		/// </summary>
-		/// <param name="handler">The clock synchronization request handler callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetClockSynchronizationHandler(ClockSynchronizationHandler handler, object parameter)
-		{
-			this.clockSynchronizationHandler = handler;
-			this.clockSynchronizationHandlerParameter = parameter;
-		}
+        /// <summary>
+        /// Sets a callback for the clock synchronization request.
+        /// </summary>
+        /// <param name="handler">The clock synchronization request handler callback function</param>
+        /// <param name="parameter">user provided parameter that is passed to the callback</param>
+        public void SetClockSynchronizationHandler(ClockSynchronizationHandler handler, object parameter)
+        {
+            this.clockSynchronizationHandler = handler;
+            this.clockSynchronizationHandlerParameter = parameter;
+        }
 
-		public void SetResetProcessHandler(ResetProcessHandler handler, object parameter)
-		{
-			this.resetProcessHandler = handler;
-			this.resetProcessHandlerParameter = parameter;
-		}
+        public void SetResetProcessHandler(ResetProcessHandler handler, object parameter)
+        {
+            this.resetProcessHandler = handler;
+            this.resetProcessHandlerParameter = parameter;
+        }
 
-		public void SetDelayAcquisitionHandler(DelayAcquisitionHandler handler, object parameter)
-		{
-			this.delayAcquisitionHandler = handler;
-			this.delayAcquisitionHandlerParameter = parameter;
-		}
+        public void SetDelayAcquisitionHandler(DelayAcquisitionHandler handler, object parameter)
+        {
+            this.delayAcquisitionHandler = handler;
+            this.delayAcquisitionHandlerParameter = parameter;
+        }
 
-		/// <summary>
-		/// Sets a callback to handle ASDUs (commands, requests) form clients. This callback can be used when
-		/// no other callback handles the message from the client/master.
-		/// </summary>
-		/// <param name="handler">The ASDU callback function</param>
-		/// <param name="parameter">user provided parameter that is passed to the callback</param>
-		public void SetASDUHandler(ASDUHandler handler, object parameter)
-		{
-			this.asduHandler = handler;
-			this.asduHandlerParameter = parameter;
-		}
+        /// <summary>
+        /// Sets a callback to handle ASDUs (commands, requests) form clients. This callback can be used when
+        /// no other callback handles the message from the client/master.
+        /// </summary>
+        /// <param name="handler">The ASDU callback function</param>
+        /// <param name="parameter">user provided parameter that is passed to the callback</param>
+        public void SetASDUHandler(ASDUHandler handler, object parameter)
+        {
+            this.asduHandler = handler;
+            this.asduHandlerParameter = parameter;
+        }
 
-		public void SetFileReadyHandler(FileReadyHandler handler, object parameter)
-		{
-			fileReadyHandler = handler;
-			fileReadyHandlerParameter = parameter;
-		}
+        public void SetFileReadyHandler(FileReadyHandler handler, object parameter)
+        {
+            fileReadyHandler = handler;
+            fileReadyHandlerParameter = parameter;
+        }
 
-		protected FilesAvailable filesAvailable = new FilesAvailable();
+        protected FilesAvailable filesAvailable = new FilesAvailable();
 
-		public FilesAvailable GetAvailableFiles()
-		{
-			return filesAvailable;
-		}
-	}
+        public FilesAvailable GetAvailableFiles()
+        {
+            return filesAvailable;
+        }
+    }
 
 }
 

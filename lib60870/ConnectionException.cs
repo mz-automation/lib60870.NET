@@ -1,4 +1,4 @@
-﻿ /*
+﻿/*
   *  Copyright 2016, 2017 MZ Automation GmbH
   *
   *  This file is part of lib60870.NET
@@ -23,17 +23,17 @@ using System;
 
 namespace lib60870
 {
-	public class ConnectionException : Exception
-	{
-		public ConnectionException(string message)
-			:base(message)
-		{
-		}
+    public class ConnectionException : Exception
+    {
+        public ConnectionException(string message)
+            : base(message)
+        {
+        }
 
-		public ConnectionException(string message, Exception e)
-			:base(message, e)
-		{
-		}
-	}
+        public ConnectionException(string message, Exception e)
+            : base(message, e)
+        {
+        }
+    }
 
 }

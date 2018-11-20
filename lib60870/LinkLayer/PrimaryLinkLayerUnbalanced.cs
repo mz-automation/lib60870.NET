@@ -1,4 +1,4 @@
-﻿ /*
+﻿/*
   *  Copyright 2016, 2017 MZ Automation GmbH
   *
   *  This file is part of lib60870.NET
@@ -25,670 +25,742 @@ using System.Collections.Generic;
 
 namespace lib60870.linklayer
 {
-	internal interface IPrimaryLinkLayerUnbalanced {
+    internal interface IPrimaryLinkLayerUnbalanced
+    {
+        void ResetCU(int slaveAddress);
 
-		void ResetCU(int slaveAddress);
-
-		/// <summary>
-		/// Determines whether this channel (slave connecrtion) is ready to transmit a new application layer message
-		/// </summary>
-		/// <returns><c>true</c> if this instance is channel available; otherwise, <c>false</c>.</returns>
-		/// <param name="slaveAddress">link layer address of the slave</param>
-		bool IsChannelAvailable(int slaveAddress);
-
-
-		void RequestClass1Data(int slaveAddress);
+        /// <summary>
+        /// Determines whether this channel (slave connecrtion) is ready to transmit a new application layer message
+        /// </summary>
+        /// <returns><c>true</c> if this instance is channel available; otherwise, <c>false</c>.</returns>
+        /// <param name="slaveAddress">link layer address of the slave</param>
+        bool IsChannelAvailable(int slaveAddress);
 
 
-
-		void RequestClass2Data(int slaveAddress);
-
-
-		void SendConfirmed(int slaveAddress, BufferFrame message);
-		void SendNoReply(int slaveAddress, BufferFrame message);
-	}
+        void RequestClass1Data(int slaveAddress);
 
 
-	internal class PrimaryLinkLayerUnbalanced : PrimaryLinkLayer, IPrimaryLinkLayerUnbalanced
-	{
-		private LinkLayer linkLayer;
-		private Action<string> DebugLog;
 
-		//	private bool waitingForResponse = false;
+        void RequestClass2Data(int slaveAddress);
 
-		private List<SlaveConnection> slaveConnections;
 
-		/// <summary>
-		/// The current active slave connection.
-		/// </summary>
-		private SlaveConnection currentSlave = null;
+        void SendConfirmed(int slaveAddress, BufferFrame message);
 
-		private BufferFrame nextBroadcastMessage = null;
+        void SendNoReply(int slaveAddress, BufferFrame message);
+    }
 
-		private IPrimaryLinkLayerCallbacks callbacks = null;
 
-		private LinkLayerStateChanged stateChanged = null;
-		private object stateChangedParameter = null;
+    internal class PrimaryLinkLayerUnbalanced : PrimaryLinkLayer, IPrimaryLinkLayerUnbalanced
+    {
+        private LinkLayer linkLayer;
+        private Action<string> DebugLog;
 
-		// can this class implement Master interface?
-		private class SlaveConnection {
+        //	private bool waitingForResponse = false;
 
-			private Action<string> DebugLog = null;
+        private List<SlaveConnection> slaveConnections;
 
-			public int address;
-			public PrimaryLinkLayerState primaryState = PrimaryLinkLayerState.IDLE;
-			public long lastSendTime = 0;             
-			public long originalSendTime = 0;
-			public bool nextFcb = true;
-			public bool waitingForResponse = false;
-			public LinkLayerState linkLayerState = LinkLayerState.IDLE;
+        /// <summary>
+        /// The current active slave connection.
+        /// </summary>
+        private SlaveConnection currentSlave = null;
 
-			PrimaryLinkLayerUnbalanced linkLayerUnbalanced;
+        private BufferFrame nextBroadcastMessage = null;
 
-			private bool sendLinkLayerTestFunction = false;
+        private IPrimaryLinkLayerCallbacks callbacks = null;
 
-			// don't send new application layer messages to avoid data flow congestion
-			private bool dontSendMessages = false;
+        private LinkLayerStateChanged stateChanged = null;
+        private object stateChangedParameter = null;
 
-			public BufferFrame nextMessage = null;
-			private BufferFrame lastSentASDU = null;
+        // can this class implement Master interface?
+        private class SlaveConnection
+        {
 
-			public bool requireConfirmation = false;
+            private Action<string> DebugLog = null;
 
-			public bool resetCu = false;
-			public bool requestClass2Data = false;
-			public bool requestClass1Data = false;
+            public int address;
+            public PrimaryLinkLayerState primaryState = PrimaryLinkLayerState.IDLE;
+            public long lastSendTime = 0;
+            public long originalSendTime = 0;
+            public bool nextFcb = true;
+            public bool waitingForResponse = false;
+            public LinkLayerState linkLayerState = LinkLayerState.IDLE;
 
-			private LinkLayer linkLayer;
+            PrimaryLinkLayerUnbalanced linkLayerUnbalanced;
 
-			private void SetState(LinkLayerState newState)
-			{
-				if (linkLayerState != newState) {
+            private bool sendLinkLayerTestFunction = false;
 
-					linkLayerState = newState;
+            // don't send new application layer messages to avoid data flow congestion
+            private bool dontSendMessages = false;
 
-					if (linkLayerUnbalanced.stateChanged != null)
-						linkLayerUnbalanced.stateChanged (linkLayerUnbalanced.stateChangedParameter,
-							address, newState);
-				}
-			}
+            public BufferFrame nextMessage = null;
+            private BufferFrame lastSentASDU = null;
 
-			public SlaveConnection(int address, LinkLayer linkLayer, Action<string> debugLog, PrimaryLinkLayerUnbalanced linkLayerUnbalanced) 
-			{
-				this.address = address;
-				this.linkLayer = linkLayer;
-				this.DebugLog = debugLog;
-				this.linkLayerUnbalanced = linkLayerUnbalanced;
-			}
+            public bool requireConfirmation = false;
 
-			public bool IsMessageWaitingToSend()
-			{
-				if (requestClass1Data || requestClass2Data || (nextMessage != null))
-					return true;
-				else
-					return false;
-			}
+            public bool resetCu = false;
+            public bool requestClass2Data = false;
+            public bool requestClass1Data = false;
 
-			internal void HandleMessage(FunctionCodeSecondary fcs, bool acd, bool dfc, 
-				int addr, byte[] msg, int userDataStart, int userDataLength)
-			{
-				PrimaryLinkLayerState newState = primaryState;
+            private LinkLayer linkLayer;
 
-				if (dfc) {
+            private void SetState(LinkLayerState newState)
+            {
+                if (linkLayerState != newState)
+                {
 
-					//stop sending ASDUs; only send Status of link requests
-					dontSendMessages = true;
+                    linkLayerState = newState;
 
-					switch (primaryState) {
-					case PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK:
-					case PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK:
-						newState = PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK;
-						break;
-					case PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM:
+                    if (linkLayerUnbalanced.stateChanged != null)
+                        linkLayerUnbalanced.stateChanged(linkLayerUnbalanced.stateChangedParameter,
+                            address, newState);
+                }
+            }
+
+            public SlaveConnection(int address, LinkLayer linkLayer, Action<string> debugLog, PrimaryLinkLayerUnbalanced linkLayerUnbalanced)
+            {
+                this.address = address;
+                this.linkLayer = linkLayer;
+                this.DebugLog = debugLog;
+                this.linkLayerUnbalanced = linkLayerUnbalanced;
+            }
+
+            public bool IsMessageWaitingToSend()
+            {
+                if (requestClass1Data || requestClass2Data || (nextMessage != null))
+                    return true;
+                else
+                    return false;
+            }
+
+            internal void HandleMessage(FunctionCodeSecondary fcs, bool acd, bool dfc, 
+                               int addr, byte[] msg, int userDataStart, int userDataLength)
+            {
+                PrimaryLinkLayerState newState = primaryState;
+
+                if (dfc)
+                {
+
+                    //stop sending ASDUs; only send Status of link requests
+                    dontSendMessages = true;
+
+                    switch (primaryState)
+                    {
+                        case PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK:
+                        case PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK:
+                            newState = PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK;
+                            break;
+                        case PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM:
 						//TODO message must be handled and switched to BUSY state later!
-					case PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY:
-						newState = PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY;
-						break;
-					}
+                        case PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY:
+                            newState = PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY;
+                            break;
+                    }
 
-					SetState (LinkLayerState.BUSY);
+                    SetState(LinkLayerState.BUSY);
 
-					primaryState = newState;
-					return;
+                    primaryState = newState;
+                    return;
 
-				} else {
-					// unblock transmission of application layer messages
-					dontSendMessages = false;
-				}
+                }
+                else
+                {
+                    // unblock transmission of application layer messages
+                    dontSendMessages = false;
+                }
 
-				switch (fcs) {
+                switch (fcs)
+                {
 
-				case FunctionCodeSecondary.ACK:
+                    case FunctionCodeSecondary.ACK:
 
-					DebugLog ("[SLAVE " + address + "] PLL - received ACK");
+                        DebugLog("[SLAVE " + address + "] PLL - received ACK");
 
-					if (primaryState == PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK) {
-						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+                        if (primaryState == PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK)
+                        {
+                            newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 					
-						SetState (LinkLayerState.AVAILABLE);
-					}
-					else if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
+                            SetState(LinkLayerState.AVAILABLE);
+                        }
+                        else if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM)
+                        {
 
-						if (sendLinkLayerTestFunction)
-							sendLinkLayerTestFunction = false;
+                            if (sendLinkLayerTestFunction)
+                                sendLinkLayerTestFunction = false;
 
-						SetState (LinkLayerState.AVAILABLE);	  
+                            SetState(LinkLayerState.AVAILABLE);	  
 
-						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
-					} else if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND) {
+                            newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+                        }
+                        else if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND)
+                        {
 
-						/* single char ACK is interpreted as RESP NO DATA */
-						requestClass1Data = false;
-						requestClass2Data = false;
+                            /* single char ACK is interpreted as RESP NO DATA */
+                            requestClass1Data = false;
+                            requestClass2Data = false;
 
-						SetState (LinkLayerState.AVAILABLE);
+                            SetState(LinkLayerState.AVAILABLE);
 
-						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
-					}
+                            newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+                        }
 
-					waitingForResponse = false;
-					break;
+                        waitingForResponse = false;
+                        break;
 
-				case FunctionCodeSecondary.NACK:
+                    case FunctionCodeSecondary.NACK:
 					
-					DebugLog ("[SLAVE " + address + "] PLL - received NACK");
+                        DebugLog("[SLAVE " + address + "] PLL - received NACK");
 				
-					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
+                        if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM)
+                        {
 					
-						SetState (LinkLayerState.BUSY);
+                            SetState(LinkLayerState.BUSY);
 					
-						newState = PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY;
-					}
+                            newState = PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY;
+                        }
 
-					waitingForResponse = false;
-					break;
+                        waitingForResponse = false;
+                        break;
 
-				case FunctionCodeSecondary.STATUS_OF_LINK_OR_ACCESS_DEMAND:
+                    case FunctionCodeSecondary.STATUS_OF_LINK_OR_ACCESS_DEMAND:
 					
-					DebugLog ("[SLAVE " + address + "] PLL - received STATUS OF LINK");
+                        DebugLog("[SLAVE " + address + "] PLL - received STATUS OF LINK");
 
-					if (primaryState == PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK) {
+                        if (primaryState == PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK)
+                        {
 						
-						DebugLog ("[SLAVE " + address + "] PLL - SEND RESET REMOTE LINK");
+                            DebugLog("[SLAVE " + address + "] PLL - SEND RESET REMOTE LINK");
 
-						linkLayer.SendFixedFramePrimary (FunctionCodePrimary.RESET_REMOTE_LINK, address, false, false);
+                            linkLayer.SendFixedFramePrimary(FunctionCodePrimary.RESET_REMOTE_LINK, address, false, false);
 
-						nextFcb = true;
-						lastSendTime = SystemUtils.currentTimeMillis ();
-						waitingForResponse = true;
-						newState = PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK;
+                            nextFcb = true;
+                            lastSendTime = SystemUtils.currentTimeMillis();
+                            waitingForResponse = true;
+                            newState = PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK;
 
-						SetState (LinkLayerState.BUSY);
-					} else { /* illegal message */
-						newState = PrimaryLinkLayerState.IDLE;
+                            SetState(LinkLayerState.BUSY);
+                        }
+                        else
+                        { /* illegal message */
+                            newState = PrimaryLinkLayerState.IDLE;
 					
-						SetState (LinkLayerState.ERROR);
+                            SetState(LinkLayerState.ERROR);
 
-						waitingForResponse = false;
-					}
+                            waitingForResponse = false;
+                        }
 
-					break;
+                        break;
 
-				case FunctionCodeSecondary.RESP_USER_DATA:
+                    case FunctionCodeSecondary.RESP_USER_DATA:
 					
-					DebugLog ("[SLAVE " + address + "] PLL - received USER DATA");
+                        DebugLog("[SLAVE " + address + "] PLL - received USER DATA");
 
-					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND) {
-						linkLayerUnbalanced.callbacks.UserData (address, msg, userDataStart, userDataLength);
+                        if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND)
+                        {
+                            linkLayerUnbalanced.callbacks.UserData(address, msg, userDataStart, userDataLength);
 
-						requestClass1Data = false;
-						requestClass2Data = false;
+                            requestClass1Data = false;
+                            requestClass2Data = false;
 
-						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+                            newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 
-						SetState (LinkLayerState.AVAILABLE);
-					} else { /* illegal message */
-						newState = PrimaryLinkLayerState.IDLE;
+                            SetState(LinkLayerState.AVAILABLE);
+                        }
+                        else
+                        { /* illegal message */
+                            newState = PrimaryLinkLayerState.IDLE;
 
-						SetState (LinkLayerState.ERROR);
-					}
+                            SetState(LinkLayerState.ERROR);
+                        }
 
-					waitingForResponse = false;
+                        waitingForResponse = false;
 
-					break;
+                        break;
 
-				case FunctionCodeSecondary.RESP_NACK_NO_DATA:
+                    case FunctionCodeSecondary.RESP_NACK_NO_DATA:
 					
-					DebugLog ("[SLAVE " + address + "] PLL - received RESP NO DATA");
+                        DebugLog("[SLAVE " + address + "] PLL - received RESP NO DATA");
 
-					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND) {
-						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+                        if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND)
+                        {
+                            newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 
-						requestClass1Data = false;
-						requestClass2Data = false;
+                            requestClass1Data = false;
+                            requestClass2Data = false;
 
-						SetState (LinkLayerState.AVAILABLE);
-					} else { /* illegal message */
-						newState = PrimaryLinkLayerState.IDLE;
+                            SetState(LinkLayerState.AVAILABLE);
+                        }
+                        else
+                        { /* illegal message */
+                            newState = PrimaryLinkLayerState.IDLE;
 					
-						SetState (LinkLayerState.ERROR);
-					}
+                            SetState(LinkLayerState.ERROR);
+                        }
 
-					waitingForResponse = false;
+                        waitingForResponse = false;
 
-					break;
+                        break;
 
-				case FunctionCodeSecondary.LINK_SERVICE_NOT_FUNCTIONING:
-				case FunctionCodeSecondary.LINK_SERVICE_NOT_IMPLEMENTED:
+                    case FunctionCodeSecondary.LINK_SERVICE_NOT_FUNCTIONING:
+                    case FunctionCodeSecondary.LINK_SERVICE_NOT_IMPLEMENTED:
 					
-					DebugLog ("[SLAVE " + address + "] PLL - link layer service not functioning/not implemented in secondary station ");
+                        DebugLog("[SLAVE " + address + "] PLL - link layer service not functioning/not implemented in secondary station ");
 
-					if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM) {
-						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+                        if (primaryState == PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM)
+                        {
+                            newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 
-						SetState (LinkLayerState.AVAILABLE);
-					}
+                            SetState(LinkLayerState.AVAILABLE);
+                        }
 
-					waitingForResponse = false;
+                        waitingForResponse = false;
 
-					break;
+                        break;
 
-				default:
-					DebugLog ("[SLAVE " + address + "] UNEXPECTED SECONDARY LINK LAYER MESSAGE");
-					break;
-				}
+                    default:
+                        DebugLog("[SLAVE " + address + "] UNEXPECTED SECONDARY LINK LAYER MESSAGE");
+                        break;
+                }
 
-				if (acd) {
-					if (linkLayerUnbalanced.callbacks != null)
-						linkLayerUnbalanced.callbacks.AccessDemand (address);
-				}
+                if (acd)
+                {
+                    if (linkLayerUnbalanced.callbacks != null)
+                        linkLayerUnbalanced.callbacks.AccessDemand(address);
+                }
 
-				DebugLog ("[SLAVE " + address + "] PLL RECV - old state: " + primaryState.ToString () + " new state: " + newState.ToString ());
+                DebugLog("[SLAVE " + address + "] PLL RECV - old state: " + primaryState.ToString() + " new state: " + newState.ToString());
 
-				primaryState = newState;
-			}
+                primaryState = newState;
+            }
 
-			public void RunStateMachine()
-			{
-				PrimaryLinkLayerState newState = primaryState;
+            public void RunStateMachine()
+            {
+                PrimaryLinkLayerState newState = primaryState;
 
-				long currentTime =  SystemUtils.currentTimeMillis ();
+                long currentTime = SystemUtils.currentTimeMillis();
 
-				switch (primaryState) {
+                switch (primaryState)
+                {
 
-				case PrimaryLinkLayerState.IDLE:
+                    case PrimaryLinkLayerState.IDLE:
 
-					waitingForResponse = false;
-					originalSendTime = 0;
-					lastSendTime = 0;
-					sendLinkLayerTestFunction = false;
-					newState = PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK;
+                        waitingForResponse = false;
+                        originalSendTime = 0;
+                        lastSendTime = 0;
+                        sendLinkLayerTestFunction = false;
+                        newState = PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK;
 
-					break;
+                        break;
 
-				case PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK:
+                    case PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK:
 
-					if (waitingForResponse) {
+                        if (waitingForResponse)
+                        {
 						
-						if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
-							linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_LINK_STATUS, address, false, false);
+                            if (currentTime > (lastSendTime + linkLayer.TimeoutForACK))
+                            {
+                                linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_LINK_STATUS, address, false, false);
 
-							lastSendTime = SystemUtils.currentTimeMillis ();
-						}
+                                lastSendTime = SystemUtils.currentTimeMillis();
+                            }
 
-					}
-					else {
+                        }
+                        else
+                        {
 						
-						DebugLog ("[SLAVE " + address + "] PLL - SEND RESET REMOTE LINK");
+                            DebugLog("[SLAVE " + address + "] PLL - SEND RESET REMOTE LINK");
 
-						linkLayer.SendFixedFramePrimary (FunctionCodePrimary.RESET_REMOTE_LINK, address, false, false);
+                            linkLayer.SendFixedFramePrimary(FunctionCodePrimary.RESET_REMOTE_LINK, address, false, false);
 
-						lastSendTime = currentTime;
-						originalSendTime = lastSendTime;
-						waitingForResponse = true;
+                            lastSendTime = currentTime;
+                            originalSendTime = lastSendTime;
+                            waitingForResponse = true;
 
-						nextFcb = true;
+                            nextFcb = true;
 
-						newState = PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK; 
-					}
+                            newState = PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK; 
+                        }
 
-					break;
+                        break;
 
-				case PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK:
+                    case PrimaryLinkLayerState.EXECUTE_RESET_REMOTE_LINK:
 
-					if (waitingForResponse) {
-						if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
-							waitingForResponse = false;
-							newState = PrimaryLinkLayerState.IDLE;
+                        if (waitingForResponse)
+                        {
+                            if (currentTime > (lastSendTime + linkLayer.TimeoutForACK))
+                            {
+                                waitingForResponse = false;
+                                newState = PrimaryLinkLayerState.IDLE;
 
-							SetState (LinkLayerState.ERROR);
-						}
-					} else {
-						newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
+                                SetState(LinkLayerState.ERROR);
+                            }
+                        }
+                        else
+                        {
+                            newState = PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE;
 
-						SetState (LinkLayerState.AVAILABLE);
-					}
+                            SetState(LinkLayerState.AVAILABLE);
+                        }
 
-					break;
+                        break;
 
-				case PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE:
+                    case PrimaryLinkLayerState.LINK_LAYERS_AVAILABLE:
 
-					if (sendLinkLayerTestFunction) {
-						DebugLog ("[SLAVE " + address + "] PLL - SEND TEST LINK");
+                        if (sendLinkLayerTestFunction)
+                        {
+                            DebugLog("[SLAVE " + address + "] PLL - SEND TEST LINK");
 
-						linkLayer.SendFixedFramePrimary (FunctionCodePrimary.TEST_FUNCTION_FOR_LINK, address, nextFcb, true);
+                            linkLayer.SendFixedFramePrimary(FunctionCodePrimary.TEST_FUNCTION_FOR_LINK, address, nextFcb, true);
 
-						nextFcb = !nextFcb;
-						lastSendTime = currentTime;
-						originalSendTime = lastSendTime;
-						waitingForResponse = true;
+                            nextFcb = !nextFcb;
+                            lastSendTime = currentTime;
+                            originalSendTime = lastSendTime;
+                            waitingForResponse = true;
 
-						newState = PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM;
-					} else if (requestClass1Data || requestClass2Data) {
+                            newState = PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM;
+                        }
+                        else if (requestClass1Data || requestClass2Data)
+                        {
 
-						if (requestClass1Data) {
-							DebugLog ("[SLAVE " + address + "] PLL - SEND FC 10 - REQ UD 1");
+                            if (requestClass1Data)
+                            {
+                                DebugLog("[SLAVE " + address + "] PLL - SEND FC 10 - REQ UD 1");
 
-							linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_1, address, nextFcb, true);
-						} else {
-							DebugLog ("[SLAVE " + address + "] PLL - SEND FC 11 - REQ UD 2");
+                                linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_USER_DATA_CLASS_1, address, nextFcb, true);
+                            }
+                            else
+                            {
+                                DebugLog("[SLAVE " + address + "] PLL - SEND FC 11 - REQ UD 2");
 
-							linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_2, address, nextFcb, true);
-						}
+                                linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_USER_DATA_CLASS_2, address, nextFcb, true);
+                            }
 
-						nextFcb = !nextFcb;
+                            nextFcb = !nextFcb;
 
-						lastSendTime = currentTime;
-						originalSendTime = lastSendTime;
-						waitingForResponse = true;
-						newState = PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND;
-					}
-					else {
+                            lastSendTime = currentTime;
+                            originalSendTime = lastSendTime;
+                            waitingForResponse = true;
+                            newState = PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND;
+                        }
+                        else
+                        {
 
-						if (dontSendMessages == false) {
+                            if (dontSendMessages == false)
+                            {
 
-							BufferFrame asdu = nextMessage;
+                                BufferFrame asdu = nextMessage;
 
-							if (asdu != null) {
+                                if (asdu != null)
+                                {
 
-								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 03 - USER DATA CONFIRMED");
+                                    DebugLog("[SLAVE " + address + "] PLL - SEND FC 03 - USER DATA CONFIRMED");
 
-								linkLayer.SendVariableLengthFramePrimary (FunctionCodePrimary.USER_DATA_CONFIRMED, address, nextFcb, true, asdu);
+                                    linkLayer.SendVariableLengthFramePrimary(FunctionCodePrimary.USER_DATA_CONFIRMED, address, nextFcb, true, asdu);
 
-								lastSentASDU = nextMessage;
-								nextMessage = null;
+                                    lastSentASDU = nextMessage;
+                                    nextMessage = null;
 
 
-								nextFcb = !nextFcb;
+                                    nextFcb = !nextFcb;
 
-								lastSendTime = currentTime;
-								originalSendTime = lastSendTime;
-								waitingForResponse = true;
+                                    lastSendTime = currentTime;
+                                    originalSendTime = lastSendTime;
+                                    waitingForResponse = true;
 
-								newState = PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM;
-							}
-						}
-					}
+                                    newState = PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM;
+                                }
+                            }
+                        }
 
-					break;
+                        break;
 
-				case PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM:
+                    case PrimaryLinkLayerState.EXECUTE_SERVICE_SEND_CONFIRM:
 
-					if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
+                        if (currentTime > (lastSendTime + linkLayer.TimeoutForACK))
+                        {
 
-						if (currentTime > (originalSendTime + linkLayer.TimeoutRepeat)) {
-							DebugLog ("[SLAVE " + address + "] TIMEOUT SC: ASDU not confirmed after repeated transmission");
-							newState = PrimaryLinkLayerState.IDLE;
+                            if (currentTime > (originalSendTime + linkLayer.TimeoutRepeat))
+                            {
+                                DebugLog("[SLAVE " + address + "] TIMEOUT SC: ASDU not confirmed after repeated transmission");
+                                newState = PrimaryLinkLayerState.IDLE;
 
-							SetState (LinkLayerState.ERROR);
-						} else {
-							DebugLog ("[SLAVE " + address + "] TIMEOUT SC: 1 ASDU not confirmed");
+                                SetState(LinkLayerState.ERROR);
+                            }
+                            else
+                            {
+                                DebugLog("[SLAVE " + address + "] TIMEOUT SC: 1 ASDU not confirmed");
 
-							if (sendLinkLayerTestFunction) {
+                                if (sendLinkLayerTestFunction)
+                                {
 
-								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 02 - RESET REMOTE LINK [REPEAT]");
+                                    DebugLog("[SLAVE " + address + "] PLL - SEND FC 02 - RESET REMOTE LINK [REPEAT]");
 
-								linkLayer.SendFixedFramePrimary (FunctionCodePrimary.TEST_FUNCTION_FOR_LINK, address, !nextFcb, true);
+                                    linkLayer.SendFixedFramePrimary(FunctionCodePrimary.TEST_FUNCTION_FOR_LINK, address, !nextFcb, true);
 							
-							} else {
+                                }
+                                else
+                                {
 
-								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 03 - USER DATA CONFIRMED [REPEAT]");
+                                    DebugLog("[SLAVE " + address + "] PLL - SEND FC 03 - USER DATA CONFIRMED [REPEAT]");
 
-								linkLayer.SendVariableLengthFramePrimary (FunctionCodePrimary.USER_DATA_CONFIRMED, address, !nextFcb, true, lastSentASDU);
+                                    linkLayer.SendVariableLengthFramePrimary(FunctionCodePrimary.USER_DATA_CONFIRMED, address, !nextFcb, true, lastSentASDU);
 							
-							}
+                                }
 
-							lastSendTime = currentTime;
-						}
-					}
+                                lastSendTime = currentTime;
+                            }
+                        }
 
-					break;
+                        break;
 
-				case PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND:
+                    case PrimaryLinkLayerState.EXECUTE_SERVICE_REQUEST_RESPOND:
 
-					if (currentTime > (lastSendTime + linkLayer.TimeoutForACK)) {
+                        if (currentTime > (lastSendTime + linkLayer.TimeoutForACK))
+                        {
 
-						if (currentTime > (originalSendTime + linkLayer.TimeoutRepeat)) {
-							DebugLog ("[SLAVE " + address + "] TIMEOUT: ASDU not confirmed after repeated transmission");
-							newState = PrimaryLinkLayerState.IDLE;
-							requestClass1Data = false;
-							requestClass2Data = false;
+                            if (currentTime > (originalSendTime + linkLayer.TimeoutRepeat))
+                            {
+                                DebugLog("[SLAVE " + address + "] TIMEOUT: ASDU not confirmed after repeated transmission");
+                                newState = PrimaryLinkLayerState.IDLE;
+                                requestClass1Data = false;
+                                requestClass2Data = false;
 
-							SetState (LinkLayerState.ERROR);
-						} else {
-							DebugLog ("[SLAVE " + address + "] TIMEOUT: ASDU not confirmed");
+                                SetState(LinkLayerState.ERROR);
+                            }
+                            else
+                            {
+                                DebugLog("[SLAVE " + address + "] TIMEOUT: ASDU not confirmed");
 
-							if (requestClass1Data) {
-								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 10 - REQ UD 1 [REPEAT]");
+                                if (requestClass1Data)
+                                {
+                                    DebugLog("[SLAVE " + address + "] PLL - SEND FC 10 - REQ UD 1 [REPEAT]");
 
-								linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_1, address, !nextFcb, true);
-							} else if (requestClass2Data) {
+                                    linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_USER_DATA_CLASS_1, address, !nextFcb, true);
+                                }
+                                else if (requestClass2Data)
+                                {
 
-								DebugLog ("[SLAVE " + address + "] PLL - SEND FC 11 - REQ UD 2 [REPEAT]");
+                                    DebugLog("[SLAVE " + address + "] PLL - SEND FC 11 - REQ UD 2 [REPEAT]");
 
-								linkLayer.SendFixedFramePrimary (FunctionCodePrimary.REQUEST_USER_DATA_CLASS_2, address, !nextFcb, true);
-							}
+                                    linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_USER_DATA_CLASS_2, address, !nextFcb, true);
+                                }
 								
-							lastSendTime = currentTime;
-						}
-					}
+                                lastSendTime = currentTime;
+                            }
+                        }
 
-					break;
+                        break;
 
-				case PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY:
+                    case PrimaryLinkLayerState.SECONDARY_LINK_LAYER_BUSY:
 					//TODO - reject new requests from application layer?
-					break;
+                        break;
 
-				}
+                }
 
-				if (primaryState != newState)
-					DebugLog ("[SLAVE " + address + "] PLL - old state: " + primaryState.ToString () + " new state: " + newState.ToString ());
+                if (primaryState != newState)
+                    DebugLog("[SLAVE " + address + "] PLL - old state: " + primaryState.ToString() + " new state: " + newState.ToString());
 
-				primaryState = newState;
+                primaryState = newState;
 
-			}
-		}
+            }
+        }
 
-		/********************************
+        /********************************
 		 * IPrimaryLinkLayerUnbalanced
 		 ********************************/
 
 
-		public void ResetCU(int slaveAddress)
-		{				
-			SlaveConnection slave = GetSlaveConnection (slaveAddress);
+        public void ResetCU(int slaveAddress)
+        {				
+            SlaveConnection slave = GetSlaveConnection(slaveAddress);
 
-			if (slave != null)
-				slave.resetCu = true;
-		}
+            if (slave != null)
+                slave.resetCu = true;
+        }
 
-		public bool IsChannelAvailable(int slaveAddress)
-		{
-			SlaveConnection slave = GetSlaveConnection (slaveAddress);
+        public bool IsChannelAvailable(int slaveAddress)
+        {
+            SlaveConnection slave = GetSlaveConnection(slaveAddress);
 
-			if (slave != null) {
-				if (slave.IsMessageWaitingToSend () == false)
-					return true;
-			}
+            if (slave != null)
+            {
+                if (slave.IsMessageWaitingToSend() == false)
+                    return true;
+            }
 
-			return false;
-		}
-
-
-		public void RequestClass1Data(int slaveAddress)
-		{
-			SlaveConnection slave = GetSlaveConnection (slaveAddress);
-
-			if (slave != null) {
-				slave.requestClass1Data = true;;
-			}
-		}
+            return false;
+        }
 
 
+        public void RequestClass1Data(int slaveAddress)
+        {
+            SlaveConnection slave = GetSlaveConnection(slaveAddress);
 
-		public void RequestClass2Data(int slaveAddress)
-		{
-			SlaveConnection slave = GetSlaveConnection (slaveAddress);
-
-			if (slave != null) {
-				if (slave.IsMessageWaitingToSend ())
-					throw new LinkLayerBusyException ("Message pending");
-				else
-					slave.requestClass2Data = true;
-			}
-		}
+            if (slave != null)
+            {
+                slave.requestClass1Data = true;
+                ;
+            }
+        }
 
 
-		public void SendConfirmed(int slaveAddress, BufferFrame message)
-		{
-			SlaveConnection slave = GetSlaveConnection (slaveAddress);
 
-			if (slave != null) {
-				if (slave.nextMessage != null)
-					throw new LinkLayerBusyException ("Message pending");
-				else {
-					slave.nextMessage = message.Clone ();
-					slave.requireConfirmation = true;
-				}
-			}
-		}
+        public void RequestClass2Data(int slaveAddress)
+        {
+            SlaveConnection slave = GetSlaveConnection(slaveAddress);
 
-		public void SendNoReply(int slaveAddress, BufferFrame message)
-		{
-			if (slaveAddress == linkLayer.GetBroadcastAddress ()) {
-				if (nextBroadcastMessage != null)
-					throw new LinkLayerBusyException ("Broadcast message pending");
-				else
-					nextBroadcastMessage = message;
-			} else {
-				SlaveConnection slave = GetSlaveConnection (slaveAddress);
+            if (slave != null)
+            {
+                if (slave.IsMessageWaitingToSend())
+                    throw new LinkLayerBusyException("Message pending");
+                else
+                    slave.requestClass2Data = true;
+            }
+        }
 
-				if (slave != null) {
-					if (slave.IsMessageWaitingToSend ())
-						throw new LinkLayerBusyException ("Message pending");
-					else {
-						slave.nextMessage = message;
-						slave.requireConfirmation = false;
-					}
-				}
-			}
-		}
 
-		/********************************
+        public void SendConfirmed(int slaveAddress, BufferFrame message)
+        {
+            SlaveConnection slave = GetSlaveConnection(slaveAddress);
+
+            if (slave != null)
+            {
+                if (slave.nextMessage != null)
+                    throw new LinkLayerBusyException("Message pending");
+                else
+                {
+                    slave.nextMessage = message.Clone();
+                    slave.requireConfirmation = true;
+                }
+            }
+        }
+
+        public void SendNoReply(int slaveAddress, BufferFrame message)
+        {
+            if (slaveAddress == linkLayer.GetBroadcastAddress())
+            {
+                if (nextBroadcastMessage != null)
+                    throw new LinkLayerBusyException("Broadcast message pending");
+                else
+                    nextBroadcastMessage = message;
+            }
+            else
+            {
+                SlaveConnection slave = GetSlaveConnection(slaveAddress);
+
+                if (slave != null)
+                {
+                    if (slave.IsMessageWaitingToSend())
+                        throw new LinkLayerBusyException("Message pending");
+                    else
+                    {
+                        slave.nextMessage = message;
+                        slave.requireConfirmation = false;
+                    }
+                }
+            }
+        }
+
+        /********************************
 		 * END IPrimaryLinkLayerUnbalanced
 		 ********************************/
 
-		public PrimaryLinkLayerUnbalanced(LinkLayer linkLayer, IPrimaryLinkLayerCallbacks callbacks, Action<string> debugLog)
-		{
-			this.linkLayer = linkLayer;
-			this.callbacks = callbacks;
-			this.DebugLog = debugLog;
-			this.slaveConnections = new List<SlaveConnection> ();
-		}
+        public PrimaryLinkLayerUnbalanced(LinkLayer linkLayer, IPrimaryLinkLayerCallbacks callbacks, Action<string> debugLog)
+        {
+            this.linkLayer = linkLayer;
+            this.callbacks = callbacks;
+            this.DebugLog = debugLog;
+            this.slaveConnections = new List<SlaveConnection>();
+        }
 
-		private SlaveConnection GetSlaveConnection(int slaveAddres)
-		{
-			foreach (SlaveConnection connection in slaveConnections) {
-				if (connection.address == slaveAddres)
-					return connection;
-			}
+        private SlaveConnection GetSlaveConnection(int slaveAddres)
+        {
+            foreach (SlaveConnection connection in slaveConnections)
+            {
+                if (connection.address == slaveAddres)
+                    return connection;
+            }
 
-			return null;
-		}
+            return null;
+        }
 
-		public void AddSlaveConnection(int slaveAddress)
-		{
-			SlaveConnection slave = GetSlaveConnection (slaveAddress);
+        public void AddSlaveConnection(int slaveAddress)
+        {
+            SlaveConnection slave = GetSlaveConnection(slaveAddress);
 
-			if (slave == null)
-				slaveConnections.Add (new SlaveConnection (slaveAddress, linkLayer, DebugLog, this));
-		}
-
-
-		public LinkLayerState GetStateOfSlave(int slaveAddress)
-		{	
-			SlaveConnection connection = GetSlaveConnection (slaveAddress);
-
-			if (connection != null)
-				return connection.linkLayerState;
-			else
-				throw new ArgumentException ("No slave with this address found");
-		}
+            if (slave == null)
+                slaveConnections.Add(new SlaveConnection(slaveAddress, linkLayer, DebugLog, this));
+        }
 
 
+        public LinkLayerState GetStateOfSlave(int slaveAddress)
+        {	
+            SlaveConnection connection = GetSlaveConnection(slaveAddress);
 
-		public override void HandleMessage(FunctionCodeSecondary fcs, bool acd, bool dfc, 
-			int address, byte[] msg, int userDataStart, int userDataLength)
-		{
-			SlaveConnection slave = null;
-
-			if (address == -1)
-				slave = currentSlave;
-			else
-				slave = GetSlaveConnection (address);
-
-			if (slave != null) {
-
-				slave.HandleMessage (fcs, acd, dfc, address, msg, userDataStart, userDataLength);
-
-			} else {
-				DebugLog ("PLL RECV - response from unknown slave " + address + " !");
-			}
-		}
+            if (connection != null)
+                return connection.linkLayerState;
+            else
+                throw new ArgumentException("No slave with this address found");
+        }
 
 
-		private int currentSlaveIndex = 0;
 
-		public override void RunStateMachine()
-		{
-			// run all the link layer state machines for the registered slaves
+        public override void HandleMessage(FunctionCodeSecondary fcs, bool acd, bool dfc, 
+                                     int address, byte[] msg, int userDataStart, int userDataLength)
+        {
+            SlaveConnection slave = null;
 
-			if (slaveConnections.Count > 0) {
+            if (address == -1)
+                slave = currentSlave;
+            else
+                slave = GetSlaveConnection(address);
 
-				if (currentSlave == null) {
+            if (slave != null)
+            {
 
-					/* schedule next slave connection */
-					currentSlave = slaveConnections [currentSlaveIndex];
-					currentSlaveIndex = (currentSlaveIndex + 1) % slaveConnections.Count;
+                slave.HandleMessage(fcs, acd, dfc, address, msg, userDataStart, userDataLength);
 
-				}
+            }
+            else
+            {
+                DebugLog("PLL RECV - response from unknown slave " + address + " !");
+            }
+        }
 
-				currentSlave.RunStateMachine ();
 
-				if (currentSlave.waitingForResponse == false)
-					currentSlave = null;
-			}
-		}
+        private int currentSlaveIndex = 0;
 
-		public override void SendLinkLayerTestFunction()
-		{
-		}
+        public override void RunStateMachine()
+        {
+            // run all the link layer state machines for the registered slaves
 
-		public void SetLinkLayerStateChanged(LinkLayerStateChanged callback, object parameter)
-		{
-			stateChanged = callback;
-			stateChangedParameter = parameter;
-		}
-	}
+            if (slaveConnections.Count > 0)
+            {
+
+                if (currentSlave == null)
+                {
+
+                    /* schedule next slave connection */
+                    currentSlave = slaveConnections[currentSlaveIndex];
+                    currentSlaveIndex = (currentSlaveIndex + 1) % slaveConnections.Count;
+
+                }
+
+                currentSlave.RunStateMachine();
+
+                if (currentSlave.waitingForResponse == false)
+                    currentSlave = null;
+            }
+        }
+
+        public override void SendLinkLayerTestFunction()
+        {
+        }
+
+        public void SetLinkLayerStateChanged(LinkLayerStateChanged callback, object parameter)
+        {
+            stateChanged = callback;
+            stateChangedParameter = parameter;
+        }
+    }
 }
 

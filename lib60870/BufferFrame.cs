@@ -23,61 +23,64 @@ using System;
 
 namespace lib60870
 {
-	/// <summary>
-	/// Implementation of Frame to encode into a given byte array
-	/// </summary>
-	internal class BufferFrame : Frame {
+    /// <summary>
+    /// Implementation of Frame to encode into a given byte array
+    /// </summary>
+    internal class BufferFrame : Frame
+    {
+        private byte[] buffer;
+        private int startPos;
+        private int bufPos;
 
-		private byte[] buffer;
-		private int startPos;
-		private int bufPos;
+        public BufferFrame(byte[] buffer, int startPos)
+        {
+            this.buffer = buffer;
+            this.startPos = startPos;
+            this.bufPos = startPos;
+        }
 
-		public BufferFrame(byte[] buffer, int startPos) {
-			this.buffer = buffer;
-			this.startPos = startPos;
-			this.bufPos = startPos;
-		}
+        public BufferFrame Clone()
+        {
+            byte[] newBuffer = new byte[GetMsgSize()];
 
-		public BufferFrame Clone()
-		{
-			byte[] newBuffer = new byte[GetMsgSize()];
+            int newBufPos = 0;
 
-			int newBufPos = 0;
+            for (int i = startPos; i < bufPos; i++)
+            {
+                newBuffer[newBufPos++] = buffer[i];
+            }
 
-			for (int i = startPos; i < bufPos; i++) {
-				newBuffer [newBufPos++] = buffer [i];
-			}
+            BufferFrame clone = new BufferFrame(newBuffer, 0);
+            clone.bufPos = newBufPos;
 
-			BufferFrame clone = new BufferFrame (newBuffer, 0);
-			clone.bufPos = newBufPos;
+            return clone;
+        }
 
-			return clone;
-		}
+        public override void ResetFrame()
+        {
+            bufPos = startPos;
+        }
 
-		public override void ResetFrame ()
-		{
-			bufPos = startPos;
-		}
+        public override void SetNextByte(byte value)
+        {
+            buffer[bufPos++] = value;
+        }
 
-		public override void SetNextByte (byte value)
-		{
-			buffer [bufPos++] = value;
-		}
+        public override void AppendBytes(byte[] bytes)
+        {
+            for (int i = 0; i < bytes.Length; i++)
+                buffer[bufPos++] = bytes[i];
+        }
 
-		public override void AppendBytes (byte[] bytes)
-		{
-			for (int i = 0; i < bytes.Length; i++)
-				buffer [bufPos++] = bytes [i];
-		}
+        public override int GetMsgSize()
+        {
+            return bufPos;
+        }
 
-		public override int GetMsgSize () {
-			return bufPos;
-		}
-
-		public override byte[] GetBuffer ()
-		{
-			return buffer;
-		}
-	}
+        public override byte[] GetBuffer()
+        {
+            return buffer;
+        }
+    }
 }
-
+    

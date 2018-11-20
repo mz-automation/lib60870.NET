@@ -35,320 +35,350 @@ using System.Collections.Concurrent;
 
 namespace lib60870.CS104
 {
-	/// <summary>
-	/// Represents a client (master) connection
-	/// </summary>
-	public class ClientConnection : IMasterConnection
-	{
-		private static int connectionsCounter = 0;
+    /// <summary>
+    /// Represents a client (master) connection
+    /// </summary>
+    public class ClientConnection : IMasterConnection
+    {
+        private static int connectionsCounter = 0;
 
-		private int connectionID;
+        private int connectionID;
 
-		private void DebugLog(string msg)
-		{
-			if (debugOutput) {
-				Console.Write ("CS104 SLAVE CONNECTION ");
-				Console.Write (connectionID);
-				Console.Write (": ");
-				Console.WriteLine (msg);
-			}
-		}
+        private void DebugLog(string msg)
+        {
+            if (debugOutput)
+            {
+                Console.Write("CS104 SLAVE CONNECTION ");
+                Console.Write(connectionID);
+                Console.Write(": ");
+                Console.WriteLine(msg);
+            }
+        }
 
-		static byte[] STARTDT_CON_MSG = new byte[] { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
+        static byte[] STARTDT_CON_MSG = new byte[] { 0x68, 0x04, 0x0b, 0x00, 0x00, 0x00 };
 
-		static byte[] STOPDT_CON_MSG = new byte[] { 0x68, 0x04, 0x23, 0x00, 0x00, 0x00 };
+        static byte[] STOPDT_CON_MSG = new byte[] { 0x68, 0x04, 0x23, 0x00, 0x00, 0x00 };
 
-		static byte[] TESTFR_CON_MSG = new byte[] { 0x68, 0x04, 0x83, 0x00, 0x00, 0x00 };
+        static byte[] TESTFR_CON_MSG = new byte[] { 0x68, 0x04, 0x83, 0x00, 0x00, 0x00 };
 
-		static byte[] TESTFR_ACT_MSG = new byte[] { 0x68, 0x04, 0x43, 0x00, 0x00, 0x00 };
+        static byte[] TESTFR_ACT_MSG = new byte[] { 0x68, 0x04, 0x43, 0x00, 0x00, 0x00 };
 
-		private int sendCount = 0;
-		private int receiveCount = 0;
+        private int sendCount = 0;
+        private int receiveCount = 0;
 
-		private int unconfirmedReceivedIMessages = 0; /* number of unconfirmed messages received */
+        /* number of unconfirmed messages received */
+        private int unconfirmedReceivedIMessages = 0;
 
-		/* T3 parameter handling */
-		private UInt64 nextT3Timeout;
-		private int outStandingTestFRConMessages = 0;
+        /* T3 parameter handling */
+        private UInt64 nextT3Timeout;
+        private int outStandingTestFRConMessages = 0;
 
-		/* T2 parameter handling */
-		private bool timeoutT2Triggered = false;
-		private Int64 lastConfirmationTime = System.Int64.MaxValue; /* timestamp when the last confirmation message was sent */
+        /* T2 parameter handling */
+        private bool timeoutT2Triggered = false;
 
-		private TlsSecurityInformation tlsSecInfo = null;
+        /* timestamp when the last confirmation message was sent */
+        private Int64 lastConfirmationTime = System.Int64.MaxValue;
+      
+        private TlsSecurityInformation tlsSecInfo = null;
 
-		private APCIParameters apciParameters;
-		private ApplicationLayerParameters alParameters;
+        private APCIParameters apciParameters;
+        private ApplicationLayerParameters alParameters;
 
-		private Server server;
+        private Server server;
 
-		private ConcurrentQueue<ASDU> receivedASDUs = null;
-		private Thread callbackThread = null;
-		private bool callbackThreadRunning = false;
+        private ConcurrentQueue<ASDU> receivedASDUs = null;
+        private Thread callbackThread = null;
+        private bool callbackThreadRunning = false;
 
-		private Queue<BufferFrame> waitingASDUsHighPrio = null;
+        private Queue<BufferFrame> waitingASDUsHighPrio = null;
 
-		/* data structure for k-size sent ASDU buffer */
-		private struct SentASDU
-		{
-			// required to identify message in server (low-priority) queue
-			public long entryTime;
-			public int queueIndex; /* -1 if ASDU is not from low-priority queue */
+        /* data structure for k-size sent ASDU buffer */
+        private struct SentASDU
+        {
+            // required to identify message in server (low-priority) queue
+            public long entryTime;
 
-			public long sentTime; /* timestamp when the message was sent (for T1 timeout) */
-			public int seqNo;     /* sequence number used to send the message */
-		}
+            /* -1 if ASDU is not from low-priority queue */
+            public int queueIndex;
 
-		private int maxSentASDUs;
-		private int oldestSentASDU = -1;
-		private int newestSentASDU = -1;
-		private SentASDU[] sentASDUs = null;
+            /* timestamp when the message was sent (for T1 timeout) */
+            public long sentTime;
+
+            /* sequence number used to send the message */
+            public int seqNo;
+        }
+
+        private int maxSentASDUs;
+        private int oldestSentASDU = -1;
+        private int newestSentASDU = -1;
+        private SentASDU[] sentASDUs = null;
 
         private ASDUQueue asduQueue = null;
 
-		private FileServer fileServer;
+        private FileServer fileServer;
 
         internal ASDUQueue GetASDUQueue()
         {
             return asduQueue;
         }
 
-		private void ProcessASDUs()
-		{
-			callbackThreadRunning = true;
+        private void ProcessASDUs()
+        {
+            callbackThreadRunning = true;
 
-			while (callbackThreadRunning) {
+            while (callbackThreadRunning)
+            {
 
-                try {
-    				while ((receivedASDUs.Count > 0) && (callbackThreadRunning) && (running)) {
+                try
+                {
+                    while ((receivedASDUs.Count > 0) && (callbackThreadRunning) && (running))
+                    {
     				
-    					ASDU asdu;
+                        ASDU asdu;
 
-    					if (receivedASDUs.TryDequeue (out asdu)) {
-    						HandleASDU (asdu);
-    					}
+                        if (receivedASDUs.TryDequeue(out asdu))
+                        {
+                            HandleASDU(asdu);
+                        }
     						
-				    }
+                    }
 
-                    Thread.Sleep (50);
+                    Thread.Sleep(50);
                 }
-                catch (ASDUParsingException) {
+                catch (ASDUParsingException)
+                {
                     DebugLog("Failed to parse ASDU --> close connection");
                     running = false;
                 }
 
-			}
+            }
 
-			DebugLog ("ProcessASDUs exit thread");
-		}
+            DebugLog("ProcessASDUs exit thread");
+        }
 
-		private IPEndPoint remoteEndpoint;
+        private IPEndPoint remoteEndpoint;
 
-		/// <summary>
-		/// Gets the remote endpoint (client IP address and TCP port)
-		/// </summary>
-		/// <value>The remote IP endpoint</value>
-		public IPEndPoint RemoteEndpoint
-		{
-			get {
-				return remoteEndpoint;
-			}
-		}
+        /// <summary>
+        /// Gets the remote endpoint (client IP address and TCP port)
+        /// </summary>
+        /// <value>The remote IP endpoint</value>
+        public IPEndPoint RemoteEndpoint
+        {
+            get
+            {
+                return remoteEndpoint;
+            }
+        }
 
-		internal ClientConnection(Socket socket, TlsSecurityInformation tlsSecInfo, APCIParameters apciParameters, ApplicationLayerParameters parameters, Server server, ASDUQueue asduQueue, bool debugOutput) 
-		{
-			connectionsCounter++;
-			connectionID = connectionsCounter;
+        internal ClientConnection(Socket socket, TlsSecurityInformation tlsSecInfo, APCIParameters apciParameters, ApplicationLayerParameters parameters, Server server, ASDUQueue asduQueue, bool debugOutput)
+        {
+            connectionsCounter++;
+            connectionID = connectionsCounter;
 
-			this.remoteEndpoint = (IPEndPoint) socket.RemoteEndPoint;
+            this.remoteEndpoint = (IPEndPoint)socket.RemoteEndPoint;
 
-			this.apciParameters = apciParameters;
-			this.alParameters = parameters;
-			this.server = server;
+            this.apciParameters = apciParameters;
+            this.alParameters = parameters;
+            this.server = server;
             this.asduQueue = asduQueue;
-			this.debugOutput = debugOutput;
+            this.debugOutput = debugOutput;
 
-			ResetT3Timeout ();
+            ResetT3Timeout();
 
-			maxSentASDUs = apciParameters.K;
-			this.sentASDUs = new SentASDU[maxSentASDUs];
+            maxSentASDUs = apciParameters.K;
+            this.sentASDUs = new SentASDU[maxSentASDUs];
 
-			receivedASDUs = new ConcurrentQueue<ASDU> ();
-			waitingASDUsHighPrio = new Queue<BufferFrame> ();
+            receivedASDUs = new ConcurrentQueue<ASDU>();
+            waitingASDUsHighPrio = new Queue<BufferFrame>();
 
-			socketStream = new NetworkStream (socket);
-			this.socket = socket;
-			this.tlsSecInfo = tlsSecInfo;
+            socketStream = new NetworkStream(socket);
+            this.socket = socket;
+            this.tlsSecInfo = tlsSecInfo;
 
-			this.fileServer = new FileServer (this, server.GetAvailableFiles (), DebugLog);
+            this.fileServer = new FileServer(this, server.GetAvailableFiles(), DebugLog);
 
-			Thread workerThread = new Thread(HandleConnection);
+            Thread workerThread = new Thread(HandleConnection);
 
-			workerThread.Start ();
-		}
+            workerThread.Start();
+        }
 
-		/// <summary>
-		/// Gets the connection parameters.
-		/// </summary>
-		/// <returns>The connection parameters used by the server.</returns>
-		public ApplicationLayerParameters GetApplicationLayerParameters()
-		{
-			return alParameters;
-		}
+        /// <summary>
+        /// Gets the connection parameters.
+        /// </summary>
+        /// <returns>The connection parameters used by the server.</returns>
+        public ApplicationLayerParameters GetApplicationLayerParameters()
+        {
+            return alParameters;
+        }
 
-		private void ResetT3Timeout() {
-			nextT3Timeout = (UInt64) SystemUtils.currentTimeMillis () + (UInt64) (apciParameters.T3 * 1000);
-		}
+        private void ResetT3Timeout()
+        {
+            nextT3Timeout = (UInt64)SystemUtils.currentTimeMillis() + (UInt64)(apciParameters.T3 * 1000);
+        }
 
-		/// <summary>
-		/// Flag indicating that this connection is the active connection.
-		/// The active connection is the only connection that is answering
-		/// application layer requests and sends cyclic, and spontaneous messages.
-		/// </summary>
-		private bool isActive = false;
+        /// <summary>
+        /// Flag indicating that this connection is the active connection.
+        /// The active connection is the only connection that is answering
+        /// application layer requests and sends cyclic, and spontaneous messages.
+        /// </summary>
+        private bool isActive = false;
 
-		/// <summary>
-		/// Gets or sets a value indicating whether this connection is active.
-		/// The active connection is the only connection that is answering
-		/// application layer requests and sends cyclic, and spontaneous messages.
-		/// </summary>
-		/// <value><c>true</c> if this instance is active; otherwise, <c>false</c>.</value>
-		public bool IsActive {
-			get {
-				return this.isActive;
-			}
-			set {
+        /// <summary>
+        /// Gets or sets a value indicating whether this connection is active.
+        /// The active connection is the only connection that is answering
+        /// application layer requests and sends cyclic, and spontaneous messages.
+        /// </summary>
+        /// <value><c>true</c> if this instance is active; otherwise, <c>false</c>.</value>
+        public bool IsActive
+        {
+            get
+            {
+                return this.isActive;
+            }
+            set
+            {
 
-				if (isActive != value) {
+                if (isActive != value)
+                {
 
-					isActive = value;
+                    isActive = value;
 
-					if (isActive)
-						DebugLog ("is active");
-					else
-						DebugLog ("is not active");
-				}
-			}
-		}
+                    if (isActive)
+                        DebugLog("is active");
+                    else
+                        DebugLog("is not active");
+                }
+            }
+        }
 
-		private Socket socket;
-		//private NetworkStream socketStream;
-		private Stream socketStream;
+        private Socket socket;
+        //private NetworkStream socketStream;
+        private Stream socketStream;
 
-		private bool running = false;
+        private bool running = false;
 
-		private bool debugOutput = true;
+        private bool debugOutput = true;
 
-		private int receiveMessage(byte[] buffer) 
-		{
+        private int receiveMessage(byte[] buffer)
+        {
 			
-			int readLength = 0;
+            int readLength = 0;
 
 
-			if (socket.Poll (50, SelectMode.SelectRead)) {
-				// maybe use socketStream.DataAvailable
+            if (socket.Poll(50, SelectMode.SelectRead))
+            {
+                // maybe use socketStream.DataAvailable
 
-				// wait for first byte
-				if (socketStream.Read (buffer, 0, 1) != 1)
-					return -1;
+                // wait for first byte
+                if (socketStream.Read(buffer, 0, 1) != 1)
+                    return -1;
 
-				if (buffer [0] != 0x68) {
-					DebugLog("Missing SOF indicator!");
-					return -1;
-				}
+                if (buffer[0] != 0x68)
+                {
+                    DebugLog("Missing SOF indicator!");
+                    return -1;
+                }
 
-				// read length byte
-				if (socketStream.Read (buffer, 1, 1) != 1)
-					return -1;
+                // read length byte
+                if (socketStream.Read(buffer, 1, 1) != 1)
+                    return -1;
 
-				int length = buffer [1];
+                int length = buffer[1];
 
-				// read remaining frame
-				if (socketStream.Read (buffer, 2, length) != length) {
-					DebugLog("Failed to read complete frame!");
-					return -1;
-				}
+                // read remaining frame
+                if (socketStream.Read(buffer, 2, length) != length)
+                {
+                    DebugLog("Failed to read complete frame!");
+                    return -1;
+                }
 
-				readLength = length + 2;
-			}
+                readLength = length + 2;
+            }
 
-			return readLength;
-		}
-			
-		private void SendSMessage() 
-		{
-			DebugLog("Send S message");
+            return readLength;
+        }
 
-			byte[] msg = new byte[6];
+        private void SendSMessage()
+        {
+            DebugLog("Send S message");
 
-			msg [0] = 0x68;
-			msg [1] = 0x04;
-			msg [2] = 0x01;
-			msg [3] = 0;
+            byte[] msg = new byte[6];
 
-			lock (socketStream) {
-				msg [4] = (byte)((receiveCount % 128) * 2);
-				msg [5] = (byte)(receiveCount / 128);
+            msg[0] = 0x68;
+            msg[1] = 0x04;
+            msg[2] = 0x01;
+            msg[3] = 0;
 
-				try {
-					socketStream.Write(msg, 0, msg.Length);
-				}
-				catch (System.IO.IOException) {
-					// socket error --> close connection
-					running = false;
-				}
-			}
-		}
+            lock (socketStream)
+            {
+                msg[4] = (byte)((receiveCount % 128) * 2);
+                msg[5] = (byte)(receiveCount / 128);
 
-		private int SendIMessage(BufferFrame asdu)
-		{
+                try
+                {
+                    socketStream.Write(msg, 0, msg.Length);
+                }
+                catch (System.IO.IOException)
+                {
+                    // socket error --> close connection
+                    running = false;
+                }
+            }
+        }
 
-			byte[] buffer = asdu.GetBuffer ();
+        private int SendIMessage(BufferFrame asdu)
+        {
 
-			int msgSize = asdu.GetMsgSize (); /* ASDU size + ACPI size */
+            byte[] buffer = asdu.GetBuffer();
 
-			buffer [0] = 0x68;
+            int msgSize = asdu.GetMsgSize(); /* ASDU size + ACPI size */
 
-			/* set size field */
-			buffer [1] = (byte) (msgSize - 2);
+            buffer[0] = 0x68;
 
-			buffer [2] = (byte) ((sendCount % 128) * 2);
-			buffer [3] = (byte) (sendCount / 128);
+            /* set size field */
+            buffer[1] = (byte)(msgSize - 2);
 
-			buffer [4] = (byte) ((receiveCount % 128) * 2);
-			buffer [5] = (byte) (receiveCount / 128);
+            buffer[2] = (byte)((sendCount % 128) * 2);
+            buffer[3] = (byte)(sendCount / 128);
 
-			try {
-				lock (socketStream) {
-					socketStream.Write (buffer, 0, msgSize);
-					DebugLog("SEND I (size = " + msgSize + ") : " +	BitConverter.ToString(buffer, 0, msgSize));
-					sendCount = (sendCount + 1) % 32768;
-					unconfirmedReceivedIMessages = 0;
-					timeoutT2Triggered = false;
-				}
-			}
-			catch (System.IO.IOException) {
-				// socket error --> close connection
-				running = false;
-			}
+            buffer[4] = (byte)((receiveCount % 128) * 2);
+            buffer[5] = (byte)(receiveCount / 128);
 
-			return sendCount;
-		}
+            try
+            {
+                lock (socketStream)
+                {
+                    socketStream.Write(buffer, 0, msgSize);
+                    DebugLog("SEND I (size = " + msgSize + ") : " +	BitConverter.ToString(buffer, 0, msgSize));
+                    sendCount = (sendCount + 1) % 32768;
+                    unconfirmedReceivedIMessages = 0;
+                    timeoutT2Triggered = false;
+                }
+            }
+            catch (System.IO.IOException)
+            {
+                // socket error --> close connection
+                running = false;
+            }
 
-		private bool isSentBufferFull() {
+            return sendCount;
+        }
 
-			if (oldestSentASDU == -1)
-				return false;
+        private bool isSentBufferFull()
+        {
 
-			int newIndex = (newestSentASDU + 1) % maxSentASDUs;
+            if (oldestSentASDU == -1)
+                return false;
 
-			if (newIndex == oldestSentASDU)
-				return true;
-			else
-				return false;
-		}
+            int newIndex = (newestSentASDU + 1) % maxSentASDUs;
 
-        private void PrintSendBuffer() 
+            if (newIndex == oldestSentASDU)
+                return true;
+            else
+                return false;
+        }
+
+        private void PrintSendBuffer()
         {
             if (debugOutput)
             {
@@ -379,788 +409,911 @@ namespace lib60870.CS104
             }
         }
 
-		private void sendNextAvailableASDU() 
-		{
-			lock (sentASDUs) {
-				if (isSentBufferFull ())
-					return;
+        private void sendNextAvailableASDU()
+        {
+            lock (sentASDUs)
+            {
+                if (isSentBufferFull())
+                    return;
 
-				long timestamp;
-				int index;
+                long timestamp;
+                int index;
 
                 asduQueue.LockASDUQueue();
                 BufferFrame asdu = asduQueue.GetNextWaitingASDU(out timestamp, out index);
 
-                try {
+                try
+                {
 
-					if (asdu != null) {
+                    if (asdu != null)
+                    {
 
-						int currentIndex = 0;
+                        int currentIndex = 0;
 
-						if (oldestSentASDU == -1) {
-							oldestSentASDU = 0;
-							newestSentASDU = 0;
+                        if (oldestSentASDU == -1)
+                        {
+                            oldestSentASDU = 0;
+                            newestSentASDU = 0;
 
-						} else {
-							currentIndex = (newestSentASDU + 1) % maxSentASDUs;
-						}
+                        }
+                        else
+                        {
+                            currentIndex = (newestSentASDU + 1) % maxSentASDUs;
+                        }
 							
-						sentASDUs [currentIndex].entryTime = timestamp;
-						sentASDUs [currentIndex].queueIndex = index;
-						sentASDUs [currentIndex].seqNo = SendIMessage (asdu);
-						sentASDUs [currentIndex].sentTime = SystemUtils.currentTimeMillis ();
+                        sentASDUs[currentIndex].entryTime = timestamp;
+                        sentASDUs[currentIndex].queueIndex = index;
+                        sentASDUs[currentIndex].seqNo = SendIMessage(asdu);
+                        sentASDUs[currentIndex].sentTime = SystemUtils.currentTimeMillis();
 
-						newestSentASDU = currentIndex;
+                        newestSentASDU = currentIndex;
 
-						PrintSendBuffer ();
-					}
-				}
-				finally {
+                        PrintSendBuffer();
+                    }
+                }
+                finally
+                {
                     asduQueue.UnlockASDUQueue();
-				}
-			}
-		}
+                }
+            }
+        }
 
-		private bool sendNextHighPriorityASDU() {
-			lock (sentASDUs) {
-				if (isSentBufferFull ())
-					return false;
+        private bool sendNextHighPriorityASDU()
+        {
+            lock (sentASDUs)
+            {
+                if (isSentBufferFull())
+                    return false;
 
-				BufferFrame asdu = waitingASDUsHighPrio.Dequeue ();
+                BufferFrame asdu = waitingASDUsHighPrio.Dequeue();
 
-				if (asdu != null) {
+                if (asdu != null)
+                {
 
-					int currentIndex = 0;
+                    int currentIndex = 0;
 
-					if (oldestSentASDU == -1) {
-						oldestSentASDU = 0;
-						newestSentASDU = 0;
+                    if (oldestSentASDU == -1)
+                    {
+                        oldestSentASDU = 0;
+                        newestSentASDU = 0;
 
-					} else {
-						currentIndex = (newestSentASDU + 1) % maxSentASDUs;
-					}
+                    }
+                    else
+                    {
+                        currentIndex = (newestSentASDU + 1) % maxSentASDUs;
+                    }
 						
-					sentASDUs [currentIndex].queueIndex = -1;
-					sentASDUs [currentIndex].seqNo = SendIMessage (asdu);
-					sentASDUs [currentIndex].sentTime = SystemUtils.currentTimeMillis ();
+                    sentASDUs[currentIndex].queueIndex = -1;
+                    sentASDUs[currentIndex].seqNo = SendIMessage(asdu);
+                    sentASDUs[currentIndex].sentTime = SystemUtils.currentTimeMillis();
 
-					newestSentASDU = currentIndex;
+                    newestSentASDU = currentIndex;
 
-					PrintSendBuffer ();
-				} else
-					return false;
-			}
+                    PrintSendBuffer();
+                }
+                else
+                    return false;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
 
 
-		private void SendWaitingASDUs()
-		{
+        private void SendWaitingASDUs()
+        {
 
-			lock (waitingASDUsHighPrio) {
+            lock (waitingASDUsHighPrio)
+            {
 
-				while (waitingASDUsHighPrio.Count > 0) {
+                while (waitingASDUsHighPrio.Count > 0)
+                {
 
-					if (sendNextHighPriorityASDU () == false)
-						return;
+                    if (sendNextHighPriorityASDU() == false)
+                        return;
 
-					if (running == false)
-						return;
-				}
-			}
+                    if (running == false)
+                        return;
+                }
+            }
 
-			// send messages from low-priority queue
-			sendNextAvailableASDU();
-		}
+            // send messages from low-priority queue
+            sendNextAvailableASDU();
+        }
 
-		private void SendASDUInternal(ASDU asdu)
-		{
-			if (isActive) {
-				lock (waitingASDUsHighPrio) {
+        private void SendASDUInternal(ASDU asdu)
+        {
+            if (isActive)
+            {
+                lock (waitingASDUsHighPrio)
+                {
 
-					BufferFrame frame = new BufferFrame (new byte[256], 6);
+                    BufferFrame frame = new BufferFrame(new byte[256], 6);
 
-					asdu.Encode (frame, alParameters);
+                    asdu.Encode(frame, alParameters);
 
-					waitingASDUsHighPrio.Enqueue (frame);
-				}
+                    waitingASDUsHighPrio.Enqueue(frame);
+                }
 
-				SendWaitingASDUs ();
-			} 
-		}
+                SendWaitingASDUs();
+            } 
+        }
 
-		/// <summary>
-		/// Send a response ASDU over this connection
-		/// </summary>
-		/// <exception cref="ConnectionException">Throws an exception if the connection is no longer active (e.g. because it has been closed by the other side).</exception>
-		/// <param name="asdu">The ASDU to send</param>
-		public void SendASDU(ASDU asdu) 
-		{
-			if (isActive)
-				SendASDUInternal (asdu);
-			else
-				throw new ConnectionException ("Connection not active");
-		}
+        /// <summary>
+        /// Send a response ASDU over this connection
+        /// </summary>
+        /// <exception cref="ConnectionException">Throws an exception if the connection is no longer active (e.g. because it has been closed by the other side).</exception>
+        /// <param name="asdu">The ASDU to send</param>
+        public void SendASDU(ASDU asdu)
+        {
+            if (isActive)
+                SendASDUInternal(asdu);
+            else
+                throw new ConnectionException("Connection not active");
+        }
 
-		public void SendACT_CON(ASDU asdu, bool negative) {
-			asdu.Cot = CauseOfTransmission.ACTIVATION_CON;
-			asdu.IsNegative = negative;
+        public void SendACT_CON(ASDU asdu, bool negative)
+        {
+            asdu.Cot = CauseOfTransmission.ACTIVATION_CON;
+            asdu.IsNegative = negative;
 
-			SendASDU (asdu);
-		}
+            SendASDU(asdu);
+        }
 
-		public void SendACT_TERM(ASDU asdu) {
-			asdu.Cot = CauseOfTransmission.ACTIVATION_TERMINATION;
-			asdu.IsNegative = false;
+        public void SendACT_TERM(ASDU asdu)
+        {
+            asdu.Cot = CauseOfTransmission.ACTIVATION_TERMINATION;
+            asdu.IsNegative = false;
 
-			SendASDU (asdu);
-		}
-			
-		private void HandleASDU(ASDU asdu)
-		{		
-			DebugLog ("Handle received ASDU");
+            SendASDU(asdu);
+        }
 
-			bool messageHandled = false;
+        private void HandleASDU(ASDU asdu)
+        {		
+            DebugLog("Handle received ASDU");
 
-			switch (asdu.TypeId) {
+            bool messageHandled = false;
 
-			case TypeID.C_IC_NA_1: /* 100 - interrogation command */
+            switch (asdu.TypeId)
+            {
 
-				DebugLog("Rcvd interrogation command C_IC_NA_1");
+                case TypeID.C_IC_NA_1: /* 100 - interrogation command */
 
-				if ((asdu.Cot == CauseOfTransmission.ACTIVATION) || (asdu.Cot == CauseOfTransmission.DEACTIVATION)) {
-					if (server.interrogationHandler != null) {
+                    DebugLog("Rcvd interrogation command C_IC_NA_1");
 
-						InterrogationCommand irc = (InterrogationCommand)asdu.GetElement (0);
+                    if ((asdu.Cot == CauseOfTransmission.ACTIVATION) || (asdu.Cot == CauseOfTransmission.DEACTIVATION))
+                    {
+                        if (server.interrogationHandler != null)
+                        {
 
-						if (server.interrogationHandler (server.InterrogationHandlerParameter, this, asdu, irc.QOI))
-							messageHandled = true;
-					}
-				} else {
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					asdu.IsNegative = true;
-					this.SendASDUInternal (asdu);
-				}
+                            InterrogationCommand irc = (InterrogationCommand)asdu.GetElement(0);
 
-				break;
+                            if (server.interrogationHandler(server.InterrogationHandlerParameter, this, asdu, irc.QOI))
+                                messageHandled = true;
+                        }
+                    }
+                    else
+                    {
+                        asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+                        asdu.IsNegative = true;
+                        this.SendASDUInternal(asdu);
+                    }
 
-			case TypeID.C_CI_NA_1: /* 101 - counter interrogation command */
+                    break;
 
-				DebugLog("Rcvd counter interrogation command C_CI_NA_1");
+                case TypeID.C_CI_NA_1: /* 101 - counter interrogation command */
 
-				if ((asdu.Cot == CauseOfTransmission.ACTIVATION) || (asdu.Cot == CauseOfTransmission.DEACTIVATION)) {
-					if (server.counterInterrogationHandler != null) {
+                    DebugLog("Rcvd counter interrogation command C_CI_NA_1");
 
-						CounterInterrogationCommand cic = (CounterInterrogationCommand)asdu.GetElement (0);
+                    if ((asdu.Cot == CauseOfTransmission.ACTIVATION) || (asdu.Cot == CauseOfTransmission.DEACTIVATION))
+                    {
+                        if (server.counterInterrogationHandler != null)
+                        {
 
-						if (server.counterInterrogationHandler (server.counterInterrogationHandlerParameter, this, asdu, cic.QCC))
-							messageHandled = true;
-					}
-				} else {
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					asdu.IsNegative = true;
-					this.SendASDUInternal (asdu);
-				}
+                            CounterInterrogationCommand cic = (CounterInterrogationCommand)asdu.GetElement(0);
 
-				break;
+                            if (server.counterInterrogationHandler(server.counterInterrogationHandlerParameter, this, asdu, cic.QCC))
+                                messageHandled = true;
+                        }
+                    }
+                    else
+                    {
+                        asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+                        asdu.IsNegative = true;
+                        this.SendASDUInternal(asdu);
+                    }
 
-			case TypeID.C_RD_NA_1: /* 102 - read command */
+                    break;
 
-				DebugLog("Rcvd read command C_RD_NA_1");
+                case TypeID.C_RD_NA_1: /* 102 - read command */
 
-				if (asdu.Cot == CauseOfTransmission.REQUEST) {
+                    DebugLog("Rcvd read command C_RD_NA_1");
 
-					DebugLog("Read request for object: " + asdu.Ca);
+                    if (asdu.Cot == CauseOfTransmission.REQUEST)
+                    {
 
-					if (server.readHandler != null) {
-						ReadCommand rc = (ReadCommand)asdu.GetElement (0);
+                        DebugLog("Read request for object: " + asdu.Ca);
 
-						if (server.readHandler (server.readHandlerParameter, this, asdu, rc.ObjectAddress))
-							messageHandled = true;
+                        if (server.readHandler != null)
+                        {
+                            ReadCommand rc = (ReadCommand)asdu.GetElement(0);
 
-					}
+                            if (server.readHandler(server.readHandlerParameter, this, asdu, rc.ObjectAddress))
+                                messageHandled = true;
 
-				} else {
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					asdu.IsNegative = true;
-					this.SendASDUInternal (asdu);
-				}
+                        }
 
-				break;
+                    }
+                    else
+                    {
+                        asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+                        asdu.IsNegative = true;
+                        this.SendASDUInternal(asdu);
+                    }
 
-			case TypeID.C_CS_NA_1: /* 103 - Clock synchronization command */
+                    break;
 
-				DebugLog("Rcvd clock sync command C_CS_NA_1");
+                case TypeID.C_CS_NA_1: /* 103 - Clock synchronization command */
 
-				if (asdu.Cot == CauseOfTransmission.ACTIVATION) {
+                    DebugLog("Rcvd clock sync command C_CS_NA_1");
 
-					if (server.clockSynchronizationHandler != null) {
+                    if (asdu.Cot == CauseOfTransmission.ACTIVATION)
+                    {
 
-						ClockSynchronizationCommand csc = (ClockSynchronizationCommand)asdu.GetElement (0);
+                        if (server.clockSynchronizationHandler != null)
+                        {
 
-						if (server.clockSynchronizationHandler (server.clockSynchronizationHandlerParameter,
-							    this, asdu, csc.NewTime))
-							messageHandled = true;
-					}
+                            ClockSynchronizationCommand csc = (ClockSynchronizationCommand)asdu.GetElement(0);
 
-				} else {
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					asdu.IsNegative = true;
-					this.SendASDUInternal (asdu);
-				}
+                            if (server.clockSynchronizationHandler(server.clockSynchronizationHandlerParameter,
+                                this, asdu, csc.NewTime))
+                                messageHandled = true;
+                        }
 
-				break;
+                    }
+                    else
+                    {
+                        asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+                        asdu.IsNegative = true;
+                        this.SendASDUInternal(asdu);
+                    }
 
-			case TypeID.C_TS_NA_1: /* 104 - test command */
+                    break;
 
-				DebugLog("Rcvd test command C_TS_NA_1");
+                case TypeID.C_TS_NA_1: /* 104 - test command */
 
-				if (asdu.Cot != CauseOfTransmission.ACTIVATION)
-				{
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					asdu.IsNegative = true;
-				}
-				else
-					asdu.Cot = CauseOfTransmission.ACTIVATION_CON;
+                    DebugLog("Rcvd test command C_TS_NA_1");
 
-				this.SendASDUInternal (asdu);
+                    if (asdu.Cot != CauseOfTransmission.ACTIVATION)
+                    {
+                        asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+                        asdu.IsNegative = true;
+                    }
+                    else
+                        asdu.Cot = CauseOfTransmission.ACTIVATION_CON;
 
-				messageHandled = true;
+                    this.SendASDUInternal(asdu);
 
-				break;
+                    messageHandled = true;
 
-			case TypeID.C_RP_NA_1: /* 105 - Reset process command */
+                    break;
 
-				DebugLog("Rcvd reset process command C_RP_NA_1");
+                case TypeID.C_RP_NA_1: /* 105 - Reset process command */
 
-				if (asdu.Cot == CauseOfTransmission.ACTIVATION) {
+                    DebugLog("Rcvd reset process command C_RP_NA_1");
 
-					if (server.resetProcessHandler != null) {
+                    if (asdu.Cot == CauseOfTransmission.ACTIVATION)
+                    {
 
-						ResetProcessCommand rpc = (ResetProcessCommand)asdu.GetElement (0);
+                        if (server.resetProcessHandler != null)
+                        {
 
-						if (server.resetProcessHandler (server.resetProcessHandlerParameter,
-							    this, asdu, rpc.QRP))
-							messageHandled = true;
-					}
+                            ResetProcessCommand rpc = (ResetProcessCommand)asdu.GetElement(0);
 
-				} else {
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					asdu.IsNegative = true;
-					this.SendASDUInternal (asdu);
-				}
+                            if (server.resetProcessHandler(server.resetProcessHandlerParameter,
+                                this, asdu, rpc.QRP))
+                                messageHandled = true;
+                        }
 
+                    }
+                    else
+                    {
+                        asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+                        asdu.IsNegative = true;
+                        this.SendASDUInternal(asdu);
+                    }
 
-				break;
 
-			case TypeID.C_CD_NA_1: /* 106 - Delay acquisition command */
+                    break;
 
-				DebugLog("Rcvd delay acquisition command C_CD_NA_1");
+                case TypeID.C_CD_NA_1: /* 106 - Delay acquisition command */
 
-				if ((asdu.Cot == CauseOfTransmission.ACTIVATION) || (asdu.Cot == CauseOfTransmission.SPONTANEOUS)) {
-					if (server.delayAcquisitionHandler != null) {
+                    DebugLog("Rcvd delay acquisition command C_CD_NA_1");
 
-						DelayAcquisitionCommand dac = (DelayAcquisitionCommand)asdu.GetElement (0);
+                    if ((asdu.Cot == CauseOfTransmission.ACTIVATION) || (asdu.Cot == CauseOfTransmission.SPONTANEOUS))
+                    {
+                        if (server.delayAcquisitionHandler != null)
+                        {
 
-						if (server.delayAcquisitionHandler (server.delayAcquisitionHandlerParameter,
-							    this, asdu, dac.Delay))
-							messageHandled = true;
-					}
-				} else {
-					asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
-					asdu.IsNegative = true;
-					this.SendASDUInternal (asdu);
-				}
+                            DelayAcquisitionCommand dac = (DelayAcquisitionCommand)asdu.GetElement(0);
 
-				break;
-			}
+                            if (server.delayAcquisitionHandler(server.delayAcquisitionHandlerParameter,
+                                this, asdu, dac.Delay))
+                                messageHandled = true;
+                        }
+                    }
+                    else
+                    {
+                        asdu.Cot = CauseOfTransmission.UNKNOWN_CAUSE_OF_TRANSMISSION;
+                        asdu.IsNegative = true;
+                        this.SendASDUInternal(asdu);
+                    }
 
-			if (messageHandled == false)
-				messageHandled = fileServer.HandleFileAsdu (asdu);
+                    break;
+            }
 
-			if ((messageHandled == false) && (server.asduHandler != null))
-				if (server.asduHandler (server.asduHandlerParameter, this, asdu))
-					messageHandled = true;
+            if (messageHandled == false)
+                messageHandled = fileServer.HandleFileAsdu(asdu);
 
-			if (messageHandled == false) {
-				asdu.Cot = CauseOfTransmission.UNKNOWN_TYPE_ID;
-				asdu.IsNegative = true;
-				this.SendASDUInternal (asdu);
-			}
+            if ((messageHandled == false) && (server.asduHandler != null))
+            if (server.asduHandler(server.asduHandlerParameter, this, asdu))
+                messageHandled = true;
 
-		}
+            if (messageHandled == false)
+            {
+                asdu.Cot = CauseOfTransmission.UNKNOWN_TYPE_ID;
+                asdu.IsNegative = true;
+                this.SendASDUInternal(asdu);
+            }
 
-		private bool CheckSequenceNumber(int seqNo) {
+        }
 
-			lock (sentASDUs) {
+        private bool CheckSequenceNumber(int seqNo)
+        {
 
-				/* check if received sequence number is valid */
+            lock (sentASDUs)
+            {
 
-				bool seqNoIsValid = false;
-				bool counterOverflowDetected = false;
-				int oldestValidSeqNo = -1;
+                /* check if received sequence number is valid */
 
-				if (oldestSentASDU == -1) 
-				{ /* if k-Buffer is empty */
-					if (seqNo == sendCount)
-						seqNoIsValid = true;
-				}
-				else {
-					// Two cases are required to reflect sequence number overflow
-					if (sentASDUs[oldestSentASDU].seqNo <= sentASDUs[newestSentASDU].seqNo) {
-						if ((seqNo >= sentASDUs [oldestSentASDU].seqNo) &&
-						    (seqNo <= sentASDUs [newestSentASDU].seqNo))
-							seqNoIsValid = true;
+                bool seqNoIsValid = false;
+                bool counterOverflowDetected = false;
+                int oldestValidSeqNo = -1;
+
+                if (oldestSentASDU == -1)
+                { /* if k-Buffer is empty */
+                    if (seqNo == sendCount)
+                        seqNoIsValid = true;
+                }
+                else
+                {
+                    // Two cases are required to reflect sequence number overflow
+                    if (sentASDUs[oldestSentASDU].seqNo <= sentASDUs[newestSentASDU].seqNo)
+                    {
+                        if ((seqNo >= sentASDUs[oldestSentASDU].seqNo) &&
+                        (seqNo <= sentASDUs[newestSentASDU].seqNo))
+                            seqNoIsValid = true;
 					
-					} else {
-						if ((seqNo >= sentASDUs [oldestSentASDU].seqNo) ||
-							(seqNo <= sentASDUs [newestSentASDU].seqNo))
-							seqNoIsValid = true;
+                    }
+                    else
+                    {
+                        if ((seqNo >= sentASDUs[oldestSentASDU].seqNo) ||
+                        (seqNo <= sentASDUs[newestSentASDU].seqNo))
+                            seqNoIsValid = true;
 
-						counterOverflowDetected = true;
-					}
+                        counterOverflowDetected = true;
+                    }
 
-					if (sentASDUs[oldestSentASDU].seqNo == 0)
-						oldestValidSeqNo = 32767;
-					else
-						oldestValidSeqNo = sentASDUs[oldestSentASDU].seqNo - 1;
+                    if (sentASDUs[oldestSentASDU].seqNo == 0)
+                        oldestValidSeqNo = 32767;
+                    else
+                        oldestValidSeqNo = sentASDUs[oldestSentASDU].seqNo - 1;
 
-					if (oldestValidSeqNo == seqNo)
-						seqNoIsValid = true;
-				}
+                    if (oldestValidSeqNo == seqNo)
+                        seqNoIsValid = true;
+                }
 					
-				if (seqNoIsValid == false) {
-					DebugLog ("Received sequence number out of range");
-					return false;
-				}
+                if (seqNoIsValid == false)
+                {
+                    DebugLog("Received sequence number out of range");
+                    return false;
+                }
 								
-				if (oldestSentASDU != -1) {
+                if (oldestSentASDU != -1)
+                {
 
-					/* remove confirmed messages from list */
-					do {
-						/* skip removing messages if confirmed message was already removed */
-						if (counterOverflowDetected == false) 
-						{
-							if (seqNo < sentASDUs [oldestSentASDU].seqNo)
-								break;
-						}
+                    /* remove confirmed messages from list */
+                    do
+                    {
+                        /* skip removing messages if confirmed message was already removed */
+                        if (counterOverflowDetected == false)
+                        {
+                            if (seqNo < sentASDUs[oldestSentASDU].seqNo)
+                                break;
+                        }
 
-						if (seqNo == oldestValidSeqNo)
-							break;
+                        if (seqNo == oldestValidSeqNo)
+                            break;
 
-						/* remove from server (low-priority) queue if required */
-						if (sentASDUs [oldestSentASDU].queueIndex != -1) {
-                            asduQueue.MarkASDUAsConfirmed (sentASDUs [oldestSentASDU].queueIndex,
-								sentASDUs [oldestSentASDU].entryTime);
-						}
+                        /* remove from server (low-priority) queue if required */
+                        if (sentASDUs[oldestSentASDU].queueIndex != -1)
+                        {
+                            asduQueue.MarkASDUAsConfirmed(sentASDUs[oldestSentASDU].queueIndex,
+                                sentASDUs[oldestSentASDU].entryTime);
+                        }
 
-						if (sentASDUs [oldestSentASDU].seqNo == seqNo) {
-							/* we arrived at the seq# that has been confirmed */
+                        if (sentASDUs[oldestSentASDU].seqNo == seqNo)
+                        {
+                            /* we arrived at the seq# that has been confirmed */
 
-							if (oldestSentASDU == newestSentASDU)
-								oldestSentASDU = -1;
-							else 
-								oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
+                            if (oldestSentASDU == newestSentASDU)
+                                oldestSentASDU = -1;
+                            else
+                                oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
 
-							break;
-						}
+                            break;
+                        }
 
-						oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
+                        oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
 
-						int checkIndex = (newestSentASDU + 1) % maxSentASDUs;
+                        int checkIndex = (newestSentASDU + 1) % maxSentASDUs;
 
-						if (oldestSentASDU == checkIndex) {
-							oldestSentASDU = -1;
-							break;
-						}
+                        if (oldestSentASDU == checkIndex)
+                        {
+                            oldestSentASDU = -1;
+                            break;
+                        }
 
-					} while (true);
-				}
-			}
+                    } while (true);
+                }
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		private bool HandleMessage(byte[] buffer, int msgSize)
-		{
-			long currentTime = SystemUtils.currentTimeMillis ();
+        private bool HandleMessage(byte[] buffer, int msgSize)
+        {
+            long currentTime = SystemUtils.currentTimeMillis();
 
-			if ((buffer [2] & 1) == 0) {
+            if ((buffer[2] & 1) == 0)
+            {
 
-				if (msgSize < 7) {
-					DebugLog ("I msg too small!");
-					return false;
-				}
+                if (msgSize < 7)
+                {
+                    DebugLog("I msg too small!");
+                    return false;
+                }
 					
-				if (timeoutT2Triggered == false) {
-					timeoutT2Triggered = true;
-					lastConfirmationTime = currentTime; /* start timeout T2 */
-				}
+                if (timeoutT2Triggered == false)
+                {
+                    timeoutT2Triggered = true;
+                    lastConfirmationTime = currentTime; /* start timeout T2 */
+                }
 
-				int frameSendSequenceNumber = ((buffer [3] * 0x100) + (buffer [2] & 0xfe)) / 2;
-				int frameRecvSequenceNumber = ((buffer [5] * 0x100) + (buffer [4] & 0xfe)) / 2;
+                int frameSendSequenceNumber = ((buffer[3] * 0x100) + (buffer[2] & 0xfe)) / 2;
+                int frameRecvSequenceNumber = ((buffer[5] * 0x100) + (buffer[4] & 0xfe)) / 2;
 
-				DebugLog ("Received I frame: N(S) = " + frameSendSequenceNumber + " N(R) = " + frameRecvSequenceNumber);
+                DebugLog("Received I frame: N(S) = " + frameSendSequenceNumber + " N(R) = " + frameRecvSequenceNumber);
 
-				/* check the receive sequence number N(R) - connection will be closed on an unexpected value */
-				if (frameSendSequenceNumber != receiveCount) {
-					DebugLog ("Sequence error: Close connection!");
-					return false;
-				}
+                /* check the receive sequence number N(R) - connection will be closed on an unexpected value */
+                if (frameSendSequenceNumber != receiveCount)
+                {
+                    DebugLog("Sequence error: Close connection!");
+                    return false;
+                }
 
-				if (CheckSequenceNumber (frameRecvSequenceNumber) == false) {
-					DebugLog ("Sequence number check failed");
-					return false;
-				}
+                if (CheckSequenceNumber(frameRecvSequenceNumber) == false)
+                {
+                    DebugLog("Sequence number check failed");
+                    return false;
+                }
 
-				receiveCount = (receiveCount + 1) % 32768;
-				unconfirmedReceivedIMessages++;
+                receiveCount = (receiveCount + 1) % 32768;
+                unconfirmedReceivedIMessages++;
 
-				if (isActive) {
+                if (isActive)
+                {
 
-					try {
-						ASDU asdu = new ASDU (alParameters, buffer, 6, msgSize);
+                    try
+                    {
+                        ASDU asdu = new ASDU(alParameters, buffer, 6, msgSize);
 					
-						// push to handler thread for processing
-						DebugLog ("Enqueue received I-message for processing");
-						receivedASDUs.Enqueue (asdu);
-					}
-					catch (ASDUParsingException e) {
-						DebugLog ("ASDU parsing failed: " + e.Message);
-						return false;
-					}
-				} else {
-					// connection not activated --> skip message
-					DebugLog ("Connection not activated. Skip I message");
-				}
-			}
+                        // push to handler thread for processing
+                        DebugLog("Enqueue received I-message for processing");
+                        receivedASDUs.Enqueue(asdu);
+                    }
+                    catch (ASDUParsingException e)
+                    {
+                        DebugLog("ASDU parsing failed: " + e.Message);
+                        return false;
+                    }
+                }
+                else
+                {
+                    // connection not activated --> skip message
+                    DebugLog("Connection not activated. Skip I message");
+                }
+            }
 
 			// Check for TESTFR_ACT message
-			else if ((buffer [2] & 0x43) == 0x43) {
+			else if ((buffer[2] & 0x43) == 0x43)
+            {
 
-				DebugLog ("Send TESTFR_CON");
+                DebugLog("Send TESTFR_CON");
 
-				socketStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
-			} 
+                socketStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
+            } 
 
 			// Check for STARTDT_ACT message
-			else if ((buffer [2] & 0x07) == 0x07) {
+			else if ((buffer[2] & 0x07) == 0x07)
+            {
 
-				DebugLog ("Send STARTDT_CON");
+                DebugLog("Send STARTDT_CON");
 
-				if (this.isActive == false) {
-					this.isActive = true;
+                if (this.isActive == false)
+                {
+                    this.isActive = true;
 
-					this.server.Activated (this);
-				}
+                    this.server.Activated(this);
+                }
 
-				socketStream.Write (STARTDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
-			}
+                socketStream.Write(STARTDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
+            }
 
 			// Check for STOPDT_ACT message
-			else if ((buffer [2] & 0x13) == 0x13) {
+			else if ((buffer[2] & 0x13) == 0x13)
+            {
 				
-				DebugLog ("Send STOPDT_CON");
+                DebugLog("Send STOPDT_CON");
 
-				if (this.isActive == true) {
-					this.isActive = false;
+                if (this.isActive == true)
+                {
+                    this.isActive = false;
 
-					this.server.Deactivated (this);
-				}
+                    this.server.Deactivated(this);
+                }
 
-				socketStream.Write (STOPDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
-			} 
+                socketStream.Write(STOPDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
+            } 
 
 			// Check for TESTFR_CON message
-			else if ((buffer [2] & 0x83) == 0x83) {
-				DebugLog ("Recv TESTFR_CON");
+			else if ((buffer[2] & 0x83) == 0x83)
+            {
+                DebugLog("Recv TESTFR_CON");
 
-				outStandingTestFRConMessages = 0;
-			}
+                outStandingTestFRConMessages = 0;
+            }
 
 			// S-message
-			else if (buffer [2] == 0x01) {
+			else if (buffer[2] == 0x01)
+            {
 
-				int seqNo = (buffer[4] + buffer[5] * 0x100) / 2;
+                int seqNo = (buffer[4] + buffer[5] * 0x100) / 2;
 
-				DebugLog("Recv S(" + seqNo + ") (own sendcounter = " + sendCount + ")");
+                DebugLog("Recv S(" + seqNo + ") (own sendcounter = " + sendCount + ")");
 
-				if (CheckSequenceNumber (seqNo) == false)
-					return false;
+                if (CheckSequenceNumber(seqNo) == false)
+                    return false;
 					
-			}
-			else {
-				DebugLog("Unknown message");
-			}
+            }
+            else
+            {
+                DebugLog("Unknown message");
+            }
 
-			ResetT3Timeout ();
+            ResetT3Timeout();
 
-			return true;
-		}
+            return true;
+        }
 
-		private bool handleTimeouts() {
-			UInt64 currentTime = (UInt64) SystemUtils.currentTimeMillis();
+        private bool handleTimeouts()
+        {
+            UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();
 
-			if (currentTime > nextT3Timeout) {
+            if (currentTime > nextT3Timeout)
+            {
 
-				if (outStandingTestFRConMessages > 2) {
-					DebugLog("Timeout for TESTFR_CON message");
+                if (outStandingTestFRConMessages > 2)
+                {
+                    DebugLog("Timeout for TESTFR_CON message");
 
-					// close connection
-					return false;
-				} else {
-					try  {
-						socketStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
+                    // close connection
+                    return false;
+                }
+                else
+                {
+                    try
+                    {
+                        socketStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
 
-						DebugLog("U message T3 timeout");
-						outStandingTestFRConMessages++;
-						ResetT3Timeout ();
-					}
-					catch (System.IO.IOException) {
-						running = false;
-					}
-				}
-			}
+                        DebugLog("U message T3 timeout");
+                        outStandingTestFRConMessages++;
+                        ResetT3Timeout();
+                    }
+                    catch (System.IO.IOException)
+                    {
+                        running = false;
+                    }
+                }
+            }
 
-			if (unconfirmedReceivedIMessages > 0) {
+            if (unconfirmedReceivedIMessages > 0)
+            {
 
-				if (((long) currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000)) {
+                if (((long)currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000))
+                {
 
-					lastConfirmationTime = (long) currentTime;
-					unconfirmedReceivedIMessages = 0;
-					timeoutT2Triggered = false;
-					SendSMessage ();
-				}
-			}
+                    lastConfirmationTime = (long)currentTime;
+                    unconfirmedReceivedIMessages = 0;
+                    timeoutT2Triggered = false;
+                    SendSMessage();
+                }
+            }
 				
-			/* check if counterpart confirmed I messages */
-			lock (sentASDUs) {
+            /* check if counterpart confirmed I messages */
+            lock (sentASDUs)
+            {
 			
-				if (oldestSentASDU != -1) {
+                if (oldestSentASDU != -1)
+                {
 
-					if (((long)currentTime - sentASDUs [oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000)) {
+                    if (((long)currentTime - sentASDUs[oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000))
+                    {
 
-						PrintSendBuffer ();
-						DebugLog("I message timeout for " + oldestSentASDU + " seqNo: " + sentASDUs[oldestSentASDU].seqNo);
-						return false;
-					}
-				}
-			}
+                        PrintSendBuffer();
+                        DebugLog("I message timeout for " + oldestSentASDU + " seqNo: " + sentASDUs[oldestSentASDU].seqNo);
+                        return false;
+                    }
+                }
+            }
 
-			return true;
-		}
+            return true;
+        }
 
 
-		private bool AreByteArraysEqual(byte[] array1, byte[] array2)
-		{
-			if (array1.Length == array2.Length) {
+        private bool AreByteArraysEqual(byte[] array1, byte[] array2)
+        {
+            if (array1.Length == array2.Length)
+            {
 
-				for (int i = 0; i < array1.Length; i++) {
-					if (array1 [i] != array2 [i])
-						return false;
-				}
+                for (int i = 0; i < array1.Length; i++)
+                {
+                    if (array1[i] != array2[i])
+                        return false;
+                }
 
-				return true;
-			} else
-				return false;
-		}
+                return true;
+            }
+            else
+                return false;
+        }
 
-		public bool RemoteCertificateValidationCallback (object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-		{
-			if (sslPolicyErrors == SslPolicyErrors.None || sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors) {
+        public bool RemoteCertificateValidationCallback(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None || sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
+            {
 
-				if (tlsSecInfo.ChainValidation) {
+                if (tlsSecInfo.ChainValidation)
+                {
 
-					X509Chain newChain = new X509Chain ();
+                    X509Chain newChain = new X509Chain();
 
-					newChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
-					newChain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
-					newChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
-					newChain.ChainPolicy.VerificationTime = DateTime.Now;
-					newChain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 0, 0);
+                    newChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
+                    newChain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
+                    newChain.ChainPolicy.VerificationFlags = X509VerificationFlags.AllowUnknownCertificateAuthority;
+                    newChain.ChainPolicy.VerificationTime = DateTime.Now;
+                    newChain.ChainPolicy.UrlRetrievalTimeout = new TimeSpan(0, 0, 0);
 
-					foreach (X509Certificate2 caCert in tlsSecInfo.CaCertificates)
-						newChain.ChainPolicy.ExtraStore.Add(caCert);
+                    foreach (X509Certificate2 caCert in tlsSecInfo.CaCertificates)
+                        newChain.ChainPolicy.ExtraStore.Add(caCert);
 					
-					bool certificateStatus =  newChain.Build(new X509Certificate2(cert.GetRawCertData()));
+                    bool certificateStatus = newChain.Build(new X509Certificate2(cert.GetRawCertData()));
 
-					if (certificateStatus == false)
-						return false;
-				}
+                    if (certificateStatus == false)
+                        return false;
+                }
 
-				if (tlsSecInfo.AllowOnlySpecificCertificates) {
+                if (tlsSecInfo.AllowOnlySpecificCertificates)
+                {
 					
-					foreach (X509Certificate2 allowedCert in tlsSecInfo.AllowedCertificates) {
-						if (AreByteArraysEqual (allowedCert.GetCertHash (), cert.GetCertHash ())) {
-							return true;
-						}
-					}
+                    foreach (X509Certificate2 allowedCert in tlsSecInfo.AllowedCertificates)
+                    {
+                        if (AreByteArraysEqual(allowedCert.GetCertHash(), cert.GetCertHash()))
+                        {
+                            return true;
+                        }
+                    }
 
-					return false;
-				}
+                    return false;
+                }
 
-				return true;
-			}
-			else 
-				return false;
-		}
+                return true;
+            }
+            else
+                return false;
+        }
 
 
 
-		private void HandleConnection()
-		{
+        private void HandleConnection()
+        {
 
-			byte[] bytes = new byte[300];
+            byte[] bytes = new byte[300];
 
-			try {
+            try
+            {
 
-				try {
+                try
+                {
 
-					running = true;
+                    running = true;
 
-					if (tlsSecInfo != null) {
+                    if (tlsSecInfo != null)
+                    {
 
-						DebugLog("Setup TLS");
+                        DebugLog("Setup TLS");
 
-						SslStream sslStream = new SslStream (socketStream, true, RemoteCertificateValidationCallback);
+                        SslStream sslStream = new SslStream(socketStream, true, RemoteCertificateValidationCallback);
 
-						bool authenticationSuccess = false;
+                        bool authenticationSuccess = false;
 
-						try {
-							sslStream.AuthenticateAsServer (tlsSecInfo.OwnCertificate, true, System.Security.Authentication.SslProtocols.Tls, false);
+                        try
+                        {
+                            sslStream.AuthenticateAsServer(tlsSecInfo.OwnCertificate, true, System.Security.Authentication.SslProtocols.Tls, false);
 						
-							if (sslStream.IsAuthenticated == true) {
-								socketStream = sslStream;
-								authenticationSuccess = true;
-							}
+                            if (sslStream.IsAuthenticated == true)
+                            {
+                                socketStream = sslStream;
+                                authenticationSuccess = true;
+                            }
 							
-						}
-						catch (IOException e) {
+                        }
+                        catch (IOException e)
+                        {
 
-							if (e.GetBaseException() != null) {
-								DebugLog("TLS authentication error: " + e.GetBaseException().Message);
-							}
-							else {
-								DebugLog("TLS authentication error: " + e.Message);
-							}
+                            if (e.GetBaseException() != null)
+                            {
+                                DebugLog("TLS authentication error: " + e.GetBaseException().Message);
+                            }
+                            else
+                            {
+                                DebugLog("TLS authentication error: " + e.Message);
+                            }
 
-						}
+                        }
 							
-						if (authenticationSuccess == true)
-							socketStream = sslStream;
-						else {
-							DebugLog("TLS authentication failed");
-							running = false;
-						}
-					}
+                        if (authenticationSuccess == true)
+                            socketStream = sslStream;
+                        else
+                        {
+                            DebugLog("TLS authentication failed");
+                            running = false;
+                        }
+                    }
 
-					if (running) {
+                    if (running)
+                    {
 
-						socketStream.ReadTimeout = 50;
+                        socketStream.ReadTimeout = 50;
 
-						callbackThread = new Thread (ProcessASDUs);
-						callbackThread.Start ();
+                        callbackThread = new Thread(ProcessASDUs);
+                        callbackThread.Start();
 
-						ResetT3Timeout();
-					}
+                        ResetT3Timeout();
+                    }
 
-					while (running) {
+                    while (running)
+                    {
 
-						try {
-							// Receive the response from the remote device.
-							int bytesRec = receiveMessage(bytes);
+                        try
+                        {
+                            // Receive the response from the remote device.
+                            int bytesRec = receiveMessage(bytes);
 							
-							if (bytesRec > 0) {
+                            if (bytesRec > 0)
+                            {
 							
-								DebugLog("RCVD: " +	BitConverter.ToString(bytes, 0, bytesRec));
+                                DebugLog("RCVD: " +	BitConverter.ToString(bytes, 0, bytesRec));
 
-								if (HandleMessage(bytes, bytesRec) == false) {
-									/* close connection on error */
-									running = false;
-								}
+                                if (HandleMessage(bytes, bytesRec) == false)
+                                {
+                                    /* close connection on error */
+                                    running = false;
+                                }
 
-								if (unconfirmedReceivedIMessages >= apciParameters.W) {
-									lastConfirmationTime = SystemUtils.currentTimeMillis();
-									unconfirmedReceivedIMessages = 0;
-									timeoutT2Triggered = false;
-									SendSMessage ();
-								}	
-							}
-							else if (bytesRec == -1) {
-								running = false;	
-							}
-						}
-						catch (System.IO.IOException) {
-							running = false;
-						}
+                                if (unconfirmedReceivedIMessages >= apciParameters.W)
+                                {
+                                    lastConfirmationTime = SystemUtils.currentTimeMillis();
+                                    unconfirmedReceivedIMessages = 0;
+                                    timeoutT2Triggered = false;
+                                    SendSMessage();
+                                }	
+                            }
+                            else if (bytesRec == -1)
+                            {
+                                running = false;	
+                            }
+                        }
+                        catch (System.IO.IOException)
+                        {
+                            running = false;
+                        }
 
-						if (fileServer != null)
-							fileServer.HandleFileTransmission();
+                        if (fileServer != null)
+                            fileServer.HandleFileTransmission();
 
-						if (handleTimeouts() == false)
-							running = false;
+                        if (handleTimeouts() == false)
+                            running = false;
 
-						if (running) {
-							if (isActive)
-								SendWaitingASDUs();
+                        if (running)
+                        {
+                            if (isActive)
+                                SendWaitingASDUs();
 
-							Thread.Sleep(1);
-						}
-					}
+                            Thread.Sleep(1);
+                        }
+                    }
 
-					isActive = false;
+                    isActive = false;
 
-					DebugLog("CLOSE CONNECTION!");
+                    DebugLog("CLOSE CONNECTION!");
 
-					// Release the socket.
+                    // Release the socket.
 
-					socket.Shutdown(SocketShutdown.Both);
-					socket.Close();
+                    socket.Shutdown(SocketShutdown.Both);
+                    socket.Close();
 
-					socketStream.Dispose();
-					socket.Dispose();
+                    socketStream.Dispose();
+                    socket.Dispose();
 
-					DebugLog("CONNECTION CLOSED!");
+                    DebugLog("CONNECTION CLOSED!");
 
-				} catch (ArgumentNullException ane) {
-					DebugLog("ArgumentNullException : " + ane.ToString());
-				} catch (SocketException se) {
-					DebugLog("SocketException : " + se.ToString());
-				} catch (Exception e) {
-					DebugLog("Unexpected exception : " + e.ToString());
-				}
+                }
+                catch (ArgumentNullException ane)
+                {
+                    DebugLog("ArgumentNullException : " + ane.ToString());
+                }
+                catch (SocketException se)
+                {
+                    DebugLog("SocketException : " + se.ToString());
+                }
+                catch (Exception e)
+                {
+                    DebugLog("Unexpected exception : " + e.ToString());
+                }
 
-			} catch (Exception e) {
-				DebugLog( e.ToString());
-			}
+            }
+            catch (Exception e)
+            {
+                DebugLog(e.ToString());
+            }
 
-			// unmark unconfirmed messages in queue if k-buffer not empty
+            // unmark unconfirmed messages in queue if k-buffer not empty
             if (oldestSentASDU != -1)
                 asduQueue.UnmarkAllASDUs();
 
-			server.Remove (this);
+            server.Remove(this);
 
-			if (callbackThreadRunning) {
-				callbackThreadRunning = false;
-				callbackThread.Join ();
-			}
+            if (callbackThreadRunning)
+            {
+                callbackThreadRunning = false;
+                callbackThread.Join();
+            }
 
-			DebugLog("Connection thread finished");
-		}
-			
-		public void Close() 
-		{
-			running = false;
-		}
-			
-		public void ASDUReadyToSend () 
-		{
-			if (isActive)
-				SendWaitingASDUs ();
-		}
+            DebugLog("Connection thread finished");
+        }
 
-	}
+        public void Close()
+        {
+            running = false;
+        }
+
+        public void ASDUReadyToSend()
+        {
+            if (isActive)
+                SendWaitingASDUs();
+        }
+
+    }
 	
 }

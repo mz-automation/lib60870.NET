@@ -36,35 +36,35 @@ using lib60870.CS101;
 
 namespace lib60870.CS104
 {
-	/// <summary>
-	/// Connection event for CS 104 client (\ref Connection)
-	/// </summary>
+    /// <summary>
+    /// Connection event for CS 104 client (\ref Connection)
+    /// </summary>
     public enum ConnectionEvent
     {
-		/// <summary>
-		/// The connection has been opened
-		/// </summary>
+        /// <summary>
+        /// The connection has been opened
+        /// </summary>
         OPENED = 0,
 
-		/// <summary>
-		/// The connection has been closed
-		/// </summary>
+        /// <summary>
+        /// The connection has been closed
+        /// </summary>
         CLOSED = 1,
 
-		/// <summary>
-		/// Conformation of START DT command received (server will send and accept application layer messages)
-		/// </summary>
+        /// <summary>
+        /// Conformation of START DT command received (server will send and accept application layer messages)
+        /// </summary>
         STARTDT_CON_RECEIVED = 2,
 
-		/// <summary>
-		/// Conformation of STOP DT command received (server will no longer send or accept application layer messages)
-		/// </summary>
+        /// <summary>
+        /// Conformation of STOP DT command received (server will no longer send or accept application layer messages)
+        /// </summary>
         STOPDT_CON_RECEIVED = 3,
         
-		/// <summary>
-		/// The connect attempt has failed
-		/// </summary>
-		CONNECT_FAILED = 4
+        /// <summary>
+        /// The connect attempt has failed
+        /// </summary>
+        CONNECT_FAILED = 4
     }
 
     /// <summary>
@@ -86,10 +86,10 @@ namespace lib60870.CS104
             rcvdTestFrConCounter = 0;
         }
 
-		/// <summary>
-		/// Gets or sets the sent message counter.
-		/// </summary>
-		/// <value>The sent message counter.</value>
+        /// <summary>
+        /// Gets or sets the sent message counter.
+        /// </summary>
+        /// <value>The sent message counter.</value>
         public int SentMsgCounter
         {
             get
@@ -102,10 +102,10 @@ namespace lib60870.CS104
             }
         }
 
-		/// <summary>
-		/// Gets or sets the received message counter.
-		/// </summary>
-		/// <value>The received message counter.</value>
+        /// <summary>
+        /// Gets or sets the received message counter.
+        /// </summary>
+        /// <value>The received message counter.</value>
         public int RcvdMsgCounter
         {
             get
@@ -154,12 +154,12 @@ namespace lib60870.CS104
     /// <summary>
     /// ASDU received handler.
     /// </summary>
-    public delegate bool ASDUReceivedHandler(object parameter, ASDU asdu);
+    public delegate bool ASDUReceivedHandler(object parameter,ASDU asdu);
 
-	/// <summary>
-	/// Callback handler for connection events
-	/// </summary>
-    public delegate void ConnectionHandler(object parameter, ConnectionEvent connectionEvent);
+    /// <summary>
+    /// Callback handler for connection events
+    /// </summary>
+    public delegate void ConnectionHandler(object parameter,ConnectionEvent connectionEvent);
 
     /// <summary>
     /// A single connection to a CS 104 (IEC 60870-5-104) server. Implements the \ref Master interface.
@@ -187,14 +187,19 @@ namespace lib60870.CS104
         /* data structure for k-size sent ASDU buffer */
         private struct SentASDU
         {
-            public long sentTime; // required for T1 timeout
+            public long sentTime;
+            // required for T1 timeout
             public int seqNo;
         }
 
-        private int maxSentASDUs; /* maximum number of ASDU to be sent without confirmation - parameter k */
-        private int oldestSentASDU = -1; /* index of oldest entry in k-buffer */
-        private int newestSentASDU = -1; /* index of newest entry in k-buffer */
-        private SentASDU[] sentASDUs = null; /* the k-buffer */
+        private int maxSentASDUs;
+        /* maximum number of ASDU to be sent without confirmation - parameter k */
+        private int oldestSentASDU = -1;
+        /* index of oldest entry in k-buffer */
+        private int newestSentASDU = -1;
+        /* index of newest entry in k-buffer */
+        private SentASDU[] sentASDUs = null;
+        /* the k-buffer */
 
         /**********************************************/
 
@@ -208,10 +213,12 @@ namespace lib60870.CS104
 
         private Thread workerThread = null;
 
-        private int unconfirmedReceivedIMessages; /* number of unconfirmed messages received */
+        private int unconfirmedReceivedIMessages;
+        /* number of unconfirmed messages received */
 
         /* T2 timeout handling */
-        private long lastConfirmationTime; /* timestamp when the last confirmation message was sent */
+        private long lastConfirmationTime;
+        /* timestamp when the last confirmation message was sent */
         private bool timeoutT2Triggered = false;
 
         private Socket socket = null;
@@ -220,7 +227,7 @@ namespace lib60870.CS104
 
         private bool autostart = true;
 
-		private FileClient fileClient = null;
+        private FileClient fileClient = null;
 
         private string hostname;
         protected int tcpPort;
@@ -367,16 +374,16 @@ namespace lib60870.CS104
         }
 
         private ASDUReceivedHandler asduReceivedHandler = null;
-		private object asduReceivedHandlerParameter = null;
+        private object asduReceivedHandlerParameter = null;
 
-		private ConnectionHandler connectionHandler = null;
-		private object connectionHandlerParameter = null;
+        private ConnectionHandler connectionHandler = null;
+        private object connectionHandlerParameter = null;
 
-		private RawMessageHandler recvRawMessageHandler = null;
-		private object recvRawMessageHandlerParameter = null;
+        private RawMessageHandler recvRawMessageHandler = null;
+        private object recvRawMessageHandlerParameter = null;
 
-		private RawMessageHandler sentMessageHandler = null;
-		private object sentMessageHandlerParameter = null;
+        private RawMessageHandler sentMessageHandler = null;
+        private object sentMessageHandlerParameter = null;
 
         private void SendSMessage()
         {
@@ -412,7 +419,7 @@ namespace lib60870.CS104
 
                     bool seqNoIsValid = false;
                     bool counterOverflowDetected = false;
-					int oldestValidSeqNo = -1;
+                    int oldestValidSeqNo = -1;
 
                     if (oldestSentASDU == -1)
                     { /* if k-Buffer is empty */
@@ -438,13 +445,13 @@ namespace lib60870.CS104
                             counterOverflowDetected = true;
                         }
 
-						/* check if confirmed message was already removed from list */
-						if (sentASDUs[oldestSentASDU].seqNo == 0)
-							oldestValidSeqNo = 32767;
-						else
-							oldestValidSeqNo = sentASDUs[oldestSentASDU].seqNo - 1;
+                        /* check if confirmed message was already removed from list */
+                        if (sentASDUs[oldestSentASDU].seqNo == 0)
+                            oldestValidSeqNo = 32767;
+                        else
+                            oldestValidSeqNo = sentASDUs[oldestSentASDU].seqNo - 1;
 
-						if (oldestValidSeqNo == seqNo)
+                        if (oldestValidSeqNo == seqNo)
                             seqNoIsValid = true;
                     }
 
@@ -457,29 +464,30 @@ namespace lib60870.CS104
                     if (oldestSentASDU != -1)
                     {
 
-						/* remove confirmed messages from list */
+                        /* remove confirmed messages from list */
                         do
                         {
-							/* skip removing messages if confirmed message was already removed */
+                            /* skip removing messages if confirmed message was already removed */
                             if (counterOverflowDetected == false)
                             {
                                 if (seqNo < sentASDUs[oldestSentASDU].seqNo)
                                     break;
                             }
 
-							if (seqNo == oldestValidSeqNo)
+                            if (seqNo == oldestValidSeqNo)
                                 break;
 
-							if (sentASDUs[oldestSentASDU].seqNo == seqNo) {
-								/* we arrived at the seq# that has been confirmed */
+                            if (sentASDUs[oldestSentASDU].seqNo == seqNo)
+                            {
+                                /* we arrived at the seq# that has been confirmed */
 
-								if (oldestSentASDU == newestSentASDU)
-									oldestSentASDU = -1;
-								else
-									oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
+                                if (oldestSentASDU == newestSentASDU)
+                                    oldestSentASDU = -1;
+                                else
+                                    oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
 
-								break;
-							}
+                                break;
+                            }
 
                             oldestSentASDU = (oldestSentASDU + 1) % maxSentASDUs;
 
@@ -698,34 +706,34 @@ namespace lib60870.CS104
             connectionID = connectionCounter;
         }
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
-		/// </summary>
-		/// <param name="hostname">hostname of IP address of the CS 104 server</param>
-		/// <param name="tcpPort">TCP port of the CS 104 server</param>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
+        /// </summary>
+        /// <param name="hostname">hostname of IP address of the CS 104 server</param>
+        /// <param name="tcpPort">TCP port of the CS 104 server</param>
         public Connection(string hostname, int tcpPort = 2404)
         {
             Setup(hostname, new APCIParameters(), new ApplicationLayerParameters(), tcpPort);
         }
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
-		/// </summary>
-		/// <param name="hostname">hostname of IP address of the CS 104 server</param>
-		/// <param name="apciParameters">APCI parameters.</param>
-		/// <param name="alParameters">application layer parameters.</param>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
+        /// </summary>
+        /// <param name="hostname">hostname of IP address of the CS 104 server</param>
+        /// <param name="apciParameters">APCI parameters.</param>
+        /// <param name="alParameters">application layer parameters.</param>
         public Connection(string hostname, APCIParameters apciParameters, ApplicationLayerParameters alParameters)
         {
             Setup(hostname, apciParameters.Clone(), alParameters.Clone(), 2404);
         }
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
-		/// </summary>
-		/// <param name="hostname">hostname of IP address of the CS 104 server</param>
-		/// <param name="tcpPort">TCP port of the CS 104 server</param>
-		/// <param name="apciParameters">APCI parameters.</param>
-		/// <param name="alParameters">application layer parameters.</param>
+        /// <summary>
+        /// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class.
+        /// </summary>
+        /// <param name="hostname">hostname of IP address of the CS 104 server</param>
+        /// <param name="tcpPort">TCP port of the CS 104 server</param>
+        /// <param name="apciParameters">APCI parameters.</param>
+        /// <param name="alParameters">application layer parameters.</param>
         public Connection(string hostname, int tcpPort, APCIParameters apciParameters, ApplicationLayerParameters alParameters)
         {
             Setup(hostname, apciParameters.Clone(), alParameters.Clone(), tcpPort);
@@ -743,19 +751,19 @@ namespace lib60870.CS104
                 this.tcpPort = 19998;
         }
 
-		/// <summary>
-		/// Gets the conenction statistics.
-		/// </summary>
-		/// <returns>The connection statistics.</returns>
+        /// <summary>
+        /// Gets the conenction statistics.
+        /// </summary>
+        /// <returns>The connection statistics.</returns>
         public ConnectionStatistics GetStatistics()
         {
             return this.statistics;
         }
 
-		/// <summary>
-		/// Sets the connect timeout
-		/// </summary>
-		/// <param name="millies">timeout value in milliseconds (ms)</param>
+        /// <summary>
+        /// Sets the connect timeout
+        /// </summary>
+        /// <param name="millies">timeout value in milliseconds (ms)</param>
         public void SetConnectTimeout(int millies)
         {
             this.connectTimeoutInMs = millies;
@@ -851,7 +859,7 @@ namespace lib60870.CS104
         /// <param name="tsc">test sequence number</param>
         /// <param name="time">test timestamp</param>
         /// <exception cref="ConnectionException">description</exception>
-		public override void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
+        public override void SendTestCommandWithCP56Time2a(int ca, ushort tsc, CP56Time2a time)
         {
             ASDU asdu = new ASDU(alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte)alParameters.OA, ca, false);
 
@@ -867,7 +875,7 @@ namespace lib60870.CS104
         /// <param name="ca">Common address</param>
         /// <param name="qrp">Qualifier of reset process command</param>
         /// <exception cref="ConnectionException">description</exception>
-		public override void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
+        public override void SendResetProcessCommand(CauseOfTransmission cot, int ca, byte qrp)
         {
             ASDU asdu = new ASDU(alParameters, CauseOfTransmission.ACTIVATION, false, false, (byte)alParameters.OA, ca, false);
 
@@ -1207,17 +1215,18 @@ namespace lib60870.CS104
                 {
                     ASDU asdu = new ASDU(alParameters, buffer, 6, msgSize);
 
-					bool messageHandled = false;
+                    bool messageHandled = false;
 
-					if (fileClient != null)
-						messageHandled = fileClient.HandleFileAsdu(asdu);
+                    if (fileClient != null)
+                        messageHandled = fileClient.HandleFileAsdu(asdu);
 
-					if (messageHandled == false) {
+                    if (messageHandled == false)
+                    {
 
-	                    if (asduReceivedHandler != null)
-	                        asduReceivedHandler(asduReceivedHandlerParameter, asdu);
+                        if (asduReceivedHandler != null)
+                            asduReceivedHandler(asduReceivedHandlerParameter, asdu);
 
-					}
+                    }
                 }
                 catch (ASDUParsingException e)
                 {
@@ -1409,7 +1418,7 @@ namespace lib60870.CS104
             if (unconfirmedReceivedIMessages > 0)
             {
                 if (checkConfirmTimeout((long)currentTime))
-				{
+                {
                     lastConfirmationTime = (long)currentTime;
 
                     unconfirmedReceivedIMessages = 0;
@@ -1542,12 +1551,12 @@ namespace lib60870.CS104
 
                             try
                             {
-								string targetHostName = tlsSecInfo.TargetHostName;
+                                string targetHostName = tlsSecInfo.TargetHostName;
 
-								if (targetHostName == null)
-									targetHostName = "*";
+                                if (targetHostName == null)
+                                    targetHostName = "*";
 
-								sslStream.AuthenticateAsClient(targetHostName, clientCertificateCollection, System.Security.Authentication.SslProtocols.Tls, false);
+                                sslStream.AuthenticateAsClient(targetHostName, clientCertificateCollection, System.Security.Authentication.SslProtocols.Tls, false);
                             }
                             catch (IOException e)
                             {
@@ -1766,7 +1775,7 @@ namespace lib60870.CS104
         /// </summary>
         /// <param name="handler">the handler to be called</param>
         /// <param name="parameter">user provided parameter that is passed to the handler</param>
-		public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
+        public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
         {
             asduReceivedHandler = handler;
             asduReceivedHandlerParameter = parameter;
@@ -1789,7 +1798,7 @@ namespace lib60870.CS104
         /// </summary>
         /// <param name="handler">Handler/delegate that will be invoked when a message is received</param>
         /// <param name="parameter">will be passed to the delegate</param>
-		public override void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
+        public override void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
         {
             recvRawMessageHandler = handler;
             recvRawMessageHandlerParameter = parameter;
@@ -1800,12 +1809,12 @@ namespace lib60870.CS104
         /// </summary>
         /// <param name="handler">Handler/delegate that will be invoked when a message is sent<</param>
         /// <param name="parameter">will be passed to the delegate</param>
-		public override void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
+        public override void SetSentRawMessageHandler(RawMessageHandler handler, object parameter)
         {
             sentMessageHandler = handler;
             sentMessageHandlerParameter = parameter;
         }
-			
+
         /// <summary>
         /// Determines whether the transmit (send) buffer is full. If true the next send command will throw a ConnectionException
         /// </summary>
@@ -1818,24 +1827,24 @@ namespace lib60870.CS104
                 return IsSentBufferFull();
         }
 
-		public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)
-		{
-			if (fileClient == null)
-				fileClient = new FileClient (this, DebugLog);
+        public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)
+        {
+            if (fileClient == null)
+                fileClient = new FileClient(this, DebugLog);
 
-			fileClient.RequestFile (ca, ioa, nof, receiver);
-		}
+            fileClient.RequestFile(ca, ioa, nof, receiver);
+        }
 
-		public void GetDirectory(int ca) 
-		{
-			ASDU getDirectoryAsdu = new ASDU (GetApplicationLayerParameters (), CauseOfTransmission.REQUEST, false, false, 0, ca, false);
+        public void GetDirectory(int ca)
+        {
+            ASDU getDirectoryAsdu = new ASDU(GetApplicationLayerParameters(), CauseOfTransmission.REQUEST, false, false, 0, ca, false);
 
-			InformationObject io = new FileCallOrSelect (0, NameOfFile.DEFAULT, 0, SelectAndCallQualifier.DEFAULT);
+            InformationObject io = new FileCallOrSelect(0, NameOfFile.DEFAULT, 0, SelectAndCallQualifier.DEFAULT);
 
-			getDirectoryAsdu.AddInformationObject (io);
+            getDirectoryAsdu.AddInformationObject(io);
 
-			SendASDU (getDirectoryAsdu);
-		}
+            SendASDU(getDirectoryAsdu);
+        }
     }
 }
 

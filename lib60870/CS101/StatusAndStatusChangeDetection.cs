@@ -25,38 +25,44 @@ using System.Text;
 namespace lib60870.CS101
 {
 
-	public class StatusAndStatusChangeDetection {
+    public class StatusAndStatusChangeDetection
+    {
 
-		public UInt16 STn {
-			get {
-				return (ushort) (encodedValue[0] + (256 * encodedValue[1]));
-			}
+        public UInt16 STn
+        {
+            get
+            {
+                return (ushort)(encodedValue[0] + (256 * encodedValue[1]));
+            }
 
             set
             {
                 encodedValue[0] = (byte)(value % 256);
                 encodedValue[1] = (byte)(value / 256);
             }
-		}
+        }
 
-		public UInt16 CDn {
-			get {
-				return (ushort) (encodedValue[2] + (256 * encodedValue[3]));
-			}
+        public UInt16 CDn
+        {
+            get
+            {
+                return (ushort)(encodedValue[2] + (256 * encodedValue[3]));
+            }
 
             set
             {
                 encodedValue[2] = (byte)(value % 256);
                 encodedValue[3] = (byte)(value / 256);
             }
-		}
+        }
 
-		public bool ST(int i) {
-			if ((i >= 0) && (i < 16))
-				return ((int) (STn & (1 << i)) != 0);
-			else
-				return false;
-		}
+        public bool ST(int i)
+        {
+            if ((i >= 0) && (i < 16))
+                return ((int)(STn & (1 << i)) != 0);
+            else
+                return false;
+        }
 
         public void ST(int i, bool value)
         {
@@ -69,43 +75,44 @@ namespace lib60870.CS101
             }
         }
 
-        public bool CD(int i) {
-			if ((i >= 0) && (i < 16))
-				return ((int) (CDn & (1 << i)) != 0);
-			else
-				return false;
-		}
+        public bool CD(int i)
+        {
+            if ((i >= 0) && (i < 16))
+                return ((int)(CDn & (1 << i)) != 0);
+            else
+                return false;
+        }
 
         public void CD(int i, bool value)
         {
             if ((i >= 0) && (i < 16))
             {
                 if (value)
-					CDn = (UInt16)(CDn | (1 << i));
+                    CDn = (UInt16)(CDn | (1 << i));
                 else
-					CDn = (UInt16)(CDn & ~(1 << i));
+                    CDn = (UInt16)(CDn & ~(1 << i));
             }
         }
 
-		public StatusAndStatusChangeDetection ()
-		{
-		}
+        public StatusAndStatusChangeDetection()
+        {
+        }
 
-		public StatusAndStatusChangeDetection (byte[] msg, int startIndex)
-		{
-			if (msg.Length < startIndex + 4)
-				throw new ASDUParsingException ("Message too small for parsing StatusAndStatusChangeDetection");
+        public StatusAndStatusChangeDetection(byte[] msg, int startIndex)
+        {
+            if (msg.Length < startIndex + 4)
+                throw new ASDUParsingException("Message too small for parsing StatusAndStatusChangeDetection");
 
-			for (int i = 0; i < 4; i++)
-				encodedValue [i] = msg [startIndex + i];
-		}
+            for (int i = 0; i < 4; i++)
+                encodedValue[i] = msg[startIndex + i];
+        }
 
-		private byte[] encodedValue = new byte[4];
+        private byte[] encodedValue = new byte[4];
 
-		public byte[] GetEncodedValue() 
-		{
-			return encodedValue;
-		}
+        public byte[] GetEncodedValue()
+        {
+            return encodedValue;
+        }
 
         public override string ToString()
         {

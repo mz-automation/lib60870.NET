@@ -25,100 +25,124 @@ using System;
 
 namespace lib60870.CS101
 {
-	public class ApplicationLayerParameters
-	{
-		public static int IEC60870_5_104_MAX_ASDU_LENGTH = 249;
+    public class ApplicationLayerParameters
+    {
+        public static int IEC60870_5_104_MAX_ASDU_LENGTH = 249;
 
-		private int sizeOfTypeId = 1;
+        private int sizeOfTypeId = 1;
 
-		private int sizeOfVSQ = 1; /* VSQ = variable sturcture qualifier */
+        /* VSQ = variable sturcture qualifier */
+        private int sizeOfVSQ = 1;
 
-		private int sizeOfCOT = 2; /* (parameter b) COT = cause of transmission (1/2) */
+        /* (parameter b) COT = cause of transmission (1/2) */
+        private int sizeOfCOT = 2;
 
-		private int originatorAddress = 0;
+        private int originatorAddress = 0;
 
-		private int sizeOfCA = 2; /* (parameter a) CA = common address of ASDUs (1/2) */
+        /* (parameter a) CA = common address of ASDUs (1/2) */
+        private int sizeOfCA = 2;
 
-		private int sizeOfIOA = 3; /* (parameter c) IOA = information object address (1/2/3) */
+        /* (parameter c) IOA = information object address (1/2/3) */
+        private int sizeOfIOA = 3;
 
-		private int maxAsduLength = IEC60870_5_104_MAX_ASDU_LENGTH; /* maximum length of ASDU */
+        /* maximum length of ASDU */
+        private int maxAsduLength = IEC60870_5_104_MAX_ASDU_LENGTH;
 
-		public ApplicationLayerParameters ()
-		{
-		}
+        public ApplicationLayerParameters()
+        {
+        }
 
-		public ApplicationLayerParameters Clone()
-		{
-			ApplicationLayerParameters copy = new ApplicationLayerParameters ();
+        public ApplicationLayerParameters Clone()
+        {
+            ApplicationLayerParameters copy = new ApplicationLayerParameters();
 
-			copy.sizeOfTypeId = sizeOfTypeId;
-			copy.sizeOfVSQ = sizeOfVSQ;
-			copy.sizeOfCOT = sizeOfCOT;
-			copy.originatorAddress = originatorAddress;
-			copy.sizeOfCA = sizeOfCA;
-			copy.sizeOfIOA = sizeOfIOA;
-			copy.maxAsduLength = maxAsduLength;
+            copy.sizeOfTypeId = sizeOfTypeId;
+            copy.sizeOfVSQ = sizeOfVSQ;
+            copy.sizeOfCOT = sizeOfCOT;
+            copy.originatorAddress = originatorAddress;
+            copy.sizeOfCA = sizeOfCA;
+            copy.sizeOfIOA = sizeOfIOA;
+            copy.maxAsduLength = maxAsduLength;
 
-			return copy;
-		}
+            return copy;
+        }
 
-		public int SizeOfCOT {
-			get {
-				return this.sizeOfCOT;
-			}
-			set {
-				sizeOfCOT = value;
-			}
-		}
+        public int SizeOfCOT
+        {
+            get
+            {
+                return this.sizeOfCOT;
+            }
+            set
+            {
+                sizeOfCOT = value;
+            }
+        }
 
-		public int OA {
-			get {
-				return this.originatorAddress;
-			}
-			set {
-				originatorAddress = value;
-			}
-		}
+        public int OA
+        {
+            get
+            {
+                return this.originatorAddress;
+            }
+            set
+            {
+                originatorAddress = value;
+            }
+        }
 
-		public int SizeOfCA {
-			get {
-				return this.sizeOfCA;
-			}
-			set {
-				sizeOfCA = value;
-			}
-		}
+        public int SizeOfCA
+        {
+            get
+            {
+                return this.sizeOfCA;
+            }
+            set
+            {
+                sizeOfCA = value;
+            }
+        }
 
-		public int SizeOfIOA {
-			get {
-				return this.sizeOfIOA;
-			}
-			set {
-				sizeOfIOA = value;
-			}
-		}	
+        public int SizeOfIOA
+        {
+            get
+            {
+                return this.sizeOfIOA;
+            }
+            set
+            {
+                sizeOfIOA = value;
+            }
+        }
 
 
-		public int SizeOfTypeId {
-			get {
-				return this.sizeOfTypeId;
-			}
-		}
+        public int SizeOfTypeId
+        {
+            get
+            {
+                return this.sizeOfTypeId;
+            }
+        }
 
-		public int SizeOfVSQ {
-			get {
-				return this.sizeOfVSQ;
-			}
-		}
+        public int SizeOfVSQ
+        {
+            get
+            {
+                return this.sizeOfVSQ;
+            }
+        }
 
-		public int MaxAsduLength {
-			get {
-				return this.maxAsduLength;
-			}
-			set {
-				maxAsduLength = value;
-			}
-		}
-	}
+        public int MaxAsduLength
+        {
+            get
+            {
+                return this.maxAsduLength;
+            }
+            set
+            {
+                maxAsduLength = value;
+            }
+        }
+    }
 }
 

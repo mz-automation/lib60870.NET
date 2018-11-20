@@ -25,6 +25,9 @@ using System;
 
 namespace lib60870.CS101
 {
+    /// <summary>
+    /// End of initialization information object (M_EI_NA_1)
+    /// </summary>
     public class EndOfInitialization : InformationObject
     {
         private byte coi;
@@ -72,18 +75,18 @@ namespace lib60870.CS101
         }
 
 
-		internal EndOfInitialization(ApplicationLayerParameters parameters, byte[] msg, int startIndex) :
-            base(parameters, msg, startIndex, false)
+        internal EndOfInitialization(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
+            : base(parameters, msg, startIndex, false)
         {
             startIndex += parameters.SizeOfIOA; /* skip IOA */
 
-			if ((msg.Length - startIndex) < GetEncodedSize())
-				throw new ASDUParsingException("Message too small");
+            if ((msg.Length - startIndex) < GetEncodedSize())
+                throw new ASDUParsingException("Message too small");
 
             coi = msg[startIndex];
         }
 
-		public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
+        public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
 

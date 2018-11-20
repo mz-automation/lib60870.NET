@@ -32,329 +32,377 @@ namespace lib60870.linklayer
     /// <summary>
     /// TCP client virtual serial port. Can be used to tunnel CS 101 protocol over TCP/IP.
     /// </summary>
-	public class TcpClientVirtualSerialPort : Stream
-	{
-		private int readTimeout = 0;
+    public class TcpClientVirtualSerialPort : Stream
+    {
+        private int readTimeout = 0;
 
-		private bool debugOutput = false;
-		private bool running = false;
-		private bool connected = false;
+        private bool debugOutput = false;
+        private bool running = false;
+        private bool connected = false;
 
-		private string hostname;
-		private int tcpPort;
+        private string hostname;
+        private int tcpPort;
 
-		Socket conSocket = null;
-		Stream socketStream = null;
-		Thread connectionThread;
+        Socket conSocket = null;
+        Stream socketStream = null;
+        Thread connectionThread;
 
-		private int connectTimeoutInMs = 1000;
-		private int waitRetryConnect = 1000;
+        private int connectTimeoutInMs = 1000;
+        private int waitRetryConnect = 1000;
 
-		private void DebugLog(string msg)
-		{
-			if (debugOutput) {
-				Console.Write ("CS101 TCP link layer: ");
-				Console.WriteLine (msg);
-			}
-		}
+        private void DebugLog(string msg)
+        {
+            if (debugOutput)
+            {
+                Console.Write("CS101 TCP link layer: ");
+                Console.WriteLine(msg);
+            }
+        }
 
 
         /// <summary>
         /// Gets a value indicating whether this <see cref="lib60870.linklayer.TcpClientVirtualSerialPort"/> is connected to a server
         /// </summary>
         /// <value><c>true</c> if connected; otherwise, <c>false</c>.</value>
-		public bool Connected {
-			get {
-				return this.connected;
-			}
-		}
+        public bool Connected
+        {
+            get
+            {
+                return this.connected;
+            }
+        }
 
-		public bool DebugOutput {
-			get {
-				return this.debugOutput;
-			}
-			set {
-				debugOutput = value;
-			}
-		}
+        public bool DebugOutput
+        {
+            get
+            {
+                return this.debugOutput;
+            }
+            set
+            {
+                debugOutput = value;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="lib60870.linklayer.TcpClientVirtualSerialPort"/> class.
         /// </summary>
         /// <param name="hostname">IP address of the server</param>
         /// <param name="tcpPort">TCP port of the server</param>
-		public TcpClientVirtualSerialPort(String hostname, int tcpPort = 2404)
-		{
-			this.hostname = hostname;
-			this.tcpPort = tcpPort;
-		}
+        public TcpClientVirtualSerialPort(String hostname, int tcpPort = 2404)
+        {
+            this.hostname = hostname;
+            this.tcpPort = tcpPort;
+        }
 
-		private void ConnectSocketWithTimeout()
-		{
-			IPAddress ipAddress;
-			IPEndPoint remoteEP;
+        private void ConnectSocketWithTimeout()
+        {
+            IPAddress ipAddress;
+            IPEndPoint remoteEP;
 
-			try
-			{
-				ipAddress = IPAddress.Parse(hostname);
-				remoteEP = new IPEndPoint(ipAddress, tcpPort);
-			}
-			catch (Exception)
-			{
-				throw new SocketException(87); // wrong argument
-			}
+            try
+            {
+                ipAddress = IPAddress.Parse(hostname);
+                remoteEP = new IPEndPoint(ipAddress, tcpPort);
+            }
+            catch (Exception)
+            {
+                throw new SocketException(87); // wrong argument
+            }
 
-			if (!running)
-				return;
+            if (!running)
+                return;
 
-			// Create a TCP/IP  socket.
-			conSocket = new Socket(AddressFamily.InterNetwork,
-				SocketType.Stream, ProtocolType.Tcp);
+            // Create a TCP/IP  socket.
+            conSocket = new Socket(AddressFamily.InterNetwork,
+                SocketType.Stream, ProtocolType.Tcp);
 
-			var result = conSocket.BeginConnect(remoteEP, null, null);
+            var result = conSocket.BeginConnect(remoteEP, null, null);
 
-			if (!running)
-				return;
+            if (!running)
+                return;
 
-			bool success = result.AsyncWaitHandle.WaitOne (connectTimeoutInMs, true);
-			if (success) {
-				try {
-					conSocket.EndConnect (result);
-					conSocket.NoDelay = true;
-				}
-				catch (ObjectDisposedException)
-				{
-					conSocket = null;
+            bool success = result.AsyncWaitHandle.WaitOne(connectTimeoutInMs, true);
+            if (success)
+            {
+                try
+                {
+                    conSocket.EndConnect(result);
+                    conSocket.NoDelay = true;
+                }
+                catch (ObjectDisposedException)
+                {
+                    conSocket = null;
 
-					DebugLog("ObjectDisposedException -> Connect canceled");
+                    DebugLog("ObjectDisposedException -> Connect canceled");
 
-					throw new SocketException(995); // WSA_OPERATION_ABORTED
-				}
-			}
-			else
-			{
-				conSocket.Close();
-				conSocket = null;
+                    throw new SocketException(995); // WSA_OPERATION_ABORTED
+                }
+            }
+            else
+            {
+                conSocket.Close();
+                conSocket = null;
 
-				throw new SocketException(10060); // Connection timed out (WSAETIMEDOUT)
-			}
-		}
+                throw new SocketException(10060); // Connection timed out (WSAETIMEDOUT)
+            }
+        }
 
-		private void ConnectionThread()
-		{
-			running = true;
+        private void ConnectionThread()
+        {
+            running = true;
 
-			DebugLog("Starting connection thread");
+            DebugLog("Starting connection thread");
 
-			while (running) {
+            while (running)
+            {
 
-				try {
-					DebugLog("Connecting to " + hostname + ":" + tcpPort);
+                try
+                {
+                    DebugLog("Connecting to " + hostname + ":" + tcpPort);
 
-					ConnectSocketWithTimeout();
+                    ConnectSocketWithTimeout();
 
-					socketStream = new NetworkStream(conSocket);
+                    socketStream = new NetworkStream(conSocket);
 
-					connected = true;
+                    connected = true;
 
-					while (connected) {
+                    while (connected)
+                    {
 
-						if (conSocket.Connected == false)
-							break;
+                        if (conSocket.Connected == false)
+                            break;
 
-						if (running == false)
-							break;
+                        if (running == false)
+                            break;
 
-						Thread.Sleep(10);
-					}
+                        Thread.Sleep(10);
+                    }
 
-                                        connected = false;
+                    connected = false;
 
-					if (!this.running)
-						return;
+                    if (!this.running)
+                        return;
 
-					if (socketStream != null) {
-						socketStream.Close();
-						conSocket.Dispose();
-						socketStream = null;
-					}
+                    if (socketStream != null)
+                    {
+                        socketStream.Close();
+                        conSocket.Dispose();
+                        socketStream = null;
+                    }
 
 
-					if (conSocket != null) {
-						conSocket.Close();
-						conSocket.Dispose();
-						conSocket = null;
+                    if (conSocket != null)
+                    {
+                        conSocket.Close();
+                        conSocket.Dispose();
+                        conSocket = null;
 
-					}
+                    }
 
-				} catch (SocketException e) {
+                }
+                catch (SocketException e)
+                {
                     DebugLog("Failed to connect: " + e.Message);
-					connected = false;
-					socketStream = null;
-					conSocket = null;
-				}
+                    connected = false;
+                    socketStream = null;
+                    conSocket = null;
+                }
 					
-				if (running)
-					Thread.Sleep (waitRetryConnect);
-			}
-		}
+                if (running)
+                    Thread.Sleep(waitRetryConnect);
+            }
+        }
 
         /// <summary>
         /// Start the virtual serial port (connect to server)
         /// </summary>
-		public void Start() 
-		{
-			if (running == false) {
-				connectionThread = new Thread (ConnectionThread);
+        public void Start()
+        {
+            if (running == false)
+            {
+                connectionThread = new Thread(ConnectionThread);
 
-				connectionThread.Start ();
-			}
-		}
+                connectionThread.Start();
+            }
+        }
 
         /// <summary>
         /// Stop the virtual serial port
         /// </summary>
-		public void Stop()
-		{
-			if (running == true) {
-				running = false;
-				this.connected = false;
+        public void Stop()
+        {
+            if (running == true)
+            {
+                running = false;
+                this.connected = false;
 
-				if (socketStream != null) {
-					socketStream.Close ();
-					socketStream.Dispose ();
-					socketStream = null;
-				}
+                if (socketStream != null)
+                {
+                    socketStream.Close();
+                    socketStream.Dispose();
+                    socketStream = null;
+                }
 
-				if (conSocket != null) {
+                if (conSocket != null)
+                {
 				
-					try {
-						conSocket.Shutdown(SocketShutdown.Both);	
-					}
-					catch (SocketException) {
-					}
+                    try
+                    {
+                        conSocket.Shutdown(SocketShutdown.Both);	
+                    }
+                    catch (SocketException)
+                    {
+                    }
 
-					conSocket.Close ();
-					conSocket.Dispose();
-					conSocket = null;
-				}
+                    conSocket.Close();
+                    conSocket.Dispose();
+                    conSocket = null;
+                }
 
-				connectionThread.Join ();
-			}
-		}
+                connectionThread.Join();
+            }
+        }
 
 
-		/*************************
+        /*************************
 		 * Stream implementation 
 		 */
 
-		public override int Read (byte[] buffer, int offset, int count)
-		{
-			if (socketStream != null) {
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (socketStream != null)
+            {
 
-				try {
-					if (conSocket.Poll (ReadTimeout, SelectMode.SelectRead)) {
-						if (connected)
-							return socketStream.Read (buffer, offset, count);
-						else
-							return 0;
-					} else
-						return 0;
-				}
-				catch (Exception e) {
-					Console.WriteLine (e.ToString ());
-					this.connected = false;
-					return 0;
-				}
+                try
+                {
+                    if (conSocket.Poll(ReadTimeout, SelectMode.SelectRead))
+                    {
+                        if (connected)
+                            return socketStream.Read(buffer, offset, count);
+                        else
+                            return 0;
+                    }
+                    else
+                        return 0;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                    this.connected = false;
+                    return 0;
+                }
 
-			}
-			else
-				return 0;
-		}
+            }
+            else
+                return 0;
+        }
 
-		public override void Write (byte[] buffer, int offset, int count)
-		{
-			if (socketStream != null) {
-				try {
-					socketStream.Write (buffer, offset, count);
-				}
-				catch (IOException) {
-					connected = false;
-				}
-			}
-		}
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            if (socketStream != null)
+            {
+                try
+                {
+                    socketStream.Write(buffer, offset, count);
+                }
+                catch (IOException)
+                {
+                    connected = false;
+                }
+            }
+        }
 
-		public override bool CanRead {
-			get {
-				return true;
-			}
-		}
+        public override bool CanRead
+        {
+            get
+            {
+                return true;
+            }
+        }
 
-		public override bool CanSeek {
-			get {
-				return false;
-			}
-		}
+        public override bool CanSeek
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-		public override bool CanTimeout {
-			get {
-				return true;
-			}
-		}
+        public override bool CanTimeout
+        {
+            get
+            {
+                return true;
+            }
+        }
 
-		public override bool CanWrite {
-			get {
-				return true;
-			}
-		}
+        public override bool CanWrite
+        {
+            get
+            {
+                return true;
+            }
+        }
 
-		public override long Length {
-			get {
-				throw new NotImplementedException ();
-			}
-		}
+        public override long Length
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-		public override long Position {
-			get {
-				throw new NotImplementedException ();
-			}
-			set {
-				throw new NotImplementedException ();
-			}
-		}
+        public override long Position
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
 
-		public override int ReadTimeout {
-			get {
-				return readTimeout;
-			}
-			set {
-				readTimeout = value;
-			}
-		}
+        public override int ReadTimeout
+        {
+            get
+            {
+                return readTimeout;
+            }
+            set
+            {
+                readTimeout = value;
+            }
+        }
 
-		public override int WriteTimeout {
-			get {
-				return base.WriteTimeout;
-			}
-			set {
-				base.WriteTimeout = value;
-			}
-		}
+        public override int WriteTimeout
+        {
+            get
+            {
+                return base.WriteTimeout;
+            }
+            set
+            {
+                base.WriteTimeout = value;
+            }
+        }
 
-		public override long Seek (long offset, SeekOrigin origin)
-		{
-			throw new NotImplementedException ();
-		}
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotImplementedException();
+        }
 
-		public override void Flush ()
-		{
-			if (socketStream != null)
-				socketStream.Flush ();
-		}
+        public override void Flush()
+        {
+            if (socketStream != null)
+                socketStream.Flush();
+        }
 
-		public override void SetLength (long value)
-		{
-			throw new NotImplementedException ();
-		}
-	}
+        public override void SetLength(long value)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }
