@@ -371,16 +371,30 @@ namespace lib60870.CS104
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="lib60870.CS104.RedundancyGroup"/> class.
+        /// </summary>
+        /// <param name="name">an optional name for debugging purposes.</param>
         public RedundancyGroup(string name)
         {
             this.name = name;
         }
 
+        /// <summary>
+        /// Gets the name.
+        /// </summary>
+        /// <value>the name, or null if no name is set</value>
         public string Name
         {
             get { return name; }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance is a catch all group.
+        /// All clients that are not explicitely assigned to a specific group are handled
+        /// by the catch all group.
+        /// </summary>
+        /// <value><c>true</c> if this instance is a catch all group; otherwise, <c>false</c>.</value>
         public bool IsCatchAll
         {
             get
@@ -392,6 +406,10 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Adds a client specified by the IP address
+        /// </summary>
+        /// <param name="ipAddress">IP address of the client.</param>
         public void AddAllowedClient(IPAddress ipAddress)
         {
             if (AllowedClients == null)
@@ -400,6 +418,10 @@ namespace lib60870.CS104
             AllowedClients.Add(ipAddress);
         }
 
+        /// <summary>
+        /// Adds a client specified by the IP address
+        /// </summary>
+        /// <param name="ipAddress">IP address of the client.</param>
         public void AddAllowedClient(string ipString)
         {
             IPAddress ipAddress = IPAddress.Parse(ipString);
@@ -470,6 +492,12 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Enqueues the ASDU to the redundancy group specific message queue.
+        /// This function is called by <see cref="lib60870.CS104.Server.EnqueueASDU"/>. If the Server.EnqueuASDU method
+        /// is used this method should not be called!
+        /// </summary>
+        /// <param name="asdu">The ASDU to enqueue.</param>
         public void EnqueueASDU(ASDU asdu)
         {
             if (asduQueue != null)
