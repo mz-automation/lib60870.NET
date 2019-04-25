@@ -1714,6 +1714,8 @@ namespace lib60870.CS104
                         {
                         }
 
+                        running = false;
+
                         socket.Close();
 
                         netStream.Dispose();
@@ -1747,6 +1749,10 @@ namespace lib60870.CS104
             connecting = false;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:lib60870.CS104.Connection"/> is running(connected).
+        /// </summary>
+        /// <value><c>true</c> if is running/connected; otherwise, <c>false</c>.</value>
         public bool IsRunning
         {
             get
