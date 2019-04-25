@@ -1,5 +1,5 @@
 = lib60870.NET 2.2 User Guide
-Michael Zillgith
+Copyright 2019 MZ Automation GmbH
 
 == Introduction
 
