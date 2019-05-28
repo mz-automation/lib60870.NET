@@ -1,7 +1,7 @@
 ﻿/*
- *  FileObjects.cs
+ *  FileServices.cs
  *
- *  Copyright 2017 MZ Automation GmbH
+ *  Copyright 2017-2019 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *
@@ -354,11 +354,12 @@ namespace lib60870.CS101
 
                         if (sc.NotReady == false)
                         {
+                            DebugLog ("Received SECTION READY(NoF=" + sc.NOF + ", NoS=" + sc.NameOfSection + ")");
 
-                            ASDU callSection = NewAsdu(new FileCallOrSelect(ioa, nof, 0, SelectAndCallQualifier.REQUEST_SECTION));
+                            ASDU callSection = NewAsdu(new FileCallOrSelect(ioa, nof, sc.NameOfSection, SelectAndCallQualifier.REQUEST_SECTION));
                             master.SendASDU(callSection);
 
-                            DebugLog("Send CALL SECTION");
+                            DebugLog("Send CALL SECTION(NoF=" + sc.NOF + ", NoS=" + sc.NameOfSection + ")");
 
                             segmentOffset = 0;
                             state = FileClientState.RECEIVING_SECTION;
@@ -391,6 +392,8 @@ namespace lib60870.CS101
                     {
 
                         FileSegment segment = (FileSegment)asdu.GetElement(0);
+
+                        DebugLog ("Received SEGMENT (NoS=" + segment.NameOfSection + ", LoS=" + segment.LengthOfSegment + ")");
 
                         if (fileReceiver != null)
                         {
@@ -503,11 +506,7 @@ namespace lib60870.CS101
 
             state = FileClientState.WAITING_FOR_FILE_READY;
         }
-
     }
-
-
-
 
     internal enum FileServerState
     {
@@ -823,7 +822,9 @@ namespace lib60870.CS101
                                     currentSectionNumber++;
 
                                     int nextSectionSize = 
-                                        selectedFile.provider.GetSectionSize(currentSectionNumber);
+                                        selectedFile.provider.GetSectionSize(currentSectionNumber - 1);
+
+                                    currentSectionOffset = 0;
 
                                     ASDU responseAsdu = new ASDU(alParameters, CauseOfTransmission.FILE_TRANSFER, false, false, 0, file.GetCA(), false);
 
@@ -980,15 +981,17 @@ namespace lib60870.CS101
 
                                     ASDU sectionReady = new ASDU(alParameters, CauseOfTransmission.FILE_TRANSFER, false, false, 0, asdu.Ca, false);
 
-                                    sectionReady.AddInformationObject(new SectionReady(sc.ObjectAddress, selectedFile.provider.GetNameOfFile(), 0, 0, false));
+                                    currentSectionNumber = 1;
+                                    currentSectionOffset = 0;
+                                    currentSectionSize = selectedFile.provider.GetSectionSize (0);
+
+                                    sectionReady.AddInformationObject(new SectionReady(sc.ObjectAddress, selectedFile.provider.GetNameOfFile(), currentSectionNumber, currentSectionSize, false));
 
                                     connection.SendASDU(sectionReady);
 
                                     logger("Send SECTION READY");
 
-                                    currentSectionNumber = 0;
-                                    currentSectionOffset = 0;
-                                    currentSectionSize = selectedFile.provider.GetSectionSize(0);
+
 
                                     transferState = FileServerState.WAITING_FOR_SECTION_CALL;
                                 }
@@ -1004,7 +1007,8 @@ namespace lib60870.CS101
                         else if (sc.SCQ == SelectAndCallQualifier.REQUEST_SECTION)
                         {
 
-                            logger("Received CALL SECTION");
+                            logger ("Received CALL SECTION (NoS=" + sc.NameOfSection + ") current section: " + currentSectionNumber);
+
 
                             if (transferState == FileServerState.WAITING_FOR_SECTION_CALL)
                             {
@@ -1018,8 +1022,17 @@ namespace lib60870.CS101
                                 }
                                 else
                                 {
+                                    currentSectionSize = selectedFile.provider.GetSectionSize (sc.NameOfSection - 1);
 
-                                    transferState = FileServerState.TRANSMIT_SECTION;
+                                    if (currentSectionSize > 0) {
+                                        currentSectionNumber = sc.NameOfSection;
+                                        currentSectionOffset = 0;
+
+                                        transferState = FileServerState.TRANSMIT_SECTION;
+                                    } else {
+                                        logger ("Unexpected NoS");
+                                    }
+                                      
                                 }
                             }
                             else
@@ -1085,7 +1098,7 @@ namespace lib60870.CS101
                             sectionChecksum = 0;
 
 
-                            logger("Send LAST SEGMENT");
+                            logger("Send LAST SEGMENT (NoS=" + currentSectionNumber + ")");
 
                             connection.SendASDU(fileAsdu);
 
@@ -1102,7 +1115,7 @@ namespace lib60870.CS101
 
                             byte[] segmentData = new byte[currentSegmentSize];
 
-                            file.GetSegmentData(currentSectionNumber,
+                            file.GetSegmentData(currentSectionNumber - 1,
                                 currentSectionOffset,
                                 currentSegmentSize,
                                 segmentData);
@@ -1124,23 +1137,14 @@ namespace lib60870.CS101
 
                             sectionChecksum += checksum;
 
-                            logger("Send SEGMENT (CHS=" + sectionChecksum + ")");
+                            logger("Send SEGMENT (NoS=" + currentSectionNumber +  ", CHS=" + sectionChecksum + ")");
                             currentSectionOffset += currentSegmentSize;
 
                         }
                     }
                 }
-
             }
-
-
         }
-
-
     }
-
-
-
-
 
 }

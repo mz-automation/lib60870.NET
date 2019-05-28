@@ -152,7 +152,7 @@ namespace lib60870.CS101
 
         public bool Positive
         {
-            get { return ((frq & 0x80) == 0x80); }
+            get { return ((frq & 0x80) == 0); }
         }
 
         internal FileReady(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -193,9 +193,9 @@ namespace lib60870.CS101
             this.lengthOfFile = lengthOfFile;
 
             if (positive)
-                frq = 0x80;
+                frq = 0x00;
             else
-                frq = 0;
+                frq = 0x80;
         }
 
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
@@ -413,7 +413,6 @@ namespace lib60870.CS101
                 nameOfSection = value;
             }
         }
-
 
         /// <summary>
         /// Gets or sets the SCQ (select and call qualifier)
