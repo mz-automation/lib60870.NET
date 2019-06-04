@@ -154,13 +154,22 @@ namespace lib60870.CS101
 
 
         /// <summary>
-        /// Gets the file.
+        /// Read the file from slave (upload file)
         /// </summary>
-        /// <param name="ca">Ca.</param>
-        /// <param name="ioa">Ioa.</param>
-        /// <param name="nof">Nof.</param>
-        /// <param name="receiver">Receiver.</param>
+        /// <param name="ca">CA</param>
+        /// <param name="ioa">IOA</param>
+        /// <param name="nof">Name of file (file type)</param>
+        /// <param name="receiver">file receiver instance</param>
         public abstract void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver);
+
+        /// <summary>
+        /// Sends the file to slave (download file)
+        /// </summary>
+        /// <param name="ca">CA</param>
+        /// <param name="ioa">IOA</param>
+        /// <param name="nof">Name of file (file type)</param>
+        /// <param name="fileProvider">File provider instance</param>
+        public abstract void SendFile (int ca, int ioa, NameOfFile nof, IFileProvider fileProvider);
 
         /// <summary>
         /// Get the application layer parameters used by this master instance

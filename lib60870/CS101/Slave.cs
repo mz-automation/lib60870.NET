@@ -21,7 +21,6 @@
 
 
 using System;
-using System.Collections.Generic;
 
 namespace lib60870.CS101
 {
@@ -133,8 +132,8 @@ namespace lib60870.CS101
         public  ASDUHandler asduHandler = null;
         public object asduHandlerParameter = null;
 
-        protected FileReadyHandler fileReadyHandler = null;
-        protected object fileReadyHandlerParameter = null;
+        internal FileReadyHandler fileReadyHandler = null;
+        internal object fileReadyHandlerParameter = null;
 
         /// <summary>
         /// Sets a callback for interrogaton requests.

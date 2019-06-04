@@ -1675,6 +1675,9 @@ namespace lib60870.CS104
                                 if (handleTimeouts() == false)
                                     loopRunning = false;
 
+                                if (fileClient != null)
+                                    fileClient.HandleFileService ();
+
                                 if (isConnected() == false)
                                     loopRunning = false;
 
@@ -1839,6 +1842,15 @@ namespace lib60870.CS104
                 fileClient = new FileClient(this, DebugLog);
 
             fileClient.RequestFile(ca, ioa, nof, receiver);
+        }
+
+
+        public override void SendFile (int ca, int ioa, NameOfFile nof, IFileProvider fileProvider)
+        {
+            if (fileClient == null)
+                fileClient = new FileClient (this, DebugLog);
+
+            fileClient.SendFile (ca, ioa, nof, fileProvider);
         }
 
         public void GetDirectory(int ca)

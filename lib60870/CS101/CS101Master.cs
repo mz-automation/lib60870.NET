@@ -566,6 +566,14 @@ namespace lib60870.CS101
 
             fileClient.RequestFile(ca, ioa, nof, receiver);
         }
+
+        public override void SendFile (int ca, int ioa, NameOfFile nof, IFileProvider fileProvider)
+        {
+            if (fileClient == null)
+                fileClient = new FileClient (this, DebugLog);
+
+            fileClient.SendFile (ca, ioa, nof, fileProvider);
+        }
     }
 
 }

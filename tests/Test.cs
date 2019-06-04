@@ -237,7 +237,7 @@ namespace tests
         }
 
         [Test ()]
-        [Ignore("Ignore to save execution time")]
+        //[Ignore("Ignore to save execution time")]
         public void TestConnectWhileAlreadyConnected ()
         {
             ApplicationLayerParameters parameters = new ApplicationLayerParameters ();
@@ -280,7 +280,7 @@ namespace tests
 
 
         [Test ()]
-        [Ignore("Ignore to save execution time")]
+        //[Ignore("Ignore to save execution time")]
         public void TestConnectSameConnectionMultipleTimes ()
         {
             ApplicationLayerParameters parameters = new ApplicationLayerParameters ();
@@ -939,7 +939,7 @@ namespace tests
         }
 
         [Test ()]
-        [Ignore("Ignore to save execution time")]
+        //[Ignore("Ignore to save execution time")]
         public void TestSendTestFR () {
             ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
             APCIParameters clientApciParamters = new APCIParameters ();
@@ -995,7 +995,7 @@ namespace tests
         /// doesn't receive the TESTFR_CON messages
         /// </summary>
         [Test ()]
-        [Ignore("Ignore to save execution time")]
+        //[Ignore("Ignore to save execution time")]
         public void TestSendTestFRTimeoutMaster () {
             ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
             APCIParameters clientApciParamters = new APCIParameters ();
@@ -1067,7 +1067,7 @@ namespace tests
         /// doesn't send the TESTFR_CON messages
         /// </summary>
         [Test ()]
-        [Ignore("Ignore to save execution time")]
+        //[Ignore("Ignore to save execution time")]
         public void TestSendTestFRTimeoutSlave () {
             ApplicationLayerParameters clientParameters = new ApplicationLayerParameters ();
             APCIParameters clientApciParamters = new APCIParameters ();
@@ -1657,6 +1657,147 @@ namespace tests
 
             for (int i = 0; i < 1000; i++) {
                 Assert.AreEqual (receiver.recvBuffer [i], (byte) i);
+            }
+
+            con.Close ();
+
+            server.Stop ();
+        }
+
+
+        [Test ()]
+        public void TestFileDownloadSingleSection ()
+        {
+            Server server = new Server ();
+            server.SetLocalPort (20213);
+            server.DebugOutput = true;
+            server.Start ();
+
+            SimpleFile file = new SimpleFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
+
+            byte [] fileData = new byte [100];
+
+            for (int i = 0; i < 100; i++)
+                fileData [i] = (byte)(i);
+
+            file.AddSection (fileData);
+
+            Receiver receiver = new Receiver ();
+
+            server.SetFileReadyHandler (delegate (object parameter, int ca, int ioa, NameOfFile nof, int lengthOfFile) {
+                return receiver;
+            }, null);
+
+            Connection con = new Connection ("127.0.0.1", 20213);
+            con.DebugOutput = true;
+            con.Connect ();
+
+            con.SendFile (1, 30000, NameOfFile.TRANSPARENT_FILE, file);
+
+            Thread.Sleep (3000);
+            Assert.IsTrue (receiver.finishedCalled);
+            Assert.AreEqual (100, receiver.recvdBytes);
+            Assert.AreEqual (1, receiver.lastSection);
+
+            for (int i = 0; i < 100; i++) {
+                Assert.AreEqual (receiver.recvBuffer [i], i);
+            }
+
+            con.Close ();
+
+            server.Stop ();
+        }
+
+        [Test ()]
+        public void TestFileDownloadMultipleSegments ()
+        {
+            Server server = new Server ();
+            server.SetLocalPort (20213);
+            server.DebugOutput = true;
+            server.Start ();
+
+            SimpleFile file = new SimpleFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
+
+            byte [] fileData = new byte [1000];
+
+            for (int i = 0; i < 1000; i++)
+                fileData [i] = (byte)(i);
+
+            file.AddSection (fileData);
+
+            Receiver receiver = new Receiver ();
+
+            server.SetFileReadyHandler (delegate (object parameter, int ca, int ioa, NameOfFile nof, int lengthOfFile) {
+                return receiver;
+            }, null);
+
+            Connection con = new Connection ("127.0.0.1", 20213);
+            con.DebugOutput = true;
+            con.Connect ();
+
+            con.SendFile (1, 30000, NameOfFile.TRANSPARENT_FILE, file);
+
+            Thread.Sleep (3000);
+            Assert.IsTrue (receiver.finishedCalled);
+            Assert.AreEqual (1000, receiver.recvdBytes);
+            Assert.AreEqual (1, receiver.lastSection);
+
+            for (int i = 0; i < 1000; i++) {
+                Assert.AreEqual (receiver.recvBuffer [i], (byte)i);
+            }
+
+            con.Close ();
+
+            server.Stop ();
+        }
+
+        [Test ()]
+        public void TestFileDownloadMultipleSegmentsMultipleSections ()
+        {
+            Server server = new Server ();
+            server.SetLocalPort (20213);
+            server.DebugOutput = true;
+            server.Start ();
+
+            SimpleFile file = new SimpleFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
+
+            byte [] fileData = new byte [1000];
+
+            for (int i = 0; i < 1000; i++)
+                fileData [i] = (byte)(i);
+
+            file.AddSection (fileData);
+
+            byte [] fileData2 = new byte [1000];
+
+            for (int i = 0; i < 1000; i++)
+                fileData2 [i] = (byte)(i * 2);
+
+            file.AddSection (fileData2);
+
+            Receiver receiver = new Receiver ();
+
+            server.SetFileReadyHandler (delegate (object parameter, int ca, int ioa, NameOfFile nof, int lengthOfFile) {
+                return receiver;
+            }, null);
+
+            Connection con = new Connection ("127.0.0.1", 20213);
+            con.DebugOutput = true;
+            con.Connect ();
+
+            con.SendFile (1, 30000, NameOfFile.TRANSPARENT_FILE, file);
+
+            Thread.Sleep (3000);
+            Assert.IsTrue (receiver.finishedCalled);
+            Assert.AreEqual (2000, receiver.recvdBytes);
+            Assert.AreEqual (2, receiver.lastSection);
+
+            for (int i = 0; i < 1000; i++) {
+                Assert.AreEqual (receiver.recvBuffer [i], (byte)i);
+            }
+
+            for (int i = 0; i < 1000; i++) {
+                Assert.AreEqual (receiver.recvBuffer [i + 1000], (byte)(i * 2));
             }
 
             con.Close ();

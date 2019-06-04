@@ -16,7 +16,7 @@ namespace lib60870
         /// <summary>
         /// Library minor version number
         /// </summary>
-        public const int VERSION_MINOR = 2;
+        public const int VERSION_MINOR = 3;
 
         /// <summary>
         /// Library patch number
