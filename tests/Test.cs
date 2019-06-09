@@ -1504,9 +1504,14 @@ namespace tests
             {
             }
 
+            public bool transferComplete = false;
+            public bool success = false;
+
             public override void TransferComplete (bool success)
             {
                 Console.WriteLine ("Transfer complete: " + success.ToString ());
+                transferComplete = true;
+                this.success = success;
             }
         }
 
@@ -1654,6 +1659,8 @@ namespace tests
             Assert.IsTrue (receiver.finishedCalled);
             Assert.AreEqual (1000, receiver.recvdBytes);
             Assert.AreEqual (1, receiver.lastSection);
+            Assert.IsTrue (file.transferComplete);
+            Assert.IsTrue (file.success);
 
             for (int i = 0; i < 1000; i++) {
                 Assert.AreEqual (receiver.recvBuffer [i], (byte) i);
@@ -1741,6 +1748,8 @@ namespace tests
             Assert.IsTrue (receiver.finishedCalled);
             Assert.AreEqual (1000, receiver.recvdBytes);
             Assert.AreEqual (1, receiver.lastSection);
+            Assert.IsTrue (file.transferComplete);
+            Assert.IsTrue (file.success);
 
             for (int i = 0; i < 1000; i++) {
                 Assert.AreEqual (receiver.recvBuffer [i], (byte)i);
@@ -1791,6 +1800,8 @@ namespace tests
             Assert.IsTrue (receiver.finishedCalled);
             Assert.AreEqual (2000, receiver.recvdBytes);
             Assert.AreEqual (2, receiver.lastSection);
+            Assert.IsTrue (file.transferComplete);
+            Assert.IsTrue (file.success);
 
             for (int i = 0; i < 1000; i++) {
                 Assert.AreEqual (receiver.recvBuffer [i], (byte)i);
@@ -1799,6 +1810,49 @@ namespace tests
             for (int i = 0; i < 1000; i++) {
                 Assert.AreEqual (receiver.recvBuffer [i + 1000], (byte)(i * 2));
             }
+
+            con.Close ();
+
+            server.Stop ();
+        }
+
+        [Test ()]
+        public void TestFileDownloadSlaveRejectsFile()
+        {
+            Server server = new Server ();
+            server.SetLocalPort (20213);
+            server.DebugOutput = true;
+            server.Start ();
+
+            SimpleFile file = new SimpleFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
+
+            byte [] fileData = new byte [100];
+
+            for (int i = 0; i < 100; i++)
+                fileData [i] = (byte)(i);
+
+            file.AddSection (fileData);
+
+            Receiver receiver = new Receiver ();
+
+            server.SetFileReadyHandler (delegate (object parameter, int ca, int ioa, NameOfFile nof, int lengthOfFile) {
+                return null;
+            }, null);
+
+            Connection con = new Connection ("127.0.0.1", 20213);
+            con.DebugOutput = true;
+            con.Connect ();
+
+            con.SendFile (1, 30000, NameOfFile.TRANSPARENT_FILE, file);
+
+            Thread.Sleep (1000);
+
+            Assert.IsTrue (file.transferComplete);
+            Assert.IsFalse (file.success);
+
+            Assert.IsFalse (receiver.finishedCalled);
+            Assert.AreEqual (0, receiver.recvdBytes);
+            Assert.AreEqual (0, receiver.lastSection);
 
             con.Close ();
 
