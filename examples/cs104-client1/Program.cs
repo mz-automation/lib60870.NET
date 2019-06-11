@@ -144,7 +144,7 @@ namespace cs104_client1
 
 			Connection con = new Connection ("127.0.0.1");
 
-			con.DebugOutput = true;
+			con.DebugOutput = false;
 
 			con.SetASDUReceivedHandler (asduReceivedHandler, null);
 			con.SetConnectionHandler (ConnectionHandler, null);
@@ -175,7 +175,6 @@ namespace cs104_client1
 			/* Synchronize clock of the controlled station */
 			con.SendClockSyncCommand (1 /* CA */, new CP56Time2a (DateTime.Now)); 
 
-
 			Console.WriteLine ("CLOSE");
 
 			con.Close ();
@@ -186,10 +185,9 @@ namespace cs104_client1
 
 			Thread.Sleep (5000);
 
+            Console.WriteLine ("CLOSE 2");
 
-			Console.WriteLine ("CLOSE 2");
-
-			con.Close ();
+            con.Close ();
 
 			Console.WriteLine("Press any key to terminate...");
 			Console.ReadKey();

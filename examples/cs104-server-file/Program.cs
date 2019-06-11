@@ -1,15 +1,16 @@
 using System;
-using System.Net;
-using System.Net.Sockets;
+using System.IO;
 using System.Threading;
 
 using lib60870;
 using lib60870.CS101;
 using lib60870.CS104;
-using System.Collections.Generic;
 
 namespace cs104_server_file
 {
+    /// <summary>
+    /// Extend TransparentFile or implement IFileProvider to allow file downloads to the master
+    /// </summary>
 	public class SimpleFile : TransparentFile
 	{
 		public SimpleFile (int ca, int ioa, NameOfFile nof)
@@ -22,8 +23,44 @@ namespace cs104_server_file
 			Console.WriteLine ("Transfer complete: " + success.ToString());
 		}
 	}
-	
-	class MainClass
+
+    /// <summary>
+    /// Implement IFileReceiver to allow file uploads from the master
+    /// </summary>
+    public class MyReceiver : IFileReceiver
+    {
+
+        public byte [] recvBuffer;
+        public int recvdBytes = 0;
+
+        public MyReceiver (int bufferSize)
+        {
+            recvBuffer = new byte [bufferSize];
+        }
+
+        public void Finished (FileErrorCode result)
+        {
+            Console.WriteLine ("File download finished - code: " + result.ToString ());
+
+            // now the valid file data it in the buffer. User can now handle the file data (e.g. store data in local file system)
+            if (result == FileErrorCode.SUCCESS) {
+                File.WriteAllBytes ("file_30001.dat", recvBuffer);
+            }
+        }
+
+        public void SegmentReceived (byte sectionName, int offset, int size, byte [] data)
+        {
+            Array.Copy (data, 0, recvBuffer, recvdBytes, size);
+            recvdBytes += size;
+            Console.WriteLine ("File segment - sectionName: {0} offset: {1} size: {2}", sectionName, offset, size);
+            for (int i = 0; i < size; i++) {
+                Console.Write (" " + data [i]);
+            }
+            Console.WriteLine ();
+        }
+    }
+
+    class MainClass
 	{
 		private static bool interrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
 		{
@@ -136,7 +173,28 @@ namespace cs104_server_file
 
 			server.SetASDUHandler (asduHandler, null);
 
-			server.Start ();
+            // Install a handler to allow file downloads (will be called when the master sends a file ready ASDU to anounce a file transfer)
+            server.SetFileReadyHandler (delegate (object parameter, int ca, int ioa, NameOfFile nof, int lengthOfFile) {
+
+                if ((ca == 1) && (ioa == 30001) && (nof == NameOfFile.TRANSPARENT_FILE)) {
+
+                    // Allow only files with a maximum of 5000 bytes
+                    if (lengthOfFile > 5000) {
+                        Console.WriteLine ("Deny file download. File too large");
+                        return null;
+                    } else {
+                        Console.WriteLine ("Accept file download.");
+                        return new MyReceiver (lengthOfFile);
+                    }
+
+                } else {
+                    Console.WriteLine ("Deny file upload. Unknown file type.");
+                    return null;
+                }
+
+            }, null);
+
+            server.Start ();
 
 			SimpleFile file = new SimpleFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
 
