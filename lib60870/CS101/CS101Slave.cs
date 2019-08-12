@@ -704,6 +704,20 @@ namespace lib60870
                     port.Close();
             }
 
+            public override int FileTimeout 
+            {
+                get {
+                    if (fileServer != null)
+                        return (int)fileServer.Timeout;
+                    else
+                        return 0;
+                }
+
+                set {
+                    if (fileServer != null)
+                        fileServer.Timeout = value;
+                }
+            }
 
         }
 

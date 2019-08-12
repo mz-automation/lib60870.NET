@@ -523,6 +523,8 @@ namespace lib60870.CS104
         private int maxQueueSize = 1000;
         private int maxOpenConnections = 10;
 
+        internal int? fileTimeout = null;
+
         private List<RedundancyGroup> redGroups = new List<RedundancyGroup>();
 
         private ServerMode serverMode = ServerMode.SINGLE_REDUNDANCY_GROUP;
@@ -963,6 +965,19 @@ namespace lib60870.CS104
         internal void Deactivated(ClientConnection activeConnection)
         {
             CallConnectionEventHandler(activeConnection, ClientConnectionEvent.INACTIVE);
+        }
+
+        public override int FileTimeout {
+            get {
+                if (fileTimeout != null)
+                    return FileTimeout;
+                else
+                    return -1;
+            }
+
+            set {
+                fileTimeout = value;
+            }
         }
     }
 	

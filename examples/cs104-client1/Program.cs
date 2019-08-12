@@ -157,10 +157,6 @@ namespace cs104_client1
 
             Thread.Sleep (5000);
 
-            con.SendFile(1, 40000, NameOfFile.TRANSPARENT_FILE, 
-
-			Thread.Sleep (50000);
-
 			con.SendTestCommand (1);
 
 			con.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, QualifierOfInterrogation.STATION);

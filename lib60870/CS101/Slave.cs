@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright 2017-2018 MZ Automation GmbH
+ *  Copyright 2017-2019 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *
@@ -203,6 +203,11 @@ namespace lib60870.CS101
             this.asduHandlerParameter = parameter;
         }
 
+        /// <summary>
+        /// Sets a callback handler that is called when a file ready message is received from a master
+        /// </summary>
+        /// <param name="handler">callback function to be called</param>
+        /// <param name="parameter">user provided parameter that is passed to the callback</param>
         public void SetFileReadyHandler(FileReadyHandler handler, object parameter)
         {
             fileReadyHandler = handler;
@@ -211,10 +216,20 @@ namespace lib60870.CS101
 
         protected FilesAvailable filesAvailable = new FilesAvailable();
 
+        /// <summary>
+        /// Gets the available files that are registered with the file server
+        /// </summary>
+        /// <returns>The available files.</returns>
         public FilesAvailable GetAvailableFiles()
         {
             return filesAvailable;
         }
+
+        /// <summary>
+        /// Gets or sets the file service timeout.
+        /// </summary>
+        /// <value>The file service timeout in ms</value>
+        public virtual int FileTimeout { get; set; }
     }
 
 }

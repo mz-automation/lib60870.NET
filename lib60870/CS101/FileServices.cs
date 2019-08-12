@@ -1198,6 +1198,7 @@ namespace lib60870.CS101
                             {
 
                                 selectedFile.provider.TransferComplete(true);
+                                selectedFile.selectedBy = null;
 
                                 availableFiles.RemoveFile(selectedFile.provider);
 
@@ -1368,19 +1369,23 @@ namespace lib60870.CS101
 
                                     fileReady.AddInformationObject(new FileReady(sc.ObjectAddress, sc.NOF, file.provider.GetFileSize(), true));
 
+                                    lastSentTime = SystemUtils.currentTimeMillis ();
+
+                                    selectedFile = file;
+
+                                    transferState = FileServerState.WAITING_FOR_FILE_CALL;
+
                                 }
                                 else
                                 {
                                     fileReady.AddInformationObject(new FileReady(sc.ObjectAddress, sc.NOF, 0, false));
+
+                                    transferState = FileServerState.UNSELECTED_IDLE;
                                 }
 
                                 connection.SendASDU(fileReady);
 
-                                lastSentTime = SystemUtils.currentTimeMillis ();
 
-                                selectedFile = file;
-
-                                transferState = FileServerState.WAITING_FOR_FILE_CALL;
                             }
 
                         }
@@ -1657,6 +1662,11 @@ namespace lib60870.CS101
                 // check for timeout
                 if (SystemUtils.currentTimeMillis () > lastSentTime + timeout) {
                     logger ("Abort file transfer due to timeout");
+
+                    if (selectedFile != null) {
+                        selectedFile.selectedBy = null;
+                        selectedFile = null;
+                    }
 
                     transferState = FileServerState.UNSELECTED_IDLE;
                 }

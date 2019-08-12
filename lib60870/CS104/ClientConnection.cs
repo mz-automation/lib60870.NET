@@ -197,6 +197,8 @@ namespace lib60870.CS104
 
             this.fileServer = new FileServer(this, server.GetAvailableFiles(), DebugLog);
 
+            this.fileServer.Timeout = (long) server.fileTimeout;
+
             this.fileServer.SetFileReadyHandler (server.fileReadyHandler, server.fileReadyHandlerParameter);
 
             Thread workerThread = new Thread(HandleConnection);
