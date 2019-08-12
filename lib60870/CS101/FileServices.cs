@@ -778,7 +778,9 @@ namespace lib60870.CS101
 
     }
 
-
+    /// <summary>
+    /// Represents the available files in a file client or file server
+    /// </summary>
     public class FilesAvailable
     {
 
@@ -889,6 +891,10 @@ namespace lib60870.CS101
             }
         }
 
+        /// <summary>
+        /// Adds a file to the list of available files
+        /// </summary>
+        /// <param name="file">file to add</param>
         public void AddFile(IFileProvider file)
         {
             lock (availableFiles)
@@ -899,6 +905,10 @@ namespace lib60870.CS101
 				
         }
 
+        /// <summary>
+        /// Removes a file from the list of available files
+        /// </summary>
+        /// <param name="file">file to remove</param>
         public void RemoveFile(IFileProvider file)
         {
             lock (availableFiles)
@@ -915,6 +925,21 @@ namespace lib60870.CS101
 
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the list of available files
+        /// </summary>
+        /// <returns>the list of available files</returns>
+        public List<IFileProvider> GetFiles ()
+        {
+            List<IFileProvider> files = new List<IFileProvider> ();
+
+            foreach (CS101n104File file in availableFiles) {
+                files.Add (file.provider);
+            }
+
+            return files;
         }
 
     }
