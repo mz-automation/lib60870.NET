@@ -149,11 +149,15 @@ namespace cs104_client1
 			con.SetASDUReceivedHandler (asduReceivedHandler, null);
 			con.SetConnectionHandler (ConnectionHandler, null);
 
-			con.Connect ();
+            con.Connect ();
 
 			con.GetDirectory (1);
 
 			con.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
+
+            Thread.Sleep (5000);
+
+            con.SendFile(1, 40000, NameOfFile.TRANSPARENT_FILE, 
 
 			Thread.Sleep (50000);
 

@@ -101,7 +101,7 @@ namespace lib60870.CS101
     }
 
     /// <summary>
-    /// File ready handler. Will be called by the slave when a master sends a FILE READY (file download announcement) message to the slave.
+    /// File ready handler. Will be called by the FileServer when a master sends a FILE READY (file download announcement) message to the slave.
     /// </summary>
 	public delegate IFileReceiver FileReadyHandler(object parameter,int ca,int ioa,NameOfFile nof,int lengthOfFile);
 
@@ -334,6 +334,7 @@ namespace lib60870.CS101
         {
             fileReceiver = null;
             fileProvider = null;
+            fileChecksum = 0;
             state = FileClientState.IDLE;
         }
 
@@ -371,23 +372,17 @@ namespace lib60870.CS101
 
                 if (state == FileClientState.WAITING_FOR_FILE_READY) /* file download */
                 {
+                    FileErrorCode errCode = FileErrorCode.PROTOCOL_ERROR;
 
-                    if (asdu.Cot == CauseOfTransmission.UNKNOWN_TYPE_ID) {
+                    if (asdu.Cot == CauseOfTransmission.UNKNOWN_TYPE_ID)
+                        errCode = FileErrorCode.UNKNOWN_SERVICE;
+                    else if (asdu.Cot == CauseOfTransmission.UNKNOWN_COMMON_ADDRESS_OF_ASDU)
+                        errCode = FileErrorCode.UNKNOWN_CA;
+                    else if (asdu.Cot == CauseOfTransmission.UNKNOWN_INFORMATION_OBJECT_ADDRESS)
+                        errCode = FileErrorCode.UNKNOWN_IOA;
 
-                        if (fileReceiver != null)
-                            fileReceiver.Finished (FileErrorCode.UNKNOWN_SERVICE);
-                    } else if (asdu.Cot == CauseOfTransmission.UNKNOWN_COMMON_ADDRESS_OF_ASDU) {
-
-                        if (fileReceiver != null)
-                            fileReceiver.Finished (FileErrorCode.UNKNOWN_CA);
-                    } else if (asdu.Cot == CauseOfTransmission.UNKNOWN_INFORMATION_OBJECT_ADDRESS) {
-
-                        if (fileReceiver != null)
-                            fileReceiver.Finished (FileErrorCode.UNKNOWN_IOA);
-                    } else {
-                        if (fileReceiver != null)
-                            fileReceiver.Finished (FileErrorCode.PROTOCOL_ERROR);
-                    }
+                    if (fileReceiver != null)
+                        fileReceiver.Finished (errCode);
 
                     ResetStateToIdle ();
                 } else if (state == FileClientState.WAITING_FOR_REQUEST_FILE) /* file upload */
@@ -440,6 +435,8 @@ namespace lib60870.CS101
                     if ((asdu.Ca == ca) && (fileReady.ObjectAddress == ioa) && (fileReady.NOF == nof)) {
 
                         if (fileReady.Positive) {
+
+                            /* send call file */
 
                             ASDU callFile = NewAsdu (new FileCallOrSelect (ioa, nof, 0, SelectAndCallQualifier.REQUEST_FILE));
                             master.SendASDU (callFile);
@@ -642,7 +639,7 @@ namespace lib60870.CS101
                                 state = FileClientState.SECTION_READY;
                             } else {
 
-                                ASDU lastSection = NewAsdu (new FileLastSegmentOrSection (ioa, nof, (byte)numberOfSection, LastSectionOrSegmentQualifier.FILE_TRANSFER_WITHOUT_DEACT, sectionChecksum));
+                                ASDU lastSection = NewAsdu (new FileLastSegmentOrSection (ioa, nof, (byte)numberOfSection, LastSectionOrSegmentQualifier.FILE_TRANSFER_WITHOUT_DEACT, fileChecksum));
                                 master.SendASDU (lastSection);
 
                                 lastSentTime = SystemUtils.currentTimeMillis ();
@@ -1093,14 +1090,14 @@ namespace lib60870.CS101
 
                     if (lastSection.LSQ == LastSectionOrSegmentQualifier.SECTION_TRANSFER_WITHOUT_DEACT) {
 
-                        ASDU segmentAck = new ASDU (alParameters, CauseOfTransmission.FILE_TRANSFER, false, false, 0, asdu.Ca, false);
+                        ASDU sectionAck = new ASDU (alParameters, CauseOfTransmission.FILE_TRANSFER, false, false, 0, asdu.Ca, false);
 
-                        segmentAck.AddInformationObject (new FileACK (ioa, nof, lastSection.NameOfSection, AcknowledgeQualifier.POS_ACK_SECTION, FileError.DEFAULT));
+                        sectionAck.AddInformationObject (new FileACK (ioa, nof, lastSection.NameOfSection, AcknowledgeQualifier.POS_ACK_SECTION, FileError.DEFAULT));
 
-                        connection.SendASDU (segmentAck);
+                        connection.SendASDU (sectionAck);
                         lastSentTime = SystemUtils.currentTimeMillis ();
 
-                        logger ("Send segment ACK");
+                        logger ("Send section ACK");
 
                         transferState = FileServerState.WAITING_FOR_SECTION_READY;
 
@@ -1156,6 +1153,7 @@ namespace lib60870.CS101
 
                 logger("Received file/section ACK F_AF_NA_1");
 
+                //TODO move COT check to beginning of function!
                 if (asdu.Cot == CauseOfTransmission.FILE_TRANSFER)
                 {
 
@@ -1258,7 +1256,7 @@ namespace lib60870.CS101
 
                                 if (nextSectionSize == -1)
                                 {
-                                    logger("Reveived positive file section ACK - send last section indication");
+                                    logger("Received positive file section ACK - send last section indication");
 
                                     responseAsdu.AddInformationObject(
                                         new FileLastSegmentOrSection(file.GetIOA(), file.GetNameOfFile(), 
@@ -1270,7 +1268,7 @@ namespace lib60870.CS101
                                 }
                                 else
                                 {
-                                    logger("Reveived positive file section ACK - send next section ready indication");
+                                    logger("Received positive file section ACK - send next section ready indication");
 
                                     currentSectionSize = nextSectionSize;
 
@@ -1308,7 +1306,7 @@ namespace lib60870.CS101
                 }
                 break;
 
-            case TypeID.F_SC_NA_1: /* 122 - Call/Select directoy/file/section */
+            case TypeID.F_SC_NA_1: /* 122 - Call/Select directory/file/section */
 
                 logger("Received call/select F_SC_NA_1");
 
@@ -1341,7 +1339,6 @@ namespace lib60870.CS101
                                 // check if already selected
                                 if (file.selectedBy == null)
                                 {
-
                                     file.selectedBy = this;
 
                                     fileReady.AddInformationObject(new FileReady(sc.ObjectAddress, sc.NOF, file.provider.GetFileSize(), true));

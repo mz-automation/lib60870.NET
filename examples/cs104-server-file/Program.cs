@@ -129,7 +129,24 @@ namespace cs104_server_file
 
 		private static bool asduHandler(object parameter, IMasterConnection connection, ASDU asdu)
 		{
-			
+            if (asdu.TypeId == TypeID.C_SC_NA_1) {
+
+                SingleCommand sc = (SingleCommand)asdu.GetElement (0);
+
+                if (sc.ObjectAddress != 100) {
+                    // Unkown IOA --> send negative confirmation
+                    asdu.Cot = CauseOfTransmission.UNKNOWN_INFORMATION_OBJECT_ADDRESS;
+                    asdu.IsNegative = true;
+                    connection.SendASDU (asdu);
+                } else {
+                    // execute command
+
+                    // send positive confirmation
+                    connection.SendACT_CON (asdu, false);
+                }
+
+            }
+
 			if (asdu.TypeId == TypeID.C_SC_NA_1) {
 				Console.WriteLine ("Single command");
 
