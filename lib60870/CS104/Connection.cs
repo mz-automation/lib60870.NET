@@ -951,7 +951,14 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                netStream.Write(STARTDT_ACT_MSG, 0, STARTDT_ACT_MSG.Length);
+                try
+                {
+                    netStream.Write(STARTDT_ACT_MSG, 0, STARTDT_ACT_MSG.Length);
+                }
+                catch (Exception ex)
+                {
+                    throw new ConnectionException("Failed to write to socket", ex);
+                }
 
                 statistics.SentMsgCounter++;
 
@@ -976,8 +983,15 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                netStream.Write(STOPDT_ACT_MSG, 0, STOPDT_ACT_MSG.Length);
-
+                try
+                {
+                    netStream.Write(STOPDT_ACT_MSG, 0, STOPDT_ACT_MSG.Length);
+                }
+                catch (Exception ex)
+                {
+                    throw new ConnectionException("Failed to write to socket", ex);
+                }
+           
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -998,7 +1012,15 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                netStream.Write(STARTDT_CON_MSG, 0, STARTDT_CON_MSG.Length);
+                try
+                {
+                    netStream.Write(STARTDT_CON_MSG, 0, STARTDT_CON_MSG.Length);
+                }
+                catch (Exception ex)
+                {
+                    throw new ConnectionException("Failed to write to socket", ex);
+                }
+                
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -1018,7 +1040,15 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                netStream.Write(STOPDT_CON_MSG, 0, STOPDT_CON_MSG.Length);
+                try
+                {
+                    netStream.Write(STOPDT_CON_MSG, 0, STOPDT_CON_MSG.Length);
+                }
+                catch (Exception ex)
+                {
+                    throw new ConnectionException("Failed to write to socket", ex);
+                }
+
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -1038,7 +1068,15 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
+                try
+                {
+                    netStream.Write(TESTFR_ACT_MSG, 0, TESTFR_ACT_MSG.Length);
+                }
+                catch (Exception ex)
+                {
+                    throw new ConnectionException("Failed to write to socket", ex);
+                }
+                
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -1058,7 +1096,15 @@ namespace lib60870.CS104
         {
             if (running)
             {
-                netStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
+                try
+                {
+                    netStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
+                }
+                catch (Exception ex)
+                {
+                    throw new ConnectionException("Failed to write to socket", ex);
+                }
+                
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {

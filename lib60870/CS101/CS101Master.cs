@@ -360,7 +360,21 @@ namespace lib60870.CS101
         {
             try
             {
-                linkLayerUnbalanced.RequestClass2Data(address);
+                if (linkLayerUnbalanced != null)
+                    linkLayerUnbalanced.RequestClass2Data(address);
+            }
+            catch (LinkLayerBusyException)
+            {
+                DebugLog("Link layer busy");
+            }
+        }
+
+        public void RequestClass1Data(int address)
+        {
+            try
+            {
+                if (linkLayerUnbalanced != null)
+                     linkLayerUnbalanced.RequestClass1Data(address);
             }
             catch (LinkLayerBusyException)
             {

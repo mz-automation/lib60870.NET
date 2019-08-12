@@ -46,6 +46,10 @@ namespace cs104_client_file_upload
                         hostname = args [i];
                     if (i == 1)
                         filename = args [i];
+                    if (i == 2)
+                        Int32.TryParse(args[i], out fileCa);
+                    if (i == 3)
+                        Int32.TryParse(args[i], out fileIoa);
                 }
 
             }
@@ -69,7 +73,7 @@ namespace cs104_client_file_upload
                 file.AddSection (fileData);
             }
 
-            con.SendFile (fileCa, fileIoa, NameOfFile.TRANSPARENT_FILE, file);
+            con.SendFile (fileCa, fileIoa, (NameOfFile) 12, file);
 
             file.WaitUntilTransferIsComplete ();
 

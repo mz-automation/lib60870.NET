@@ -18,10 +18,12 @@ namespace cs104_server
 
 			ApplicationLayerParameters cp = connection.GetApplicationLayerParameters ();
 
+            byte oa = asdu.Oa;
+
 			connection.SendACT_CON (asdu, false);
 
 			// send information objects
-			ASDU newAsdu = new ASDU(cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, 2, 1, false);
+			ASDU newAsdu = new ASDU(cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, oa, 1, false);
 
 			newAsdu.AddInformationObject (new MeasuredValueScaled (100, -1, new QualityDescriptor ()));
 
@@ -31,20 +33,20 @@ namespace cs104_server
 
 			connection.SendASDU (newAsdu);
 
-			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, 3, 1, false);
+			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, oa, 1, false);
 
 			newAsdu.AddInformationObject(new MeasuredValueScaledWithCP56Time2a(103, 3456, new QualityDescriptor (), new CP56Time2a(DateTime.Now)));
 
 			connection.SendASDU (newAsdu);
 
-			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, 2, 1, false);
+			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, oa, 1, false);
 
 			newAsdu.AddInformationObject (new SinglePointWithCP56Time2a (104, true, new QualityDescriptor (), new CP56Time2a (DateTime.Now)));
 
 			connection.SendASDU (newAsdu);
 
 			// send sequence of information objects
-			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, 2, 1, true);
+			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, oa, 1, true);
 
 			newAsdu.AddInformationObject (new SinglePointInformation (200, true, new QualityDescriptor ()));
 			newAsdu.AddInformationObject (new SinglePointInformation (201, false, new QualityDescriptor ()));
@@ -57,7 +59,7 @@ namespace cs104_server
 
 			connection.SendASDU (newAsdu);
 
-			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, 2, 1, true);
+			newAsdu = new ASDU (cp, CauseOfTransmission.INTERROGATED_BY_STATION, false, false, oa, 1, true);
 
 			newAsdu.AddInformationObject (new MeasuredValueNormalizedWithoutQuality (300, -1.0f));
 			newAsdu.AddInformationObject (new MeasuredValueNormalizedWithoutQuality (301, -0.5f));
@@ -86,14 +88,16 @@ namespace cs104_server
 				SingleCommand sc = (SingleCommand)asdu.GetElement (0);
 
 				Console.WriteLine (sc.ToString ());
+
+                connection.SendACT_CON(asdu, false);
 			} 
 			else if (asdu.TypeId == TypeID.C_CS_NA_1){
-				
-
 				ClockSynchronizationCommand qsc = (ClockSynchronizationCommand)asdu.GetElement (0);
 
 				Console.WriteLine ("Received clock sync command with time " + qsc.NewTime.ToString());
-			}
+
+                connection.SendACT_CON(asdu, false);
+            }
 
 			return true;
 		}
@@ -134,7 +138,7 @@ namespace cs104_server
 					waitTime -= 100;
 				else {
 
-					newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 2, 1, false);
+					newAsdu = new ASDU (server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
 
 					newAsdu.AddInformationObject (new MeasuredValueScaled (110, -1, new QualityDescriptor ()));
 				

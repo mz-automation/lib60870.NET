@@ -1165,6 +1165,7 @@ namespace tests
         {
             Server server = new Server ();
             server.SetLocalPort (20213);
+            server.DebugOutput = true;
 
             int recvValue = 0;
             int sendValue = 12345;
