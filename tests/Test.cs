@@ -186,6 +186,12 @@ namespace tests
             scaledValue = new ScaledValue (-32769);
             Assert.AreEqual (-32768, scaledValue.Value);
             Assert.AreEqual ((short)-32768, scaledValue.ShortValue);
+
+            scaledValue = new ScaledValue(-1);
+            Assert.AreEqual(-1, scaledValue.Value);
+
+            scaledValue = new ScaledValue(-300);
+            Assert.AreEqual(-300, scaledValue.Value);
         }
 
         [Test ()]
@@ -1628,6 +1634,53 @@ namespace tests
             con.Close ();
 
             server.Stop ();
+        }
+
+        [Test()]
+        public void TestFileUploadMultipleSectionsFreeFileName()
+        {
+            Server server = new Server();
+            server.SetLocalPort(20213);
+            server.Start();
+
+            SimpleFile file = new SimpleFile(1, 30000, (NameOfFile) 12);
+
+            byte[] fileData = new byte[100];
+
+            for (int i = 0; i < 100; i++)
+                fileData[i] = (byte)(i);
+
+            byte[] fileData2 = new byte[100];
+
+            for (int i = 0; i < 100; i++)
+                fileData2[i] = (byte)(100 + i);
+
+            file.AddSection(fileData);
+            file.AddSection(fileData2);
+
+            server.GetAvailableFiles().AddFile(file);
+
+            Connection con = new Connection("127.0.0.1", 20213);
+            con.Connect();
+
+
+            Receiver receiver = new Receiver();
+
+            con.GetFile(1, 30000, (NameOfFile) 12,  receiver);
+
+            Thread.Sleep(3000);
+            Assert.IsTrue(receiver.finishedCalled);
+            Assert.AreEqual(200, receiver.recvdBytes);
+            Assert.AreEqual(2, receiver.lastSection);
+
+            for (int i = 0; i < 200; i++)
+            {
+                Assert.AreEqual(receiver.recvBuffer[i], i);
+            }
+
+            con.Close();
+
+            server.Stop();
         }
 
         [Test ()]
