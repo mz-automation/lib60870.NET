@@ -78,8 +78,8 @@ namespace lib60870.CS101
 
                 short valueToEncode = (short)value;
 
-                encodedValue[0] = (byte)(valueToEncode % 256);
-                encodedValue[1] = (byte)(valueToEncode / 256);
+                encodedValue[0] = (byte)(valueToEncode & 255);
+                encodedValue[1] = (byte)(valueToEncode >> 8);
             }
         }
 
