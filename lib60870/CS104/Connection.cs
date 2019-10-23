@@ -1363,7 +1363,6 @@ namespace lib60870.CS104
             {
                 byte[] tmp = new byte[1];
 
-
                 socket.Send(tmp, 0, 0);
 
                 return true;
@@ -1725,6 +1724,9 @@ namespace lib60870.CS104
                                     fileClient.HandleFileService ();
 
                                 if (isConnected() == false)
+                                    loopRunning = false;
+
+                                if (running == false)
                                     loopRunning = false;
 
                                 if (useSendMessageQueue)
