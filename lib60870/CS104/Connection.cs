@@ -1131,7 +1131,6 @@ namespace lib60870.CS104
 
             ConnectAsync();
 
-
             while ((running == false) && (socketError == false))
             {
                 Thread.Sleep(1);

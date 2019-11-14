@@ -126,7 +126,10 @@ namespace lib60870.CS101
 
         public LinkLayerState GetLinkLayerState()
         {
-            return primaryLinkLayer.GetLinkLayerState();
+            if (linkLayer.LinkLayerMode == LinkLayerMode.BALANCED)
+                return primaryLinkLayer.GetLinkLayerState();
+            else
+                return linkLayerUnbalanced.GetStateOfSlave(slaveAddress);
         }
 
         public override void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)

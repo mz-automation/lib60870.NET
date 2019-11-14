@@ -253,7 +253,6 @@ namespace lib60870
             {
                 lock (userDataClass1Queue)
                 {
-
                     BufferFrame frame = new BufferFrame(new byte[256], 0);
 
                     asdu.Encode(frame, parameters);
@@ -423,7 +422,6 @@ namespace lib60870
                     DebugLog("ASDU parsing failed: " + e.Message);
                     return false;
                 }
-
 
                 bool messageHandled = false;
 
