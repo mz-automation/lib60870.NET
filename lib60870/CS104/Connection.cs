@@ -363,7 +363,7 @@ namespace lib60870.CS104
         }
 
         private int connectTimeoutInMs = 1000;
-
+        private int receiveTimeoutInMs = 1000; /* maximum allowed time between SOF byte and last message byte */
 
         public ApplicationLayerParameters Parameters
         {
@@ -770,6 +770,36 @@ namespace lib60870.CS104
         }
 
         /// <summary>
+        /// Timeout for connection establishment in milliseconds (ms)
+        /// </summary>
+        public int ConnectTimeout
+        {
+            get
+            {
+                return this.connectTimeoutInMs;
+            }
+            set
+            {
+                this.connectTimeoutInMs = value;
+            }
+        }
+
+        /// <summary>
+        /// Maximum allowed time for receiving a single message
+        /// </summary>
+        public int ReceiveTimeout
+        {
+            get
+            {
+                return this.receiveTimeoutInMs;
+            }
+            set
+            {
+                this.receiveTimeoutInMs = value;
+            }
+        }
+
+        /// <summary>
         /// Sends the interrogation command.
         /// </summary>
         /// <param name="cot">Cause of transmission</param>
@@ -1172,43 +1202,80 @@ namespace lib60870.CS104
             }
         }
 
+        private int readState = 0; /* 0 - idle, 1 - start received, 2 - reading remaining bytes */
+        private int currentReadPos = 0;
+        private int currentReadMsgLength = 0;
+        private int remainingReadLength = 0;
+        private long currentReadTimeout = 0;
+
         private int receiveMessage(byte[] buffer)
         {
-            int readLength = 0;
-
-            //if (netStream.DataAvailable) {
+            /* check receive timeout */
+            if (readState != 0)
+            {
+                if (SystemUtils.currentTimeMillis() > currentReadTimeout)
+                {
+                    DebugLog("Receive timeout!");
+                    return -1;
+                }
+            }
 
             if (socket.Poll(50, SelectMode.SelectRead))
             {
-                // wait for first byte
-                if (netStream.Read(buffer, 0, 1) != 1)
-                    return -1;
 
-                if (buffer[0] != 0x68)
+                if (readState == 0)
                 {
-                    DebugLog("Missing SOF indicator!");
+                    // wait for start byte
+                    if (netStream.Read(buffer, 0, 1) != 1)
+                        return -1;
 
-                    return -1;
+                    if (buffer[0] != 0x68)
+                    {
+                        DebugLog("Missing SOF indicator!");
+
+                        return -1;
+                    }
+
+                    readState = 1;
                 }
 
-                // read length byte
-                if (netStream.Read(buffer, 1, 1) != 1)
-                    return -1;
-
-                int length = buffer[1];
-
-                // read remaining frame
-                if (netStream.Read(buffer, 2, length) != length)
+                if (readState == 1)
                 {
-                    DebugLog("Failed to read complete frame!");
+                    // read length byte
+                    if (netStream.Read(buffer, 1, 1) != 1)
+                        return 0;
 
-                    return -1;
+                    currentReadMsgLength = buffer[1];
+                    remainingReadLength = currentReadMsgLength;
+                    currentReadPos = 2;
+
+                    readState = 2;
                 }
 
-                readLength = length + 2;
+                if (readState == 2)
+                {
+                    int readLength = netStream.Read(buffer, currentReadPos, remainingReadLength);
+
+                    if (readLength == remainingReadLength)
+                    {
+                        readState = 0;
+                        currentReadTimeout = 0;
+                        return 2 + currentReadMsgLength;
+                    }
+                    else
+                    {
+                        currentReadPos += readLength;
+                        remainingReadLength = remainingReadLength - readLength;
+                    }
+                }
+
+                if (currentReadTimeout == 0)
+                {
+                    currentReadTimeout = SystemUtils.currentTimeMillis() + this.receiveTimeoutInMs;
+                }
             }
 
-            return readLength;
+            return 0;
         }
 
         private bool checkConfirmTimeout(long currentTime)
