@@ -525,6 +525,8 @@ namespace lib60870.CS104
 
         internal int? fileTimeout = null;
 
+        private int receiveTimeoutInMs = 1000; /* maximum allowed time between SOF byte and last message byte */
+
         private List<RedundancyGroup> redGroups = new List<RedundancyGroup>();
 
         private ServerMode serverMode = ServerMode.SINGLE_REDUNDANCY_GROUP;
@@ -699,6 +701,22 @@ namespace lib60870.CS104
                 return this.allOpenConnections.Count;
             }
         }
+
+        /// <summary>
+        /// Maximum allowed time for receiving a single message
+        /// </summary>
+        public int ReceiveTimeout
+        {
+            get
+            {
+                return this.receiveTimeoutInMs;
+            }
+            set
+            {
+                this.receiveTimeoutInMs = value;
+            }
+        }
+
 
         private void ServerAcceptThread()
         {

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016, 2017 MZ Automation GmbH
+ *  Copyright 2016-2019 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *
@@ -263,43 +263,80 @@ namespace lib60870.CS104
 
         private bool debugOutput = true;
 
+        private int readState = 0; /* 0 - idle, 1 - start received, 2 - reading remaining bytes */
+        private int currentReadPos = 0;
+        private int currentReadMsgLength = 0;
+        private int remainingReadLength = 0;
+        private long currentReadTimeout = 0;
+
         private int receiveMessage(byte[] buffer)
         {
-			
-            int readLength = 0;
-
+            /* check receive timeout */
+            if (readState != 0)
+            {
+                if (SystemUtils.currentTimeMillis() > currentReadTimeout)
+                {
+                    DebugLog("Receive timeout!");
+                    return -1;
+                }
+            }
 
             if (socket.Poll(50, SelectMode.SelectRead))
             {
-                // maybe use socketStream.DataAvailable
 
-                // wait for first byte
-                if (socketStream.Read(buffer, 0, 1) != 1)
-                    return -1;
-
-                if (buffer[0] != 0x68)
+                if (readState == 0)
                 {
-                    DebugLog("Missing SOF indicator!");
-                    return -1;
+                    // wait for start byte
+                    if (socketStream.Read(buffer, 0, 1) != 1)
+                        return -1;
+
+                    if (buffer[0] != 0x68)
+                    {
+                        DebugLog("Missing SOF indicator!");
+
+                        return -1;
+                    }
+
+                    readState = 1;
                 }
 
-                // read length byte
-                if (socketStream.Read(buffer, 1, 1) != 1)
-                    return -1;
-
-                int length = buffer[1];
-
-                // read remaining frame
-                if (socketStream.Read(buffer, 2, length) != length)
+                if (readState == 1)
                 {
-                    DebugLog("Failed to read complete frame!");
-                    return -1;
+                    // read length byte
+                    if (socketStream.Read(buffer, 1, 1) != 1)
+                        return 0;
+
+                    currentReadMsgLength = buffer[1];
+                    remainingReadLength = currentReadMsgLength;
+                    currentReadPos = 2;
+
+                    readState = 2;
                 }
 
-                readLength = length + 2;
+                if (readState == 2)
+                {
+                    int readLength = socketStream.Read(buffer, currentReadPos, remainingReadLength);
+
+                    if (readLength == remainingReadLength)
+                    {
+                        readState = 0;
+                        currentReadTimeout = 0;
+                        return 2 + currentReadMsgLength;
+                    }
+                    else
+                    {
+                        currentReadPos += readLength;
+                        remainingReadLength = remainingReadLength - readLength;
+                    }
+                }
+
+                if (currentReadTimeout == 0)
+                {
+                    currentReadTimeout = SystemUtils.currentTimeMillis() + server.ReceiveTimeout;
+                }
             }
 
-            return readLength;
+            return 0;
         }
 
         private void SendSMessage()
