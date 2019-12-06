@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -54,6 +54,7 @@
     <Compile Include="..\..\..\..\lib60870\CS104\TlsSecurityInformation.cs" Link="TlsSecurityInformation.cs" />
     <Compile Include="..\..\..\..\lib60870\Frame.cs" Link="Frame.cs" />
     <Compile Include="..\..\..\..\lib60870\LibraryCommon.cs" Link="LibraryCommon.cs" />
+    <Compile Include="..\..\..\..\lib60870\Properties\AssemblyInfo.cs" Link="AssemblyInfo.cs" />
     <Compile Include="..\..\..\..\lib60870\SystemUtils.cs" Link="SystemUtils.cs" />
   </ItemGroup>
 

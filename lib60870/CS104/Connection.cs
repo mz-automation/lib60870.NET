@@ -740,15 +740,38 @@ namespace lib60870.CS104
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class using TLS.
+        /// </summary>
+        /// <param name="hostname">hostname of IP address of the CS 104 server</param>
+        /// <param name="tlsInfo">TLS setup</param>
+        /// <param name="tcpPort">TCP port of the CS 104 server</param>
+        public Connection(string hostname, TlsSecurityInformation tlsInfo, int tcpPort = 19998)
+        {
+            Setup(hostname, new APCIParameters(), new ApplicationLayerParameters(), tcpPort);
+            tlsSecInfo = tlsInfo;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="lib60870.CS104.Connection"/> class using TLS.
+        /// </summary>
+        /// <param name="hostname">hostname of IP address of the CS 104 server</param>
+        /// <param name="tcpPort">TCP port of the CS 104 server</param>
+        /// <param name="apciParameters">APCI parameters.</param>
+        /// <param name="alParameters">application layer parameters.</param>
+        /// <param name="tlsInfo">TLS setup</param>
+        public Connection(string hostname, int tcpPort, APCIParameters apciParameters, ApplicationLayerParameters alParameters, TlsSecurityInformation tlsInfo)
+        {
+            Setup(hostname, apciParameters.Clone(), alParameters.Clone(), tcpPort);
+            tlsSecInfo = tlsInfo;
+        }
+
+        /// <summary>
         /// Set the security parameters for TLS
         /// </summary>
         /// <param name="securityInfo">Security info.</param>
         public void SetTlsSecurity(TlsSecurityInformation securityInfo)
         {
             tlsSecInfo = securityInfo;
-
-            if (securityInfo != null)
-                this.tcpPort = 19998;
         }
 
         /// <summary>
@@ -1667,7 +1690,14 @@ namespace lib60870.CS104
                                 if (targetHostName == null)
                                     targetHostName = "*";
 
-                                sslStream.AuthenticateAsClient(targetHostName, clientCertificateCollection, System.Security.Authentication.SslProtocols.Tls, false);
+                                System.Security.Authentication.SslProtocols tlsVersion = System.Security.Authentication.SslProtocols.None;
+
+                                if (tlsSecInfo != null)
+                                    tlsVersion = tlsSecInfo.TlsVersion;
+
+                                Console.WriteLine("TLS version: " + tlsVersion.ToString());
+
+                                sslStream.AuthenticateAsClient(targetHostName, clientCertificateCollection, tlsVersion, false);
                             }
                             catch (IOException e)
                             {
@@ -1687,6 +1717,12 @@ namespace lib60870.CS104
                                 }
 
                                 DebugLog("TLS authentication error: " + message);
+
+                                throw new SocketException(10060);
+                            }
+                            catch (System.Security.Authentication.AuthenticationException ex)
+                            {
+                                Console.WriteLine("TLS authentication exception during connection setup");
 
                                 throw new SocketException(10060);
                             }

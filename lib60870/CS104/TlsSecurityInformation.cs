@@ -22,6 +22,7 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Collections.Generic;
+using System.Security.Authentication;
 
 namespace lib60870.CS104
 {
@@ -39,6 +40,8 @@ namespace lib60870.CS104
         private bool chainValidation = true;
 
         private bool allowOnlySpecificCertificates = false;
+
+        private SslProtocols sslVersion = SslProtocols.None;
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="lib60870.TlsSecurityInformation"/> performs a X509 chain validation
@@ -140,6 +143,19 @@ namespace lib60870.CS104
         public void AddCA(X509Certificate2 caCertificate)
         {
             caCertificates.Add(caCertificate);
+        }
+
+        public SslProtocols TlsVersion
+        {
+            get
+            {
+                return sslVersion;
+            }
+            set
+            {
+                sslVersion = value;
+            }
+
         }
     }
 }
