@@ -327,6 +327,52 @@ namespace tests
             server.Stop ();
         }
 
+        [Test()]
+        //[Ignore("Ignore to save execution time")]
+        public void TestConnectSameConnectionMultipleTimesServerDisconnects()
+        {
+            ApplicationLayerParameters parameters = new ApplicationLayerParameters();
+            APCIParameters apciParameters = new APCIParameters();
+
+            Server server = new Server(apciParameters, parameters);
+
+            server.SetLocalPort(20213);
+
+            server.Start();
+
+            Connection connection = new Connection("127.0.0.1", 20213, apciParameters, parameters);
+
+            for (int i = 0; i < 200; i++)
+            {
+                SocketException se = null;
+
+                try
+                {
+                    connection.Connect();
+
+                    server.Stop();
+
+                    connection.SendStartDT();
+
+                    connection.Close();
+                }
+                catch (SocketException ex)
+                {
+                    se = ex;
+                }
+
+                Assert.IsNull(se);
+
+                server.Start();
+            }
+
+            server.Stop();
+
+            connection.Close();
+
+   
+        }
+
         [Test ()]
         public void TestASDUAddInformationObjects () {
             ApplicationLayerParameters cp = new ApplicationLayerParameters ();

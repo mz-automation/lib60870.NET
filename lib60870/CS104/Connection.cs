@@ -1868,6 +1868,7 @@ namespace lib60870.CS104
                         }
 
                         running = false;
+                        socketError = true;
 
                         socket.Close();
 
