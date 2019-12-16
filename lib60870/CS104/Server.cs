@@ -851,7 +851,7 @@ namespace lib60870.CS104
         }
 
         /// <summary>
-        /// Sets the local TCP port to bind to. Default is 2404.
+        /// Sets the local TCP port to bind to. Default is 2404, or 19998 when using TLS.
         /// </summary>
         /// <param name="tcpPort">Local TCP port to bind.</param>
         public void SetLocalPort(int tcpPort)

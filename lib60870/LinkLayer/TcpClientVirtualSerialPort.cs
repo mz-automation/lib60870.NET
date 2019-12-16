@@ -288,7 +288,7 @@ namespace lib60870.linklayer
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    DebugLog("Socket error: " + e.ToString());
                     this.connected = false;
                     return 0;
                 }

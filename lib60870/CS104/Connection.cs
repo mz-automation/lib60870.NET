@@ -1695,16 +1695,12 @@ namespace lib60870.CS104
                                 if (tlsSecInfo != null)
                                     tlsVersion = tlsSecInfo.TlsVersion;
 
-                                Console.WriteLine("TLS version: " + tlsVersion.ToString());
+                                DebugLog("Using TLS version: " + tlsVersion.ToString());
 
                                 sslStream.AuthenticateAsClient(targetHostName, clientCertificateCollection, tlsVersion, false);
                             }
                             catch (IOException e)
                             {
-
-                                Console.WriteLine(e.ToString());
-                                Console.WriteLine(e.StackTrace);
-
                                 string message;
 
                                 if (e.GetBaseException() != null)
@@ -1722,7 +1718,7 @@ namespace lib60870.CS104
                             }
                             catch (System.Security.Authentication.AuthenticationException ex)
                             {
-                                Console.WriteLine("TLS authentication exception during connection setup");
+                                DebugLog("TLS authentication exception during connection setup");
 
                                 throw new SocketException(10060);
                             }
