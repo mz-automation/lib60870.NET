@@ -1,7 +1,7 @@
 /*
  *  Connection.cs
  *
- *  Copyright 2016, 2017 MZ Automation GmbH
+ *  Copyright 2016-2019 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *
@@ -1604,7 +1604,7 @@ namespace lib60870.CS104
                 return false;
         }
 
-        private bool CertificateValidation(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        private bool CertificateValidationCallback (Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             if (certificate != null)
             {
@@ -1679,7 +1679,12 @@ namespace lib60870.CS104
 
                             DebugLog("Setup TLS");
 
-                            SslStream sslStream = new SslStream(netStream, true, CertificateValidation, LocalCertificateSelectionCallback);
+                            RemoteCertificateValidationCallback validationCallback = CertificateValidationCallback;
+
+                            if (tlsSecInfo.CertificateValidationCallback != null)
+                                validationCallback = tlsSecInfo.CertificateValidationCallback;
+
+                            SslStream sslStream = new SslStream(netStream, true, validationCallback, LocalCertificateSelectionCallback);
 
                             var clientCertificateCollection = new X509Certificate2Collection(tlsSecInfo.OwnCertificate);
 
@@ -1718,7 +1723,7 @@ namespace lib60870.CS104
                             }
                             catch (System.Security.Authentication.AuthenticationException ex)
                             {
-                                DebugLog("TLS authentication exception during connection setup");
+                                DebugLog("TLS authentication exception during connection setup: " + ex.Message);
 
                                 throw new SocketException(10060);
                             }

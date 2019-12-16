@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-2018 MZ Automation GmbH
+ *  Copyright 2016-2019 MZ Automation GmbH
  *
  *  This file is part of lib60870.NET
  *

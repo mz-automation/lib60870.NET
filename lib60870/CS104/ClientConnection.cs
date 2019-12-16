@@ -1129,7 +1129,7 @@ namespace lib60870.CS104
                 return false;
         }
 
-        public bool RemoteCertificateValidationCallback(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        public bool CertificateValidationCallback(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             if (sslPolicyErrors == SslPolicyErrors.None || sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
             {
@@ -1174,27 +1174,26 @@ namespace lib60870.CS104
                 return false;
         }
 
-
-
         private void HandleConnection()
         {
-
             byte[] bytes = new byte[300];
 
             try
             {
-
                 try
                 {
-
                     running = true;
 
                     if (tlsSecInfo != null)
                     {
-
                         DebugLog("Setup TLS");
 
-                        SslStream sslStream = new SslStream(socketStream, true, RemoteCertificateValidationCallback);
+                        RemoteCertificateValidationCallback validationCallback = CertificateValidationCallback;
+
+                        if (tlsSecInfo.CertificateValidationCallback != null)
+                            validationCallback = tlsSecInfo.CertificateValidationCallback;
+
+                        SslStream sslStream = new SslStream(socketStream, true, validationCallback);
 
                         bool authenticationSuccess = false;
 
@@ -1343,6 +1342,11 @@ namespace lib60870.CS104
 
             DebugLog("Connection thread finished");
         }
+
+        void HandleRemoteCertificateValidationCallback (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+        }
+
 
         public void Close()
         {
