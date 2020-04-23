@@ -391,6 +391,39 @@ namespace lib60870.CS101
         }
 
         /// <summary>
+        /// Gets the element (information object) with the specified index. This function supports private information object types by using IPrivateIOFactory.
+        /// </summary>
+        /// <returns>the information object at index</returns>
+        /// <param name="index">index of the element (starting with 0)</param>
+        /// <param name="ioFactory">user defined information object parser</param>
+        /// <exception cref="lib60870.ASDUParsingException">Thrown when there is a problem parsing the ASDU</exception>
+        public InformationObject GetElement(int index, IPrivateIOFactory ioFactory)
+        {
+            InformationObject retVal = null;
+            
+            if (ioFactory != null)
+            {
+
+                int elementSize = ioFactory.GetEncodedSize();
+
+                if (IsSequence)
+                {
+
+                    int ioa = InformationObject.ParseInformationObjectAddress(parameters, payload, 0);
+
+                    retVal = ioFactory.Decode(parameters, payload, parameters.SizeOfIOA + (index * elementSize), true);
+
+                    retVal.ObjectAddress = ioa + index;
+                }
+                else
+                    retVal = ioFactory.Decode(parameters, payload, index * (parameters.SizeOfIOA + elementSize), false);
+
+            }
+
+            return retVal;
+        }
+
+        /// <summary>
         /// Gets the element (information object) with the specified index
         /// </summary>
         /// <returns>the information object at index</returns>
