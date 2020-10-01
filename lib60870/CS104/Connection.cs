@@ -657,7 +657,7 @@ namespace lib60870.CS104
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 running = false;
                 throw new ConnectionException("connection lost");
