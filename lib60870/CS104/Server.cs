@@ -913,6 +913,7 @@ namespace lib60870.CS104
 
             try
             {
+                listeningSocket.Shutdown(SocketShutdown.Both);
                 listeningSocket.Close();
 				
                 // close all open connection
