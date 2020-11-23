@@ -972,7 +972,8 @@ namespace lib60870.CS104
                 else
                 {
                     // connection not activated --> skip message
-                    DebugLog("Connection not activated. Skip I message");
+                    DebugLog("Connection not activated. Skip I message and shut down connection");
+                    return false;
                 }
             }
 
@@ -1028,6 +1029,11 @@ namespace lib60870.CS104
 			// S-message
 			else if (buffer[2] == 0x01)
             {
+                if(this.isActive == false)
+                {
+                    DebugLog("Connection not activated. Skip S message and shut down connection");
+                    return false;
+                }
 
                 int seqNo = (buffer[4] + buffer[5] * 0x100) / 2;
 
