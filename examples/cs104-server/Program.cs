@@ -87,6 +87,15 @@ namespace cs104_server
 
 				SingleCommand sc = (SingleCommand)asdu.GetElement (0);
 
+				if (sc.Select)
+				{
+					Console.WriteLine("  received select");
+				}
+				else
+				{
+					Console.WriteLine("  received execute");
+				}
+
 				Console.WriteLine (sc.ToString ());
 
                 connection.SendACT_CON(asdu, false);

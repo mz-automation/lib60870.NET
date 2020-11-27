@@ -954,7 +954,6 @@ namespace lib60870.CS104
 
                 if (isActive)
                 {
-
                     try
                     {
                         ASDU asdu = new ASDU(alParameters, buffer, 6, msgSize);
@@ -971,8 +970,10 @@ namespace lib60870.CS104
                 }
                 else
                 {
-                    // connection not activated --> skip message
-                    DebugLog("Connection not activated. Skip I message");
+                    // connection not active
+                    DebugLog("Connection not active -> close connection");
+
+                    return false;
                 }
             }
 
@@ -1028,6 +1029,13 @@ namespace lib60870.CS104
 			// S-message
 			else if (buffer[2] == 0x01)
             {
+                if (isActive == false)
+                {
+                    // connection not active
+                    DebugLog("Connection not active -> close connection");
+
+                    return false;
+                }
 
                 int seqNo = (buffer[4] + buffer[5] * 0x100) / 2;
 
