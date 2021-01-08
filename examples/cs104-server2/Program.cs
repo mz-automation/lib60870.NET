@@ -1,4 +1,6 @@
-﻿using System;
+﻿// This examples show how to send larger numbers of periodic messages
+
+using System;
 using System.Threading;
 
 using lib60870;
