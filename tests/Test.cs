@@ -388,26 +388,28 @@ namespace tests
 
             Connection connection = new Connection("127.0.0.1", 20213, apciParameters, parameters);
 
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 3; i++)
             {
-                SocketException se = null;
+                ConnectionException se = null;
+
+                connection.Connect();
+
+                server.Stop();
+
+                Thread.Sleep(1000);
 
                 try
                 {
-                    connection.Connect();
-
-                    server.Stop();
-
                     connection.SendStartDT();
 
                     connection.Close();
                 }
-                catch (SocketException ex)
+                catch (ConnectionException ex)
                 {
                     se = ex;
                 }
 
-                Assert.IsNull(se);
+                Assert.IsNotNull(se);
 
                 server.Start();
             }
@@ -415,8 +417,6 @@ namespace tests
             server.Stop();
 
             connection.Close();
-
-   
         }
 
         [Test ()]

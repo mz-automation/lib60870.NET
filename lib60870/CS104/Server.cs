@@ -934,22 +934,28 @@ namespace lib60870.CS104
 
             try
             {
-                listeningSocket.Shutdown(SocketShutdown.Both);
+                try
+                {
+                    listeningSocket.Shutdown(SocketShutdown.Both);
+                }
+                catch (SocketException ex)
+                {
+                    DebugLog("SocketException: " + ex.Message);
+                }
+
                 listeningSocket.Close();
-				
+
                 // close all open connection
                 foreach (ClientConnection connection in allOpenConnections)
                 {
                     connection.Close();
                 }
-					
+
             }
             catch (Exception e)
             {
                 DebugLog("Exception: " + e.Message);
             }
-
-            listeningSocket.Close();
         }
 
         /// <summary>
