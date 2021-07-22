@@ -100,8 +100,8 @@ namespace cs101_slave_balanced
 
 			CS101Slave slave = new CS101Slave (port, llParameters);
 			slave.DebugOutput = true;
-			slave.LinkLayerAddress = 1;
-			slave.LinkLayerAddressOtherStation = 3;
+			slave.LinkLayerAddress = 2;
+			slave.LinkLayerAddressOtherStation = 1;
 
 			slave.LinkLayerMode = lib60870.linklayer.LinkLayerMode.BALANCED;
 

@@ -29,91 +29,89 @@ using System.Threading;
 
 namespace cs101_master_balanced
 {
-	class MainClass
-	{
+    class MainClass
+    {
+        private static void linkLayerStateChanged (object parameter, int address, lib60870.linklayer.LinkLayerState newState)
+        {
+            Console.WriteLine ("LL state event: " + newState.ToString ());
+        }
 
-		private static bool rcvdRawMessageHandler (object parameter, byte[] message, int messageSize)
-		{
-			Console.WriteLine ("RECV " + BitConverter.ToString (message, 0, messageSize));
+        private static bool asduReceivedHandler (object parameter, int address, ASDU asdu)
+        {
+            Console.WriteLine (asdu.ToString ());
 
-			return true;
-		}
+            return true;
+        }
 
-		private static void linkLayerStateChanged (object parameter, int address, lib60870.linklayer.LinkLayerState newState)
-		{
-			Console.WriteLine ("LL state event: " + newState.ToString ());
-		}
+        public static void Main (string [] args)
+        {
+            bool running = true;
 
-		private static bool asduReceivedHandler(object parameter, int address, ASDU asdu)
-		{
-			Console.WriteLine (asdu.ToString ());
+            // use Ctrl-C to stop the programm
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                running = false;
+            };
 
-			return true;
-		}
+            string portName = "/dev/ttyUSB1";
 
+            if (args.Length > 0)
+                portName = args [0];
 
-		public static void Main (string[] args)
-		{
-			bool running = true;
+            // Setup serial port
+            SerialPort port = new SerialPort ();
+            port.PortName = portName;
+            port.BaudRate = 9600;
+            port.Parity = Parity.Even;
+            port.Handshake = Handshake.None;
+            port.Open ();
+            port.DiscardInBuffer ();
 
-			// use Ctrl-C to stop the programm
-			Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) {
-				e.Cancel = true;
-				running = false;
-			};
+            // Setup balanced CS101 master
+            LinkLayerParameters llParameters = new LinkLayerParameters ();
+            llParameters.AddressLength = 1;
+            llParameters.UseSingleCharACK = false;
 
-			string portName = "/dev/ttyUSB1";
+            CS101Master master = new CS101Master (port, LinkLayerMode.BALANCED, llParameters);
+            master.DebugOutput = false;
+            master.OwnAddress = 3;
+            master.SlaveAddress = 2;
+            master.SetASDUReceivedHandler (asduReceivedHandler, null);
+            master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
+            master.SetReceivedRawMessageHandler ((object parameter, byte [] message, int messageSize) => {
+                Console.WriteLine ("RECV " + BitConverter.ToString (message, 0, messageSize));
+                return true;
+            }, null);
 
-			if (args.Length > 0)
-				portName = args [0];
+            master.SetSentRawMessageHandler ((object parameter, byte [] message, int messageSize) => {
+                Console.WriteLine ("SEND " + BitConverter.ToString (message, 0, messageSize));
+                return true;
+            }, null);
 
-			// Setup serial port
-			SerialPort port = new SerialPort ();
-			port.PortName = portName;
-			port.BaudRate = 9600;
-			port.Parity = Parity.Even;
-			port.Handshake = Handshake.None;
-			port.Open ();
-			port.DiscardInBuffer ();
+            long lastTimestamp = SystemUtils.currentTimeMillis ();
 
-			// Setup balanced CS101 master
-			LinkLayerParameters llParameters = new LinkLayerParameters();
-			llParameters.AddressLength = 1;
-			llParameters.UseSingleCharACK = false;
+            // This will start a separate thread!
+            // alternativley you can you master.Run() inside the loop
+            master.Start ();
 
-			CS101Master master = new CS101Master (port, LinkLayerMode.BALANCED, llParameters);
-			master.DebugOutput = false;
-			master.OwnAddress = 1;
-			master.SlaveAddress = 2;
-			master.SetASDUReceivedHandler (asduReceivedHandler, null);
-			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
-			master.SetReceivedRawMessageHandler (rcvdRawMessageHandler, null);
+            while (running) {
 
-			long lastTimestamp = SystemUtils.currentTimeMillis ();
+                if ((SystemUtils.currentTimeMillis () - lastTimestamp) >= 5000) {
 
-			// This will start a separate thread!
-			// alternativley you can you master.Run() inside the loop
-			master.Start ();
+                    lastTimestamp = SystemUtils.currentTimeMillis ();
 
-			while (running) {
+                    if (master.GetLinkLayerState () == lib60870.linklayer.LinkLayerState.AVAILABLE) {
+                        master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
+                    } else {
+                        Console.WriteLine ("Link layer: " + master.GetLinkLayerState ().ToString ());
+                    }
+                }
 
-				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
+                Thread.Sleep (100);
+            }
+            master.Stop ();
 
-					lastTimestamp = SystemUtils.currentTimeMillis ();
-
-					if (master.GetLinkLayerState () == lib60870.linklayer.LinkLayerState.AVAILABLE) {
-						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
-					} else {
-						Console.WriteLine ("Link layer: " + master.GetLinkLayerState ().ToString ());
-					}
-				}
-
-				Thread.Sleep (100);
-			}
-
-			master.Stop ();
-
-			port.Close ();
-		}
-	}
+            port.Close ();
+        }
+    }
 }
