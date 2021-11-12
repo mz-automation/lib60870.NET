@@ -1902,11 +1902,19 @@ namespace lib60870.CS104
                 {
                     DebugLog("SocketException: " + se.ToString());
                 }
+                catch (ConnectionException se)
+                {
+                    DebugLog("ConnectionException: " + se.ToString());
+                }
                 catch (Exception e)
                 {
                     DebugLog("Unexpected exception: " + e.ToString());
                 }
 
+            }
+            catch (ConnectionException se)
+            {
+                DebugLog("ConnectionException: " + se.ToString());
             }
             catch (Exception e)
             {
