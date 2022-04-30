@@ -53,6 +53,27 @@ namespace lib60870.CS101
             this.encodedValue = 0;
         }
 
+        public OutputCircuitInfo(OutputCircuitInfo original)
+        {
+            this.encodedValue = original.encodedValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is OutputCircuitInfo))
+                return false;
+
+            return (this.encodedValue == ((OutputCircuitInfo)obj).encodedValue);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.encodedValue.GetHashCode();
+        }
+
         public OutputCircuitInfo(byte encodedValue)
         {
             this.encodedValue = encodedValue;

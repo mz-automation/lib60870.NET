@@ -99,6 +99,15 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public PackedStartEventsOfProtectionEquipment(PackedStartEventsOfProtectionEquipment original)
+            : base(original.ObjectAddress)
+        {
+            this.spe = new StartEvent(original.spe);
+            this.qdp = new QualityDescriptorP(original.qdp);
+            this.elapsedTime = new CP16Time2a(original.elapsedTime);
+            this.timestamp = new CP24Time2a(original.timestamp);
+        }
+
         internal PackedStartEventsOfProtectionEquipment(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -202,6 +211,15 @@ namespace lib60870.CS101
             this.qdp = qdp;
             this.elapsedTime = elapsedTime;
             this.timestamp = timestamp;
+        }
+
+        public PackedStartEventsOfProtectionEquipmentWithCP56Time2a(PackedStartEventsOfProtectionEquipmentWithCP56Time2a original)
+            : base(original.ObjectAddress)
+        {
+            this.spe = new StartEvent(original.spe);
+            this.qdp = new QualityDescriptorP(original.qdp);
+            this.elapsedTime = new CP16Time2a(original.elapsedTime);
+            this.timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal PackedStartEventsOfProtectionEquipmentWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

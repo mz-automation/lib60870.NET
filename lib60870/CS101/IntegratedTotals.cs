@@ -67,6 +67,12 @@ namespace lib60870.CS101
             this.bcr = bcr;
         }
 
+        public IntegratedTotals(IntegratedTotals original)
+            : base(original.ObjectAddress)
+        {
+            this.bcr = new BinaryCounterReading(original.bcr);
+        }
+
         internal IntegratedTotals(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSquence)
             : base(parameters, msg, startIndex, isSquence)
         {
@@ -127,6 +133,18 @@ namespace lib60870.CS101
             : base(ioa, bcr)
         {
             this.timestamp = timestamp;
+        }
+
+        public IntegratedTotalsWithCP24Time2a(IntegratedTotalsWithCP24Time2a original)
+            : base (original)
+        {
+            this.timestamp = new CP24Time2a(timestamp);
+        }
+
+        public IntegratedTotalsWithCP24Time2a(IntegratedTotals original)
+            : base(original)
+        {
+            this.timestamp = new CP24Time2a();
         }
 
         internal IntegratedTotalsWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -191,6 +209,18 @@ namespace lib60870.CS101
             : base(ioa, bcr)
         {
             this.timestamp = timestamp;
+        }
+
+        public IntegratedTotalsWithCP56Time2a(IntegratedTotalsWithCP56Time2a original)
+            : base (original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
+        }
+
+        public IntegratedTotalsWithCP56Time2a(IntegratedTotals original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(DateTime.Now);
         }
 
         public IntegratedTotalsWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

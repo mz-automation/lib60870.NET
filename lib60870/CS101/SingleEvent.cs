@@ -45,6 +45,28 @@ namespace lib60870.CS101
             this.qdp = new QualityDescriptorP();
         }
 
+        public SingleEvent(SingleEvent orignal)
+        {
+            this.eventState = orignal.eventState;
+            this.qdp = new QualityDescriptorP(orignal.qdp);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is SingleEvent))
+                return false;
+
+            return (this.EncodedValue == ((SingleEvent)obj).EncodedValue);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.EncodedValue.GetHashCode();
+        }
+
         public SingleEvent(byte encodedValue)
         {
             this.eventState = (EventState)(encodedValue & 0x03);
@@ -75,7 +97,6 @@ namespace lib60870.CS101
                 qdp = value;
             }
         }
-
 
         public byte EncodedValue
         {

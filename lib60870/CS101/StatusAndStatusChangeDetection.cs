@@ -27,7 +27,6 @@ namespace lib60870.CS101
 
     public class StatusAndStatusChangeDetection
     {
-
         public UInt16 STn
         {
             get
@@ -96,6 +95,12 @@ namespace lib60870.CS101
 
         public StatusAndStatusChangeDetection()
         {
+        }
+
+        public StatusAndStatusChangeDetection(StatusAndStatusChangeDetection original)
+        {
+            this.STn = original.STn;
+            this.CDn = original.CDn;
         }
 
         public StatusAndStatusChangeDetection(byte[] msg, int startIndex)

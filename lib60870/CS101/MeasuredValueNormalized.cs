@@ -90,6 +90,12 @@ namespace lib60870.CS101
             this.NormalizedValue = normalizedValue;
         }
 
+        public MeasuredValueNormalizedWithoutQuality(MeasuredValueNormalizedWithoutQuality original)
+            : base(original.ObjectAddress)
+        {
+            this.scaledValue = new ScaledValue(original.scaledValue);
+        }
+
         public MeasuredValueNormalizedWithoutQuality(int objectAddress, short rawValue)
             : base(objectAddress)
         {
@@ -164,6 +170,12 @@ namespace lib60870.CS101
             this.quality = quality;
         }
 
+        public MeasuredValueNormalized(MeasuredValueNormalized original)
+            : base(original)
+        {
+            this.quality = new QualityDescriptor(original.quality);
+        }
+
         internal MeasuredValueNormalized(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -236,6 +248,12 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public MeasuredValueNormalizedWithCP24Time2a(MeasuredValueNormalizedWithCP24Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP24Time2a(original.timestamp);
+        }
+
         internal MeasuredValueNormalizedWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -305,6 +323,12 @@ namespace lib60870.CS101
             : base(objectAddress, value, quality)
         {
             this.timestamp = timestamp;
+        }
+
+        public MeasuredValueNormalizedWithCP56Time2a(MeasuredValueNormalizedWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal MeasuredValueNormalizedWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

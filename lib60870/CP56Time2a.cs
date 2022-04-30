@@ -55,6 +55,28 @@ namespace lib60870
                 encodedValue[i] = 0;
         }
 
+        public CP56Time2a(CP56Time2a original)
+        {
+            for (int i = 0; i < 7; i++)
+                encodedValue[i] = original.encodedValue[i];
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is CP56Time2a))
+                return false;
+
+            return (this.GetHashCode() == obj.GetHashCode());
+        }
+
+        public override int GetHashCode()
+        {
+            return encodedValue.GetHashCode();
+        }
+
         /// <summary>
         /// Gets the date time.
         /// </summary>

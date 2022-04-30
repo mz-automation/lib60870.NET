@@ -43,6 +43,27 @@ namespace lib60870.CS101
             this.encodedValue = encodedValue;
         }
 
+        public StartEvent(StartEvent orignal)
+        {
+            this.encodedValue = orignal.encodedValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is StartEvent))
+                return false;
+
+            return (this.EncodedValue == ((StartEvent)obj).EncodedValue);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.EncodedValue.GetHashCode();
+        }
+
         /// <summary>
         /// General start of operation
         /// </summary>
