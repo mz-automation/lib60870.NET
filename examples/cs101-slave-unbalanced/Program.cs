@@ -86,7 +86,7 @@ namespace cs101_slave_unbalanced {
 				running = false;
 			};
 
-			string portName = "/dev/ttyUSB3";
+			string portName = "COM12";
 
 			if (args.Length > 0)
 				portName = args [0];
