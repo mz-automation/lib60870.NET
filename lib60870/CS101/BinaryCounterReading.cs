@@ -158,6 +158,14 @@ namespace lib60870.CS101
         public BinaryCounterReading()
         {
         }
+
+        public BinaryCounterReading(BinaryCounterReading original)
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                encodedValue[i] = original.encodedValue[i];
+            }
+        }
     }
 }
 

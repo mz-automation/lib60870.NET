@@ -89,6 +89,14 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public EventOfProtectionEquipment(EventOfProtectionEquipment original)
+            : base(original.ObjectAddress)
+        {
+            this.singleEvent = new SingleEvent(original.singleEvent);
+            this.elapsedTime = new CP16Time2a(original.elapsedTime);
+            this.timestamp = new CP24Time2a(original.timestamp);
+        }
+
         internal EventOfProtectionEquipment(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -181,6 +189,14 @@ namespace lib60870.CS101
             this.singleEvent = singleEvent;
             this.elapsedTime = elapsedTime;
             this.timestamp = timestamp;
+        }
+
+        public EventOfProtectionEquipmentWithCP56Time2a(EventOfProtectionEquipmentWithCP56Time2a original)
+            : base(original.ObjectAddress)
+        {
+            this.singleEvent = new SingleEvent(original.singleEvent);
+            this.elapsedTime = new CP16Time2a(original.elapsedTime);
+            this.timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal EventOfProtectionEquipmentWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

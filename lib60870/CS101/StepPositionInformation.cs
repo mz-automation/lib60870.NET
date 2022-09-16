@@ -111,6 +111,14 @@ namespace lib60870.CS101
             this.quality = quality;
         }
 
+        public StepPositionInformation(StepPositionInformation original)
+            : base (original.ObjectAddress)
+        {
+            this.Value = original.Value;
+            this.Transient = original.Transient;
+            this.quality = new QualityDescriptor(original.quality);
+        }
+
         internal StepPositionInformation(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -200,6 +208,12 @@ namespace lib60870.CS101
             Timestamp = timestamp;
         }
 
+        public StepPositionWithCP24Time2a(StepPositionWithCP24Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP24Time2a(original.timestamp);
+        }
+
         internal StepPositionWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -270,6 +284,11 @@ namespace lib60870.CS101
             Timestamp = timestamp;
         }
 
+        public StepPositionWithCP56Time2a(StepPositionWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
+        }
 
         internal StepPositionWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)

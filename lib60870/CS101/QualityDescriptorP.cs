@@ -42,6 +42,27 @@ namespace lib60870.CS101
             this.encodedValue = encodedValue;
         }
 
+        public QualityDescriptorP(QualityDescriptorP original)
+        {
+            this.encodedValue = original.encodedValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is QualityDescriptorP))
+                return false;
+
+            return (this.encodedValue == ((QualityDescriptorP)obj).encodedValue);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.encodedValue.GetHashCode();
+        }
+
         public bool Reserved
         {
             get

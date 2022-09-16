@@ -50,6 +50,11 @@ namespace lib60870.CS101
             this.ShortValue = value;
         }
 
+        public ScaledValue(ScaledValue original)
+        {
+            this.ShortValue = original.ShortValue;
+        }
+
         public byte[] GetEncodedValue()
         {
             return encodedValue;

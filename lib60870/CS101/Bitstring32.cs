@@ -76,6 +76,13 @@ namespace lib60870.CS101
             this.quality = quality;
         }
 
+        public Bitstring32(Bitstring32 original)
+            : base(original.ObjectAddress)
+        {
+            this.value = original.value;
+            this.quality = new QualityDescriptor(original.quality);
+        }
+
         internal Bitstring32(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -146,6 +153,12 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public Bitstring32WithCP24Time2a(Bitstring32WithCP24Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP24Time2a(original.timestamp);
+        }
+
         internal Bitstring32WithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -206,6 +219,12 @@ namespace lib60870.CS101
             : base(ioa, value, quality)
         {
             this.timestamp = timestamp;
+        }
+
+        public Bitstring32WithCP56Time2a(Bitstring32WithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal Bitstring32WithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

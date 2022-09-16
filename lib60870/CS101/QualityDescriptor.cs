@@ -44,9 +44,30 @@ namespace lib60870.CS101
             this.encodedValue = 0;
         }
 
+        public QualityDescriptor(QualityDescriptor original)
+        {
+            this.encodedValue = original.encodedValue;
+        }
+
         public QualityDescriptor(byte encodedValue)
         {
             this.encodedValue = encodedValue;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is QualityDescriptor))
+                return false;
+
+            return (this.encodedValue == ((QualityDescriptor)obj).encodedValue);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.encodedValue.GetHashCode();
         }
 
         public bool Overflow

@@ -43,6 +43,11 @@ namespace lib60870
             for (int i = 0; i < 3; i++)
                 encodedValue[i] = 0;
         }
+        public CP24Time2a(CP24Time2a original)
+        {
+            for (int i = 0; i < 3; i++)
+                encodedValue[i] = original.encodedValue[i];
+        }
 
         public CP24Time2a(int minute, int second, int millisecond)
         {

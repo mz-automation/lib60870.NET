@@ -49,6 +49,12 @@ namespace lib60870
                 encodedValue[i] = 0;
         }
 
+        public CP16Time2a(CP16Time2a original)
+        {
+            for (int i = 0; i < 2; i++)
+                encodedValue[i] = original.encodedValue[i];
+        }
+
         public int ElapsedTimeInMs
         {
             get

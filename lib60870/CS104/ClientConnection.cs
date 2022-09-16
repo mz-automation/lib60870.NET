@@ -504,10 +504,8 @@ namespace lib60870.CS104
 
                 try
                 {
-
                     if (asdu != null)
                     {
-
                         int currentIndex = 0;
 
                         if (oldestSentASDU == -1)
@@ -577,8 +575,6 @@ namespace lib60870.CS104
 
             return true;
         }
-
-
 
         private void SendWaitingASDUs()
         {
@@ -850,10 +846,8 @@ namespace lib60870.CS104
 
         private bool CheckSequenceNumber(int seqNo)
         {
-
             lock (sentASDUs)
             {
-
                 /* check if received sequence number is valid */
 
                 bool seqNoIsValid = false;
@@ -872,14 +866,17 @@ namespace lib60870.CS104
                     {
                         if ((seqNo >= sentASDUs[oldestSentASDU].seqNo) &&
                         (seqNo <= sentASDUs[newestSentASDU].seqNo))
+                        {
                             seqNoIsValid = true;
-					
+                        }
                     }
                     else
                     {
                         if ((seqNo >= sentASDUs[oldestSentASDU].seqNo) ||
                         (seqNo <= sentASDUs[newestSentASDU].seqNo))
+                        {
                             seqNoIsValid = true;
+                        }
 
                         counterOverflowDetected = true;
                     }
@@ -901,7 +898,6 @@ namespace lib60870.CS104
 								
                 if (oldestSentASDU != -1)
                 {
-
                     /* remove confirmed messages from list */
                     do
                     {
@@ -1147,10 +1143,8 @@ namespace lib60870.CS104
             /* check if counterpart confirmed I messages */
             lock (sentASDUs)
             {
-			
                 if (oldestSentASDU != -1)
                 {
-
                     if (((long)currentTime - sentASDUs[oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000))
                     {
 
@@ -1163,7 +1157,6 @@ namespace lib60870.CS104
 
             return true;
         }
-
 
         private bool AreByteArraysEqual(byte[] array1, byte[] array2)
         {
@@ -1186,10 +1179,8 @@ namespace lib60870.CS104
         {
             if (sslPolicyErrors == SslPolicyErrors.None || sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
             {
-
                 if (tlsSecInfo.ChainValidation)
                 {
-
                     X509Chain newChain = new X509Chain();
 
                     newChain.ChainPolicy.RevocationMode = X509RevocationMode.NoCheck;
@@ -1209,7 +1200,6 @@ namespace lib60870.CS104
 
                 if (tlsSecInfo.AllowOnlySpecificCertificates)
                 {
-					
                     foreach (X509Certificate2 allowedCert in tlsSecInfo.AllowedCertificates)
                     {
                         if (AreByteArraysEqual(allowedCert.GetCertHash(), cert.GetCertHash()))
@@ -1263,7 +1253,6 @@ namespace lib60870.CS104
                         }
                         catch (IOException e)
                         {
-
                             if (e.GetBaseException() != null)
                             {
                                 DebugLog("TLS authentication error: " + e.GetBaseException().Message);
@@ -1272,7 +1261,6 @@ namespace lib60870.CS104
                             {
                                 DebugLog("TLS authentication error: " + e.Message);
                             }
-
                         }
 							
                         if (authenticationSuccess == true)
@@ -1286,7 +1274,6 @@ namespace lib60870.CS104
 
                     if (running)
                     {
-
                         socketStream.ReadTimeout = 50;
 
                         callbackThread = new Thread(ProcessASDUs);
@@ -1399,7 +1386,6 @@ namespace lib60870.CS104
         void HandleRemoteCertificateValidationCallback (object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
         }
-
 
         public void Close()
         {

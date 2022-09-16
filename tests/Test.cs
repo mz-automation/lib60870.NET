@@ -382,11 +382,15 @@ namespace tests
 
             Server server = new Server(apciParameters, parameters);
 
+            server.DebugOutput = true;
+
             server.SetLocalPort(20213);
 
             server.Start();
 
             Connection connection = new Connection("127.0.0.1", 20213, apciParameters, parameters);
+
+            connection.DebugOutput = true;
 
             for (int i = 0; i < 3; i++)
             {
@@ -402,10 +406,24 @@ namespace tests
                 {
                     connection.SendStartDT();
 
+                    ASDU newASDU = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
+
+                    newASDU.AddInformationObject(new MeasuredValueShort(1001, 0.1f, QualityDescriptor.INVALID()));
+
+                    server.EnqueueASDU(newASDU);
+
+                    newASDU = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
+
+                    newASDU.AddInformationObject(new MeasuredValueShort(1001, 0.2f, QualityDescriptor.INVALID()));
+
+                    server.EnqueueASDU(newASDU);
+
+                    Thread.Sleep(1000);
+
                     connection.Close();
                 }
                 catch (ConnectionException ex)
-                {
+                { 
                     se = ex;
                 }
 
@@ -2003,6 +2021,73 @@ namespace tests
             con.Close ();
 
             server.Stop ();
+        }
+
+        [Test()]
+        public void TestInformationObjectCopyConstructors()
+        {
+            SinglePointInformation si = new SinglePointInformation(101, true, QualityDescriptor.VALID());
+
+            SinglePointInformation copySi = new SinglePointInformation(si);
+
+            Assert.AreEqual(copySi.ObjectAddress, 101);
+            Assert.AreEqual(copySi.Value, true);
+            Assert.AreEqual(copySi.Quality.Invalid, false);
+
+            CP56Time2a time = new CP56Time2a(DateTime.Now);
+
+            SinglePointWithCP56Time2a siWithTs = new SinglePointWithCP56Time2a(102, false, QualityDescriptor.INVALID(), time);
+
+            copySi = new SinglePointInformation(siWithTs);
+
+            Assert.AreEqual(copySi.ObjectAddress, 102);
+            Assert.AreEqual(copySi.Value, false);
+            Assert.AreEqual(copySi.Quality.Invalid, true);
+
+            copySi = new SinglePointWithCP56Time2a(siWithTs);
+
+            Assert.AreEqual(copySi.ObjectAddress, 102);
+            Assert.AreEqual(copySi.Value, false);
+            Assert.AreEqual(copySi.Quality.Invalid, true);
+
+            Assert.AreNotSame(((SinglePointWithCP56Time2a)copySi).Timestamp, time);
+            Assert.AreEqual(((SinglePointWithCP56Time2a)copySi).Timestamp, time);
+
+            PackedSinglePointWithSCD packedScd = new PackedSinglePointWithSCD(103, new StatusAndStatusChangeDetection(), QualityDescriptor.INVALID());
+
+            packedScd.SCD.CD(1, true);
+            packedScd.SCD.CD(7, true);
+
+            PackedSinglePointWithSCD packedScdCopy = new PackedSinglePointWithSCD(packedScd);
+
+            Assert.AreEqual(packedScdCopy.ObjectAddress, 103);
+            Assert.AreEqual(packedScdCopy.SCD.CD(0), false);
+            Assert.AreEqual(packedScdCopy.SCD.CD(1), true);
+            Assert.AreEqual(packedScdCopy.SCD.CD(7), true);
+            Assert.AreEqual(packedScdCopy.QDS.Invalid, true);
+
+            BinaryCounterReading bcr = new BinaryCounterReading();
+            bcr.Value = 1234;
+            bcr.Invalid = true;
+            bcr.SequenceNumber = 2;
+
+            IntegratedTotals integratedTotalsOriginal = new IntegratedTotals(104, bcr);
+
+            IntegratedTotals integratedTotalsCopy = new IntegratedTotals(integratedTotalsOriginal);
+
+            Assert.AreEqual(integratedTotalsCopy.ObjectAddress, 104);
+            Assert.AreNotSame(integratedTotalsOriginal.BCR, integratedTotalsCopy.BCR);
+            Assert.AreEqual(integratedTotalsOriginal.BCR.Value, integratedTotalsCopy.BCR.Value);
+            Assert.AreEqual(integratedTotalsOriginal.BCR.Invalid, integratedTotalsCopy.BCR.Invalid);
+            Assert.AreEqual(integratedTotalsOriginal.BCR.SequenceNumber, integratedTotalsCopy.BCR.SequenceNumber);
+
+            IntegratedTotalsWithCP56Time2a integratedTotalsWithCP56Copy = new IntegratedTotalsWithCP56Time2a(integratedTotalsOriginal);
+
+            Assert.AreEqual(integratedTotalsWithCP56Copy.ObjectAddress, 104);
+            Assert.AreNotSame(integratedTotalsOriginal.BCR, integratedTotalsWithCP56Copy.BCR);
+            Assert.AreEqual(integratedTotalsOriginal.BCR.Value, integratedTotalsWithCP56Copy.BCR.Value);
+            Assert.AreEqual(integratedTotalsOriginal.BCR.Invalid, integratedTotalsWithCP56Copy.BCR.Invalid);
+            Assert.AreEqual(integratedTotalsOriginal.BCR.SequenceNumber, integratedTotalsWithCP56Copy.BCR.SequenceNumber);
         }
 
     }
