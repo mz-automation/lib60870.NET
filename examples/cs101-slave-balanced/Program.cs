@@ -80,7 +80,7 @@ namespace cs101_slave_balanced
 				running = false;
 			};
 
-			string portName = "COM8"; // e.g. "COM3" on windows
+			string portName = "COM5"; // e.g. "COM3" on windows
 
 			if (args.Length > 0)
 				portName = args [0];

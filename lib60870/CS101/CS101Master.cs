@@ -280,7 +280,6 @@ namespace lib60870.CS101
             this.transceiver.SetTimeouts(messageTimeout, characterTimeout);
         }
 
-
         public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
         {
             asduReceivedHandler = handler;
@@ -289,7 +288,8 @@ namespace lib60870.CS101
 
         public void AddSlave(int slaveAddress)
         {
-            linkLayerUnbalanced.AddSlaveConnection(slaveAddress);
+            if(linkLayerUnbalanced != null)
+                linkLayerUnbalanced.AddSlaveConnection(slaveAddress);
         }
 
         public LinkLayerState GetLinkLayerState(int slaveAddress)
