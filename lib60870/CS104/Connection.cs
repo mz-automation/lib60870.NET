@@ -243,6 +243,27 @@ namespace lib60870.CS104
         private APCIParameters apciParameters;
         private ApplicationLayerParameters alParameters;
 
+        private string localIpAddress = null;
+        private int localTcpPort = 0;
+
+        /// <summary>
+        /// Set the local IP address for the local connection endpoint
+        /// </summary>
+        public string LocalIpAddress
+        {
+            get => localIpAddress;
+            set => localIpAddress = value;
+        }
+
+        /// <summary>
+        /// Set the TCP (source) port for the local connection endpoint (0 to automatically select a source port)
+        /// </summary>
+        public int LocalTcpPort
+        {
+            get => localTcpPort;
+            set => localTcpPort = value;
+        }
+
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="lib60870.Connection"/> use send message queue.
         /// </summary>
@@ -327,7 +348,6 @@ namespace lib60870.CS104
                 this.autostart = value;
             }
         }
-
 
         private void DebugLog(string message)
         {
@@ -1449,7 +1469,6 @@ namespace lib60870.CS104
             return true;
         }
 
-
         private bool isConnected()
         {
             try
@@ -1494,9 +1513,22 @@ namespace lib60870.CS104
             socket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
 
+            if (LocalIpAddress != null)
+            {
+                try
+                {
+                    socket.Bind(new IPEndPoint(IPAddress.Parse(localIpAddress), localTcpPort));
+                }
+                catch (Exception)
+                {
+                    throw new SocketException(87); // wrong argument
+                }
+            }
+
             var result = socket.BeginConnect(remoteEP, null, null);
 
             bool success = result.AsyncWaitHandle.WaitOne(connectTimeoutInMs, true);
+
             if (success)
             {
                 try
@@ -1660,15 +1692,12 @@ namespace lib60870.CS104
 
         private void HandleConnection()
         {
-
             byte[] bytes = new byte[300];
 
             try
             {
-
                 try
                 {
-
                     connecting = true;
 
                     try
@@ -1680,7 +1709,6 @@ namespace lib60870.CS104
 
                         if (tlsSecInfo != null)
                         {
-
                             DebugLog("Setup TLS");
 
                             RemoteCertificateValidationCallback validationCallback = CertificateValidationCallback;
