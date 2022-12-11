@@ -1,7 +1,7 @@
 /*
  *  CP24Time2a.cs
  *
- *  Copyright 2016 MZ Automation GmbH
+ *  Copyright 2016-2022 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -54,6 +54,22 @@ namespace lib60870
             Millisecond = millisecond;
             Second = second;
             Minute = minute;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is CP24Time2a))
+                return false;
+
+            return (this.GetHashCode() == obj.GetHashCode());
+        }
+
+        public override int GetHashCode()
+        {
+            return new System.Numerics.BigInteger(encodedValue).GetHashCode();
         }
 
         /// <summary>

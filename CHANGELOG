@@ -1,3 +1,9 @@
+Changes to version 2.3.0
+------------------------
+
+- changed library target to .NET standard 2.0
+- changed examples target frameworks to .NET 5/6
+
 Changes to version 2.2.0
 ------------------------
 - CS104 server: support for multiple redundancy groups

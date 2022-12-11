@@ -16,8 +16,6 @@ Open the provided solution file in the lib60870.NET folder with MonoDevelop or V
 
 ## Contact:
 
-The library is developed and supported my MZ Automation GmbH.
-
 For bug reports, hints or support please contact info@mz-automation.de
 
 ## Licensing

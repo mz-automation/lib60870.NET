@@ -1,7 +1,7 @@
 /*
  *  CP56Time2a.cs
  *
- *  Copyright 2016 MZ Automation GmbH
+ *  Copyright 2016-2022 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -74,7 +74,7 @@ namespace lib60870
 
         public override int GetHashCode()
         {
-            return encodedValue.GetHashCode();
+            return new System.Numerics.BigInteger(encodedValue).GetHashCode();
         }
 
         /// <summary>

@@ -1,7 +1,7 @@
 /*
  *  CP16Time2a.cs
  *
- *  Copyright 2016 MZ Automation GmbH
+ *  Copyright 2016-2022 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -47,6 +47,22 @@ namespace lib60870
         {
             for (int i = 0; i < 2; i++)
                 encodedValue[i] = 0;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+                return false;
+
+            if (!(obj is CP16Time2a))
+                return false;
+
+            return (this.GetHashCode() == obj.GetHashCode());
+        }
+
+        public override int GetHashCode()
+        {
+            return new System.Numerics.BigInteger(encodedValue).GetHashCode();
         }
 
         public CP16Time2a(CP16Time2a original)
