@@ -1,8 +1,4 @@
-﻿/// <summary>
-/// This example client is passively listening to the server's messages
-/// </summary>
-
-using System;
+﻿using System;
 using System.Threading;
 
 using lib60870;
@@ -130,7 +126,7 @@ namespace cs104_client3
 
 			bool running = true;
 
-			Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) {
+			Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
 				e.Cancel = true;
 				running = false;
 			};

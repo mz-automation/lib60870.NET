@@ -34,7 +34,7 @@ namespace cs104_client_file_upload
         public static void Main (string [] args)
         {
             string hostname = "127.0.0.1";
-            string filename = null;
+            string? filename = null;
             int fileCa = 1;
             int fileIoa = 30001;
 

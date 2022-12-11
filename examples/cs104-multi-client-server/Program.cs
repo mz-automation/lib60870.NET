@@ -124,14 +124,14 @@ namespace cs104_multi_client_server
 		{
 			bool running = true;
 
-			Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) {
+			Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
 				e.Cancel = true;
 				running = false;
 			};
 
 			Server server = new Server ();
 
-			//server.SetLocalAddress ("0.0.0.0");
+			server.SetLocalAddress ("0.0.0.0");
 
 			server.ServerMode = ServerMode.CONNECTION_IS_REDUNDANCY_GROUP;
 			server.MaxQueueSize = 10;

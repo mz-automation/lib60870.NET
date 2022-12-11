@@ -1,8 +1,4 @@
-﻿/// <summary>
-/// This example client is intended to test the server to work correctly under heavy load
-/// </summary>
-
-using System;
+﻿using System;
 using System.Threading;
 
 using lib60870;

@@ -179,7 +179,6 @@ namespace cs104_tls_client
 			/* Synchronize clock of the controlled station */
 			con.SendClockSyncCommand (1 /* CA */, new CP56Time2a (DateTime.Now)); 
 
-
 			Console.WriteLine ("CLOSE");
 
 			con.Close ();
@@ -189,7 +188,6 @@ namespace cs104_tls_client
 			con.Connect ();
 
 			Thread.Sleep (5000);
-
 
 			Console.WriteLine ("CLOSE 2");
 

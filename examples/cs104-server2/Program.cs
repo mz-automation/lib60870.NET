@@ -31,7 +31,7 @@ namespace cs104_server2
 
 			bool running = true;
 
-			Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) {
+			Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
 				e.Cancel = true;
 				running = false;
 			};
@@ -52,7 +52,7 @@ namespace cs104_server2
 					waitTime -= 100;
 				else {
 
-					ASDU newAsdu = null; 
+					ASDU? newAsdu = null; 
 
 					/* send SPI objects */
 					for (int i = 0; i < 400; i++) {

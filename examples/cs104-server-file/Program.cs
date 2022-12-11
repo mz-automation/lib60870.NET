@@ -175,7 +175,7 @@ namespace cs104_server_file
 		{
 			bool running = true;
 
-			Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) {
+			Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
 				e.Cancel = true;
 				running = false;
 			};
