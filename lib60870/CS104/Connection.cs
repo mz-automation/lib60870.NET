@@ -622,7 +622,6 @@ namespace lib60870.CS104
                 {
                     oldestSentASDU = 0;
                     newestSentASDU = 0;
-
                 }
                 else
                 {
@@ -1689,7 +1688,6 @@ namespace lib60870.CS104
             return localCertificates[0];
         }
 
-
         private void HandleConnection()
         {
             byte[] bytes = new byte[300];
@@ -1939,7 +1937,6 @@ namespace lib60870.CS104
             {
                 DebugLog(e.ToString());
             }
-
 
             running = false;
             connecting = false;
