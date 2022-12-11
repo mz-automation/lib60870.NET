@@ -3,11 +3,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{C48F029B-D26C-47E9-9958-994543664DB7}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>slave1</RootNamespace>
     <AssemblyName>slave1</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFramework>net5.0</TargetFramework>
     <ReleaseVersion>2.2.0</ReleaseVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -41,11 +40,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\..\lib60870\lib60870.csproj">
-      <Project>{F604286A-1AFC-4355-8C2C-A998CFCEE979}</Project>
       <Name>lib60870</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
   </ItemGroup>
 </Project>

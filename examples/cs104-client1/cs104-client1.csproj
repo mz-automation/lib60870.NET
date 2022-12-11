@@ -3,13 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{608CD6D9-91FC-419F-A0F6-2091E0B6D469}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>testclient</RootNamespace>
     <AssemblyName>testclient</AssemblyName>
     <ReleaseVersion>2.2.0</ReleaseVersion>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -43,11 +41,7 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\..\lib60870\lib60870.csproj">
-      <Project>{F604286A-1AFC-4355-8C2C-A998CFCEE979}</Project>
       <Name>lib60870</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
   </ItemGroup>
 </Project>
