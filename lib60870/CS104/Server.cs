@@ -31,7 +31,25 @@ using lib60870.CS101;
 
 namespace lib60870.CS104
 {
-	
+    /// <summary>
+    /// Server events concerning listening
+    /// </summary>
+    public enum ServerStateEvent {
+        /// <summary>
+        /// Server started using Start()
+        /// </summary>
+        STARTED_LISTENING,
+        /// <summary>
+        /// Server stopped using Stop()
+        /// </summary>
+        STOPPED_LISTENING,
+        /// <summary>
+        /// Server stopped listening on exception
+        /// </summary>
+        ABORTED_LISTENING_ON_EXCEPTION
+    }
+    public delegate void ServerStateEventHandler(object parameter, ServerStateEvent stateEvent);
+
     /// <summary>
     /// Connection request handler is called when a client tries to connect to the server.
     /// </summary>
@@ -596,6 +614,17 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Gets the state of the server concerning new connections.
+        /// Should be true between Start() and Stop(), but can be false after failure.
+        /// </summary>
+        /// <value>Listening for new connections if true.</value>
+        public bool Running
+        {
+            // From a theoretical point of view, this might fail because there is no thread synchronization.
+            get { return this.running; }
+        }
+
         private APCIParameters apciParameters;
         private ApplicationLayerParameters alParameters;
 
@@ -681,6 +710,19 @@ namespace lib60870.CS104
             redGroups.Add(redundancyGroup);
         }
 
+        public ServerStateEventHandler serverStateEventHandler = null;
+        public object serverStateEventHandlerParameter = null;
+        /// <summary>
+        /// Sets a callback handler for server state changes.
+        /// </summary>
+        /// <param name="handler">Handler.</param>
+        /// <param name="parameter">Parameter.</param>
+        public void SetServerStateEventHandler(ServerStateEventHandler handler, object parameter)
+        {
+            this.serverStateEventHandler = handler;
+            this.serverStateEventHandlerParameter = parameter;
+        }
+
         public ConnectionRequestHandler connectionRequestHandler = null;
         public object connectionRequestHandlerParameter = null;
 
@@ -742,6 +784,7 @@ namespace lib60870.CS104
         private void ServerAcceptThread()
         {
             running = true;
+            CallServerStateEventHandler(ServerStateEvent.STARTED_LISTENING);
 
             DebugLog("Waiting for connections...");
 
@@ -842,6 +885,7 @@ namespace lib60870.CS104
                 {
                     DebugLog("Exception: " + ex.Message);
                     running = false;
+                    CallServerStateEventHandler(ServerStateEvent.ABORTED_LISTENING_ON_EXCEPTION);
                 }
 					
             }
@@ -932,6 +976,7 @@ namespace lib60870.CS104
         public void Stop()
         {
             running = false;
+            CallServerStateEventHandler(ServerStateEvent.STOPPED_LISTENING);
 
             try
             {
@@ -986,6 +1031,12 @@ namespace lib60870.CS104
                     redGroup.EnqueueASDU(asdu);
                 }
             }
+        }
+
+        internal void CallServerStateEventHandler(ServerStateEvent e)
+        {
+            if (serverStateEventHandler != null)
+                serverStateEventHandler(serverStateEventHandlerParameter, e);
         }
 
         internal void CallConnectionEventHandler(ClientConnection connection, ClientConnectionEvent e)
