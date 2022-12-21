@@ -838,8 +838,9 @@ namespace lib60870.CS104
                     }
 
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    DebugLog("Exception: " + ex.Message);
                     running = false;
                 }
 					
