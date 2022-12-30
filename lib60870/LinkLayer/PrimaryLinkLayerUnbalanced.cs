@@ -35,13 +35,9 @@ namespace lib60870.linklayer
         /// <param name="slaveAddress">link layer address of the slave</param>
         bool IsChannelAvailable(int slaveAddress);
 
-
         void RequestClass1Data(int slaveAddress);
 
-
-
         void RequestClass2Data(int slaveAddress);
-
 
         void SendConfirmed(int slaveAddress, BufferFrame message);
 
@@ -53,8 +49,6 @@ namespace lib60870.linklayer
     {
         private LinkLayer linkLayer;
         private Action<string> DebugLog;
-
-        //	private bool waitingForResponse = false;
 
         private List<SlaveConnection> slaveConnections;
 
@@ -337,15 +331,30 @@ namespace lib60870.linklayer
 
                 long currentTime = SystemUtils.currentTimeMillis();
 
+                if (lastSendTime > currentTime)
+                    currentTime = lastSendTime;
+
                 switch (primaryState)
                 {
 
+                    case PrimaryLinkLayerState.TIMEOUT:
+
+                        if (currentTime > (lastSendTime + linkLayer.linkLayerParameters.TimeoutLinkState)) {
+                            newState = PrimaryLinkLayerState.IDLE;
+                        }
+
+                        break;
+
                     case PrimaryLinkLayerState.IDLE:
 
-                        waitingForResponse = false;
                         originalSendTime = 0;
-                        lastSendTime = 0;
                         sendLinkLayerTestFunction = false;
+
+                        linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_LINK_STATUS, address, false, false);
+
+                        lastSendTime = currentTime;
+                        waitingForResponse = true;
+
                         newState = PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK;
 
                         break;
@@ -357,9 +366,10 @@ namespace lib60870.linklayer
 						
                             if (currentTime > (lastSendTime + linkLayer.TimeoutForACK))
                             {
-                                linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_LINK_STATUS, address, false, false);
+                                waitingForResponse = false;
+                                lastSendTime = currentTime;
 
-                                lastSendTime = SystemUtils.currentTimeMillis();
+                                newState = PrimaryLinkLayerState.TIMEOUT;
                             }
 
                         }

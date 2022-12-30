@@ -80,14 +80,20 @@ namespace lib60870.linklayer
     /// </summary>
     public class LinkLayerParameters
     {
+        /* 0/1/2 bytes address length */
         private int addressLength = 1;
-        /* 0/1/2 bytes */
-        private int timeoutForACK = 1000;
+
         /* timeout for ACKs in ms */
-        private long timeoutRepeat = 1000;
+        private int timeoutForACK = 1000;
+
         /* timeout for repeating messages when no ACK received in ms */
-        private bool useSingleCharACK = true;
+        private long timeoutRepeat = 1000;
+
         /* use single char ACK for ACK (FC=0) or RESP_NO_USER_DATA (FC=9) */
+        private bool useSingleCharACK = true;
+
+        /* interval to repeat request status of link (FC=9) after response timeout */
+        private int timeoutLinkState;
 
         /// <summary>
         /// Gets or sets the length of the link layer address field
@@ -153,8 +159,23 @@ namespace lib60870.linklayer
                 this.useSingleCharACK = value;
             }
         }
-    }
 
+        /// <summary>
+        /// Gets or sets the interval to repeat request status of link (FC=9) after response timeout 
+        /// </summary>
+        /// <value>the timeout value in ms</value>
+        public int TimeoutLinkState
+        {
+            get
+            {
+                return this.timeoutLinkState;
+            }
+            set
+            {
+                this.timeoutLinkState = value;
+            }
+        }
+    }
 
     internal enum PrimaryLinkLayerState
     {
@@ -164,10 +185,9 @@ namespace lib60870.linklayer
         LINK_LAYERS_AVAILABLE,
         EXECUTE_SERVICE_SEND_CONFIRM,
         EXECUTE_SERVICE_REQUEST_RESPOND,
-        SECONDARY_LINK_LAYER_BUSY
-        /* Only required in balanced link layer */
+        SECONDARY_LINK_LAYER_BUSY,
+        TIMEOUT
     }
-
 
     internal class LinkLayer
     {
@@ -230,7 +250,6 @@ namespace lib60870.linklayer
 
         private int ownAddress = 0;
 
-
         public int OwnAddress
         {
             get
@@ -248,7 +267,6 @@ namespace lib60870.linklayer
                     ownAddress = value;
             }
         }
-
 
         /// <summary>
         /// Gets or sets a value indicating whether this balanced <see cref="lib60870.CS103.LinkLayer"/> has DIR bit set
