@@ -38,22 +38,23 @@ namespace lib60870
                 encodedValue[i] = msg[startIndex + i];
         }
 
-        public CP24Time2a()
-        {
-            for (int i = 0; i < 3; i++)
-                encodedValue[i] = 0;
-        }
-        public CP24Time2a(CP24Time2a original)
-        {
-            for (int i = 0; i < 3; i++)
-                encodedValue[i] = original.encodedValue[i];
-        }
-
         public CP24Time2a(int minute, int second, int millisecond)
         {
             Millisecond = millisecond;
             Second = second;
             Minute = minute;
+        }
+
+        public CP24Time2a()
+        {
+            for (int i = 0; i < 3; i++)
+                encodedValue[i] = 0;
+        }
+
+        public CP24Time2a(CP24Time2a original)
+        {
+            for (int i = 0; i < 3; i++)
+                encodedValue[i] = original.encodedValue[i];
         }
 
         public override bool Equals(object obj)

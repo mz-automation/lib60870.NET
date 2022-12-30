@@ -73,6 +73,12 @@ namespace lib60870.CS101
                 sco |= 0x80;
         }
 
+        public SingleCommand(SingleCommand original)
+            : base(original.ObjectAddress)
+        {
+            this.sco = original.sco;
+        }
+
         internal SingleCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
             : base(parameters, msg, startIndex, false)
         {
@@ -183,6 +189,12 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public SingleCommandWithCP56Time2a(SingleCommandWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
+        }
+
         internal SingleCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
             : base(parameters, msg, startIndex)
         {
@@ -240,6 +252,12 @@ namespace lib60870.CS101
 
             if (select)
                 dcq |= 0x80;
+        }
+
+        public DoubleCommand(DoubleCommand original)
+            : base(original.ObjectAddress)
+        {
+            this.dcq = original.dcq;
         }
 
         internal DoubleCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
@@ -319,6 +337,12 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public DoubleCommandWithCP56Time2a(DoubleCommandWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
+        }
+
         internal DoubleCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
             : base(parameters, msg, startIndex)
         {
@@ -341,7 +365,6 @@ namespace lib60870.CS101
 	
     }
 
-
     public class StepCommand : DoubleCommand
     {
         override public TypeID Type
@@ -362,6 +385,11 @@ namespace lib60870.CS101
 
         public StepCommand(int ioa, StepCommandValue command, bool select, int quality)
             : base(ioa, (int)command, select, quality)
+        {
+        }
+
+        public StepCommand(StepCommand original)
+            : base(original)
         {
         }
 
@@ -411,6 +439,12 @@ namespace lib60870.CS101
             : base(ioa, command, select, quality)
         {
             this.timestamp = timestamp;
+        }
+
+        public StepCommandWithCP56Time2a(StepCommandWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal StepCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex)

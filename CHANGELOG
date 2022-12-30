@@ -2,7 +2,9 @@ Changes to version 2.3.0
 ------------------------
 
 - changed library target to .NET standard 2.0
-- changed examples target frameworks to .NET 5/6
+- changed examples target frameworks to .NET 6
+- Added copy constructors for messages types in monitoring direction
+- CS104 client: Allow setting of local IP address and TCP port (to allow redundancy setups)
 
 Changes to version 2.2.0
 ------------------------

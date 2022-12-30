@@ -19,7 +19,6 @@
   *  See COPYING file for the complete license text.
   */
 
-
 using System;
 
 namespace lib60870.linklayer
@@ -351,4 +350,3 @@ namespace lib60870.linklayer
         }
     }
 }
-

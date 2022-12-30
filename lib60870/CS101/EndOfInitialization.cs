@@ -74,6 +74,11 @@ namespace lib60870.CS101
             this.coi = coi;
         }
 
+        public EndOfInitialization(EndOfInitialization original)
+            : base(original.ObjectAddress)
+        {
+            this.coi = original.coi;
+        }
 
         internal EndOfInitialization(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
             : base(parameters, msg, startIndex, false)

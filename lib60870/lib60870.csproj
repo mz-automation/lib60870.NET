@@ -3,7 +3,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>lib60870</RootNamespace>
     <AssemblyName>lib60870</AssemblyName>
-    <ReleaseVersion>2.2.0</ReleaseVersion>
+    <ReleaseVersion>2.3.0</ReleaseVersion>
     <TargetFramework>netstandard2.0</TargetFramework>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>

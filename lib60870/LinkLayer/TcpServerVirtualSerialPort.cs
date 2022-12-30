@@ -27,7 +27,6 @@ using System.Threading;
 
 namespace lib60870.linklayer
 {
-
     /// <summary>
     /// Connection event handler. Can be used to track connections and accept/deny specific clients.
     /// </summary>
@@ -35,7 +34,7 @@ namespace lib60870.linklayer
     /// <param name="ipAddress">IP address of the client</param>
     /// <param name="connect">true when client is connecting, false when disconnected</param>
     /// <returns>true when connection is accepted, false otherwise</returns>
-    public delegate bool TcpConnectionEventHandler(object parameter,IPAddress ipAddress,bool connect);
+    public delegate bool TcpConnectionEventHandler(object parameter, IPAddress ipAddress, bool connect);
 
     public class TcpServerVirtualSerialPort : Stream
     {

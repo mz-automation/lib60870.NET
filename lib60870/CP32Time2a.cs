@@ -21,12 +21,10 @@
  *  See COPYING file for the complete license text.
  */
 
-
 using System;
 
 namespace lib60870
 {
-
     public class CP32Time2a
     {
         private byte[] encodedValue = new byte[4];
@@ -62,6 +60,12 @@ namespace lib60870
         {
             for (int i = 0; i < 4; i++)
                 encodedValue[i] = 0;
+        }
+
+        public CP32Time2a(CP32Time2a original)
+        {
+            for (int i = 0; i < 4; i++)
+                encodedValue[i] = original.encodedValue[i];
         }
 
         public override bool Equals(object obj)
