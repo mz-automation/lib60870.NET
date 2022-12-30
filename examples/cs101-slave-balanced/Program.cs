@@ -74,7 +74,7 @@ namespace cs101_slave_balanced
 			LinkLayerParameters llParameters = new LinkLayerParameters ();
 			llParameters.AddressLength = 1;
 			llParameters.TimeoutForACK = 500;
-			llParameters.UseSingleCharACK = true;
+			llParameters.UseSingleCharACK = false;
 
 			CS101Slave slave = new CS101Slave (port, llParameters);
 			slave.DebugOutput = true;

@@ -1,23 +1,23 @@
 ﻿/*
  *  Copyright 2016-2022 Michael Zillgith
-  *
-  *  This file is part of lib60870.NET
-  *
-  *  lib60870.NET is free software: you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-  *  the Free Software Foundation, either version 3 of the License, or
-  *  (at your option) any later version.
-  *
-  *  lib60870.NET is distributed in the hope that it will be useful,
-  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  *  GNU General Public License for more details.
-  *
-  *  You should have received a copy of the GNU General Public License
-  *  along with lib60870.NET.  If not, see <http://www.gnu.org/licenses/>.
-  *
-  *  See COPYING file for the complete license text.
-  */
+ *
+ *  This file is part of lib60870.NET
+ *
+ *  lib60870.NET is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  lib60870.NET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with lib60870.NET.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *  See COPYING file for the complete license text.
+ */
 
 using System;
 
@@ -165,7 +165,6 @@ namespace lib60870.linklayer
 
                     break;
 
-
                 case FunctionCodeSecondary.STATUS_OF_LINK_OR_ACCESS_DEMAND:	
                     DebugLog("PLL - received STATUS OF LINK");
                     if (primaryState == PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK)
@@ -228,6 +227,11 @@ namespace lib60870.linklayer
                     originalSendTime = 0;
                     lastSendTime = 0;
                     sendLinkLayerTestFunction = false;
+
+                    waitingForResponse = true;
+                    linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_LINK_STATUS, linkLayerAddressOtherStation, false, false);
+                    lastSendTime = SystemUtils.currentTimeMillis();
+
                     newState = PrimaryLinkLayerState.EXECUTE_REQUEST_STATUS_OF_LINK;
 
                     break;
@@ -238,8 +242,7 @@ namespace lib60870.linklayer
                     {
                         if (SystemUtils.currentTimeMillis() > (lastSendTime + linkLayer.TimeoutForACK))
                         {
-                            linkLayer.SendFixedFramePrimary(FunctionCodePrimary.REQUEST_LINK_STATUS, linkLayerAddressOtherStation, false, false);
-                            lastSendTime = SystemUtils.currentTimeMillis();
+                            newState = PrimaryLinkLayerState.IDLE;
                         }
                     }
                     else
@@ -350,3 +353,4 @@ namespace lib60870.linklayer
         }
     }
 }
+
