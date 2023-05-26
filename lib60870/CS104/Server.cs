@@ -34,19 +34,38 @@ namespace lib60870.CS104
     /// <summary>
     /// Server events concerning listening
     /// </summary>
-    public enum ServerStateEvent {
+    public class ServerStateEvent {
+
+        private bool nowListening;
+        private bool fatal;
+        private Exception occurredException;
         /// <summary>
-        /// Server started using Start()
+        /// Either true (by Start()) or false (by Stop() or exception)
         /// </summary>
-        STARTED_LISTENING,
+        public bool NowListening
+        {
+            get { return nowListening; }
+        }
         /// <summary>
-        /// Server stopped using Stop()
+        /// Is it a fatal exception (while listening) or not (no exception or while closing)
         /// </summary>
-        STOPPED_LISTENING,
+        public bool Fatal
+        {
+            get { return fatal; }
+        }
         /// <summary>
-        /// Server stopped listening on exception
+        /// Either null (by Start() and Stop() or caught exception)
         /// </summary>
-        ABORTED_LISTENING_ON_EXCEPTION
+        public Exception OccurredException
+        {
+            get { return occurredException; }
+        }
+        internal ServerStateEvent(bool nowListening, bool fatal, Exception occurredException)
+        {
+            this.nowListening = nowListening;
+            this.fatal = fatal;
+            this.occurredException = occurredException;
+        }
     }
     public delegate void ServerStateEventHandler(object parameter, ServerStateEvent stateEvent);
 
@@ -784,7 +803,7 @@ namespace lib60870.CS104
         private void ServerAcceptThread()
         {
             running = true;
-            CallServerStateEventHandler(ServerStateEvent.STARTED_LISTENING);
+            CallServerStateEventHandler(new ServerStateEvent(true, false, null));
 
             DebugLog("Waiting for connections...");
 
@@ -885,7 +904,7 @@ namespace lib60870.CS104
                 {
                     DebugLog("Exception: " + ex.Message);
                     running = false;
-                    CallServerStateEventHandler(ServerStateEvent.ABORTED_LISTENING_ON_EXCEPTION);
+                    CallServerStateEventHandler(new ServerStateEvent(false, true, ex));
                 }
 					
             }
@@ -976,7 +995,7 @@ namespace lib60870.CS104
         public void Stop()
         {
             running = false;
-            CallServerStateEventHandler(ServerStateEvent.STOPPED_LISTENING);
+            CallServerStateEventHandler(new ServerStateEvent(false, false, null));
 
             try
             {
@@ -987,6 +1006,7 @@ namespace lib60870.CS104
                 catch (SocketException ex)
                 {
                     DebugLog("SocketException: " + ex.Message);
+                    CallServerStateEventHandler(new ServerStateEvent(false, false, ex));
                 }
 
                 listeningSocket.Close();
@@ -1001,6 +1021,7 @@ namespace lib60870.CS104
             catch (Exception e)
             {
                 DebugLog("Exception: " + e.Message);
+                CallServerStateEventHandler(new ServerStateEvent(false, false, e));
             }
         }
 
