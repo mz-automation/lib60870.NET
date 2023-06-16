@@ -553,7 +553,7 @@ namespace lib60870.CS104
         private string localHostname = "0.0.0.0";
         private int localPort = 2404;
 
-        private bool running = false;
+        private volatile bool running = false;
 
         private Socket listeningSocket;
 
@@ -903,8 +903,14 @@ namespace lib60870.CS104
                 catch (Exception ex)
                 {
                     DebugLog("Exception: " + ex.Message);
-                    running = false;
-                    CallServerStateEventHandler(new ServerStateEvent(false, true, ex));
+                    // Access to running not synchronized, is it? :-(
+                    // But then, it's only about the log.
+                    if (running || !(ex is SocketException))
+                    {
+                        // We are either not within shutdown or see some unexpected error.
+                        running = false;
+                        CallServerStateEventHandler(new ServerStateEvent(false, true, ex));
+                    }
                 }
 					
             }
@@ -1003,10 +1009,10 @@ namespace lib60870.CS104
                 {
                     listeningSocket.Shutdown(SocketShutdown.Both);
                 }
-                catch (SocketException ex)
+                catch (SocketException ex)   // seems to be side effect of Shutdown(). No idea how to avoid it.
                 {
-                    DebugLog("SocketException: " + ex.Message);
-                    CallServerStateEventHandler(new ServerStateEvent(false, false, ex));
+                    DebugLog("SocketException: " + ex.Message + " with code " + ex.ErrorCode);
+                    // CallServerStateEventHandler(new ServerStateEvent(false, false, ex));
                 }
 
                 listeningSocket.Close();
