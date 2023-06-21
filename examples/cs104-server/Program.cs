@@ -157,7 +157,7 @@ namespace cs104_server
 
 			int waitTime = 1000;
 
-			while (running) {
+			while (running && server.IsRunning()) {
 				Thread.Sleep(100);
 
 				if (waitTime > 0)
@@ -174,8 +174,16 @@ namespace cs104_server
 				}
 			}
 
-			Console.WriteLine ("Stop server");
-			server.Stop ();
+			if (server.IsRunning())
+			{
+				Console.WriteLine("Stop server");
+				server.Stop();
+			}
+			else
+			{
+				Console.WriteLine("Server stopped");
+			}
+
 		}
 	}
 }
