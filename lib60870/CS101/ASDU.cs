@@ -1334,7 +1334,6 @@ namespace lib60870.CS101
             return retVal;
         }
 
-
         public override string ToString()
         {
             string ret;

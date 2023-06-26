@@ -96,6 +96,15 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public PackedOutputCircuitInfo(PackedOutputCircuitInfo original)
+            : base(original.ObjectAddress)
+        {
+            this.oci = new OutputCircuitInfo(original.oci);
+            this.qdp = new QualityDescriptorP(original.qdp);
+            this.operatingTime = new CP16Time2a(operatingTime);
+            this.timestamp = new CP24Time2a(timestamp);
+        }
+
         internal PackedOutputCircuitInfo(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -201,6 +210,15 @@ namespace lib60870.CS101
             this.qdp = qdp;
             this.operatingTime = operatingTime;
             this.timestamp = timestamp;
+        }
+
+        public PackedOutputCircuitInfoWithCP56Time2a(PackedOutputCircuitInfoWithCP56Time2a original)
+            : base(original.ObjectAddress)
+        {
+            this.oci = new OutputCircuitInfo(original.oci);
+            this.qdp = new QualityDescriptorP(original.qdp);
+            this.operatingTime = new CP16Time2a(operatingTime);
+            this.timestamp = new CP56Time2a(timestamp);
         }
 
         internal PackedOutputCircuitInfoWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

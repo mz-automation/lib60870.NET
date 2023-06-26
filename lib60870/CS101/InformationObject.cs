@@ -30,6 +30,18 @@ namespace lib60870.CS101
     {
         private int objectAddress;
 
+        public override string ToString()
+        {
+            string ret;
+
+            ret = "ObjectAddress: " + ObjectAddress;
+
+            ret += " Type: " + Type.ToString();
+
+            
+            return ret;
+        }
+
         internal static int ParseInformationObjectAddress(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
         {
             if (msg.Length - startIndex < parameters.SizeOfIOA)

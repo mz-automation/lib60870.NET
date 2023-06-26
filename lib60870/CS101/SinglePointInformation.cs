@@ -95,6 +95,13 @@ namespace lib60870.CS101
             this.quality = quality;
         }
 
+        public SinglePointInformation(SinglePointInformation original)
+            : base(original.ObjectAddress)
+        {
+            this.value = original.Value;
+            this.quality = original.Quality;
+        }
+
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
@@ -163,6 +170,12 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public SinglePointWithCP24Time2a(SinglePointWithCP24Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP24Time2a(original.Timestamp);
+        }
+
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
@@ -228,6 +241,12 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public SinglePointWithCP56Time2a(SinglePointWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
+        }
+
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
@@ -258,7 +277,6 @@ namespace lib60870.CS101
                 return true;
             }
         }
-
 
         private StatusAndStatusChangeDetection scd;
 
@@ -308,6 +326,13 @@ namespace lib60870.CS101
         {
             this.scd = scd;
             this.qds = quality;
+        }
+
+        public PackedSinglePointWithSCD(PackedSinglePointWithSCD original)
+            : base(original.ObjectAddress)
+        {
+            this.scd = new StatusAndStatusChangeDetection(original.SCD);
+            this.qds = new QualityDescriptor(original.QDS);
         }
 
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)

@@ -97,6 +97,13 @@ namespace lib60870.CS101
             quality = new QualityDescriptor(msg[startIndex++]);
         }
 
+        public MeasuredValueScaled(MeasuredValueScaled original)
+            : base(original.ObjectAddress)
+        {
+            this.scaledValue = new ScaledValue(original.ScaledValue);
+            this.quality = new QualityDescriptor(original.quality);
+        }
+
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
         {
             base.Encode(frame, parameters, isSequence);
@@ -145,6 +152,12 @@ namespace lib60870.CS101
             : base(objectAddress, value, quality)
         {
             this.timestamp = timestamp;
+        }
+
+        public MeasuredValueScaledWithCP24Time2a(MeasuredValueScaledWithCP24Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP24Time2a(timestamp);
         }
 
         internal MeasuredValueScaledWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -208,6 +221,12 @@ namespace lib60870.CS101
             : base(objectAddress, value, quality)
         {
             this.timestamp = timestamp;
+        }
+
+        public MeasuredValueScaledWithCP56Time2a(MeasuredValueScaledWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal MeasuredValueScaledWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

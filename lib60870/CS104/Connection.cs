@@ -408,13 +408,10 @@ namespace lib60870.CS104
 
         private bool CheckSequenceNumber(int seqNo)
         {
-
             if (checkSequenceNumbers)
             {
-
                 lock (sentASDUs)
                 {
-
                     /* check if received sequence number is valid */
 
                     bool seqNoIsValid = false;
@@ -433,14 +430,17 @@ namespace lib60870.CS104
                         {
                             if ((seqNo >= sentASDUs[oldestSentASDU].seqNo) &&
                                 (seqNo <= sentASDUs[newestSentASDU].seqNo))
+                            {
                                 seqNoIsValid = true;
-
+                            }
                         }
                         else
                         {
                             if ((seqNo >= sentASDUs[oldestSentASDU].seqNo) ||
                                 (seqNo <= sentASDUs[newestSentASDU].seqNo))
+                            {
                                 seqNoIsValid = true;
+                            }
 
                             counterOverflowDetected = true;
                         }
@@ -509,7 +509,6 @@ namespace lib60870.CS104
 
         private bool IsSentBufferFull()
         {
-
             if (oldestSentASDU == -1)
                 return false;
 
@@ -565,16 +564,12 @@ namespace lib60870.CS104
                 else
                     throw new ConnectionException("not connected", new SocketException(10057));
             }
-
-
         }
 
         private void PrintSendBuffer()
         {
-
             if (oldestSentASDU != -1)
             {
-
                 int currentIndex = oldestSentASDU;
 
                 int nextIndex = 0;
@@ -594,7 +589,6 @@ namespace lib60870.CS104
                 } while (nextIndex != -1);
 
                 DebugLog("--------------------");
-
             }
         }
 
@@ -602,7 +596,6 @@ namespace lib60870.CS104
         {
             lock (sentASDUs)
             {
-
                 int currentIndex = 0;
 
                 if (oldestSentASDU == -1)
@@ -634,7 +627,6 @@ namespace lib60870.CS104
 
             try
             {
-
                 lock (waitingToBeSent)
                 {
 
@@ -670,7 +662,6 @@ namespace lib60870.CS104
         {
             lock (socket)
             {
-
                 if (running == false)
                     throw new ConnectionException("not connected", new SocketException(10057));
 
@@ -1902,11 +1893,19 @@ namespace lib60870.CS104
                 {
                     DebugLog("SocketException: " + se.ToString());
                 }
+                catch (ConnectionException se)
+                {
+                    DebugLog("ConnectionException: " + se.ToString());
+                }
                 catch (Exception e)
                 {
                     DebugLog("Unexpected exception: " + e.ToString());
                 }
 
+            }
+            catch (ConnectionException se)
+            {
+                DebugLog("ConnectionException: " + se.ToString());
             }
             catch (Exception e)
             {

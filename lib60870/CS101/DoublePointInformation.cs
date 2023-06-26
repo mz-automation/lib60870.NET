@@ -89,6 +89,13 @@ namespace lib60870.CS101
             this.quality = quality;
         }
 
+        public DoublePointInformation(DoublePointInformation original)
+            : base(original.ObjectAddress)
+        {
+            this.value = original.value;
+            this.quality = new QualityDescriptor(original.quality);
+        }
+
         internal DoublePointInformation(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -160,6 +167,12 @@ namespace lib60870.CS101
             this.timestamp = timestamp;
         }
 
+        public DoublePointWithCP24Time2a(DoublePointWithCP24Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP24Time2a(original.timestamp);
+        }
+
         internal DoublePointWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
             : base(parameters, msg, startIndex, isSequence)
         {
@@ -223,6 +236,12 @@ namespace lib60870.CS101
             : base(ioa, value, quality)
         {
             this.timestamp = timestamp;
+        }
+
+        public DoublePointWithCP56Time2a(DoublePointWithCP56Time2a original)
+            : base(original)
+        {
+            this.timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal DoublePointWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
