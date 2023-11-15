@@ -633,17 +633,6 @@ namespace lib60870.CS104
             }
         }
 
-        /// <summary>
-        /// Gets the state of the server concerning new connections.
-        /// Should be true between Start() and Stop(), but can be false after failure.
-        /// </summary>
-        /// <value>Listening for new connections if true.</value>
-        public bool Running
-        {
-            // From a theoretical point of view, this might fail because there is no thread synchronization.
-            get { return this.running; }
-        }
-
         private APCIParameters apciParameters;
         private ApplicationLayerParameters alParameters;
 
