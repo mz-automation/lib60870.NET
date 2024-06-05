@@ -66,7 +66,7 @@ namespace lib60870.CS104
         CLOSED
     }
 
-    public delegate void ConnectionEventHandler(object parameter,ClientConnection connection,ClientConnectionEvent eventType);
+    public delegate void ConnectionEventHandler(object parameter,ClientConnection connection, ClientConnectionEvent eventType);
 
     /// <summary>
     /// Server mode (redundancy group support)
@@ -238,7 +238,6 @@ namespace lib60870.CS104
 
             if (numberOfAsduInQueue > 0)
             {
-
                 int currentIndex = oldestQueueEntry;
 
                 while (enqueuedASDUs[currentIndex].state != QueueEntryState.WAITING_FOR_TRANSMISSION)
@@ -746,15 +745,12 @@ namespace lib60870.CS104
 
             while (running)
             {
-
                 try
                 {
-					
                     Socket newSocket = listeningSocket.Accept();
 
                     if (newSocket != null)
                     {
-
                         newSocket.NoDelay = true;
 
                         DebugLog("New connection");
@@ -763,7 +759,6 @@ namespace lib60870.CS104
           
                         DebugLog("  from IP: " + ipEndPoint.Address.ToString());
 
-                                                
                         bool acceptConnection = true;
 
                         if (OpenConnections >= maxOpenConnections)
@@ -776,7 +771,6 @@ namespace lib60870.CS104
 
                         if (acceptConnection)
                         {
-
                             ClientConnection connection = null;
 
                             if ((serverMode == ServerMode.SINGLE_REDUNDANCY_GROUP) || (serverMode == ServerMode.MULTIPLE_REDUNDANCY_GROUPS))
@@ -803,7 +797,6 @@ namespace lib60870.CS104
 
                                 if (matchingGroup != null)
                                 {
-
                                     connection = new ClientConnection(newSocket, securityInfo, apciParameters, alParameters, this,
                                         matchingGroup.asduQueue, debugOutput);
 
@@ -816,7 +809,6 @@ namespace lib60870.CS104
                                     DebugLog("Found no matching redundancy group -> close connection");
                                     newSocket.Close();
                                 }
-
                             }
                             else
                             {
@@ -841,7 +833,6 @@ namespace lib60870.CS104
                 {
                     running = false;
                 }
-					
             }
         }
 
@@ -887,7 +878,7 @@ namespace lib60870.CS104
             IPAddress ipAddress = IPAddress.Parse(localHostname);
             IPEndPoint localEP = new IPEndPoint(ipAddress, localPort);
 
-            // Create a TCP/IP  socket.
+            // Create a TCP/IP socket.
             listeningSocket = new Socket(AddressFamily.InterNetwork, 
                 SocketType.Stream, ProtocolType.Tcp);
 
@@ -975,7 +966,6 @@ namespace lib60870.CS104
         /// <exception cref="lib60870.CS101.ASDUQueueException">when the ASDU queue is full and mode is EnqueueMode.THROW_EXCEPTION.</exception>
         public void EnqueueASDU(ASDU asdu)
         {
-
             if (serverMode == ServerMode.CONNECTION_IS_REDUNDANCY_GROUP)
             {
                 foreach (ClientConnection connection in allOpenConnections)

@@ -1660,15 +1660,12 @@ namespace lib60870.CS104
 
         private void HandleConnection()
         {
-
             byte[] bytes = new byte[300];
 
             try
             {
-
                 try
                 {
-
                     connecting = true;
 
                     try
