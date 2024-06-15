@@ -227,12 +227,10 @@ namespace lib60870.CS101
                 frame.AppendBytes(payload);
             else
             {
-
                 bool isFirst = true;
 
                 foreach (InformationObject io in informationObjects)
                 {
-
                     if (isFirst)
                     {
                         io.Encode(frame, parameters, false);
@@ -245,7 +243,6 @@ namespace lib60870.CS101
                         else
                             io.Encode(frame, parameters, false);
                     }
-
                 }
             }
         }

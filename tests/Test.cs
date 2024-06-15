@@ -2090,6 +2090,245 @@ namespace tests
             Assert.AreEqual(integratedTotalsOriginal.BCR.SequenceNumber, integratedTotalsWithCP56Copy.BCR.SequenceNumber);
         }
 
+        [Test()]
+        public void TestSingleRedundancyGroup()
+        {
+            bool running = true;
+
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                running = false;
+            };
+
+            // specify application layer parameters (CS 101 and CS 104)
+            var alParams = new ApplicationLayerParameters();
+
+            // specify APCI parameters (only CS 104)
+            var apciParameters = new APCIParameters();
+
+            Server server = new Server(apciParameters, alParams);
+
+            server.DebugOutput = true;
+
+            server.ServerMode = ServerMode.SINGLE_REDUNDANCY_GROUP;
+
+            server.MaxQueueSize = 10;
+            server.MaxOpenConnections = 6;
+
+            server.EnqueueMode = EnqueueMode.REMOVE_OLDEST;
+
+            server.Start();
+
+            int waitTime = 1000;
+
+            int enqueuedMessage = 0;
+            int maxLoop = server.MaxQueueSize + 3;
+            int loopCount = 0;
+            while (running && server.IsRunning())
+            {
+                Thread.Sleep(100);
+
+                if (waitTime > 0)
+                    waitTime -= 100;
+                else
+                {
+                    ASDU newAsdu = new ASDU
+                (server.GetApplicationLayerParameters(), CauseOfTransmission.INITIALIZED, false, false, 0, 1, false);
+
+                    newAsdu = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
+
+                    newAsdu.AddInformationObject(new MeasuredValueScaled(110, -1, new QualityDescriptor()));
+                    server.EnqueueASDU(newAsdu);
+                    enqueuedMessage++;
+
+                    int numberOfQueueEntries = server.GetNumberOfQueueEntries();
+                    Console.WriteLine($"Number of queue entries: {numberOfQueueEntries}");
+                    waitTime = 1000;
+
+                    if(enqueuedMessage == server.MaxQueueSize)
+                        Assert.AreEqual(server.MaxQueueSize, numberOfQueueEntries);
+                    else
+                        Assert.AreEqual(enqueuedMessage, numberOfQueueEntries);
+
+                    maxLoop++;
+                }
+
+                if (loopCount == maxLoop)
+                    break;
+
+                loopCount++;
+            }
+
+            if (server.IsRunning())
+            {
+                Console.WriteLine("Stop server");
+                server.Stop();
+            }
+            else
+            {
+                Console.WriteLine("Server stopped");
+            }
+        }
+
+        [Test()]
+        public void TestMultipleRedundancyGroup()
+        {
+            bool running = true;
+
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                running = false;
+            };
+
+            // specify application layer parameters (CS 101 and CS 104)
+            var alParams = new ApplicationLayerParameters();
+
+            // specify APCI parameters (only CS 104)
+            var apciParameters = new APCIParameters();
+
+            Server server = new Server(apciParameters, alParams);
+
+            server.DebugOutput = true;
+
+            server.ServerMode = ServerMode.MULTIPLE_REDUNDANCY_GROUPS;
+
+            server.MaxQueueSize = 10;
+            server.MaxOpenConnections = 6;
+
+            RedundancyGroup redGroup = new RedundancyGroup("red-group");
+            redGroup.AddAllowedClient("127.0.0.1");
+
+            server.AddRedundancyGroup(redGroup);
+
+            server.EnqueueMode = EnqueueMode.REMOVE_OLDEST;
+
+            server.Start();
+
+            int waitTime = 1000;
+            int enqueuedMessage = 0;
+            int maxLoop = server.MaxQueueSize + 3;
+            int loopCount = 0;
+            while (running && server.IsRunning())
+            {
+                Thread.Sleep(100);
+
+                if (waitTime > 0)
+                    waitTime -= 100;
+                else
+                {
+                    ASDU newAsdu = new ASDU
+                        (server.GetApplicationLayerParameters(), CauseOfTransmission.INITIALIZED, false, false, 0, 1, false);
+
+                    newAsdu = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
+
+                    newAsdu.AddInformationObject(new MeasuredValueScaled(110, -1, new QualityDescriptor()));
+
+                    server.EnqueueASDU(newAsdu);
+                    enqueuedMessage++;
+
+                    int numberOfQueueEntries = server.GetNumberOfQueueEntries(redGroup);
+                    Console.WriteLine($"Number of queue entries: {numberOfQueueEntries}");
+                    waitTime = 1000;
+                    if (enqueuedMessage == server.MaxQueueSize)
+                        Assert.AreEqual(server.MaxQueueSize, numberOfQueueEntries);
+                    else
+                        Assert.AreEqual(enqueuedMessage, numberOfQueueEntries);
+
+                    maxLoop++;
+                }
+            }
+
+            if (server.IsRunning())
+            {
+                Console.WriteLine("Stop server");
+                server.Stop();
+            }
+            else
+            {
+                Console.WriteLine("Server stopped");
+            }
+        }
+
+        [Test()]
+        public void TestConnectionIsRedundancyGroup()
+        {
+            bool running = true;
+
+            Console.CancelKeyPress += delegate (object sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                running = false;
+            };
+
+            // specify application layer parameters (CS 101 and CS 104)
+            var alParams = new ApplicationLayerParameters();
+
+            // specify APCI parameters (only CS 104)
+            var apciParameters = new APCIParameters();
+
+            Server server = new Server(apciParameters, alParams);
+
+            server.DebugOutput = true;
+
+            server.ServerMode = ServerMode.CONNECTION_IS_REDUNDANCY_GROUP;
+
+            server.MaxQueueSize = 10;
+            server.MaxOpenConnections = 6;
+
+            server.EnqueueMode = EnqueueMode.REMOVE_OLDEST;
+
+            server.Start();
+
+            int waitTime = 1000;
+
+            int enqueuedMessage = 0;
+            int maxLoop = server.MaxQueueSize + 3;
+            int loopCount = 0;
+            while (running && server.IsRunning())
+            {
+                Thread.Sleep(100);
+
+                if (waitTime > 0)
+                    waitTime -= 100;
+                else
+                {
+                    ASDU newAsdu = new ASDU
+                (server.GetApplicationLayerParameters(), CauseOfTransmission.INITIALIZED, false, false, 0, 1, false);
+
+                    newAsdu = new ASDU(server.GetApplicationLayerParameters(), CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
+
+                    newAsdu.AddInformationObject(new MeasuredValueScaled(110, -1, new QualityDescriptor()));
+                    server.EnqueueASDU(newAsdu);
+                    enqueuedMessage++;
+
+                    int numberOfQueueEntries = server.GetNumberOfQueueEntries();
+                    Console.WriteLine($"Number of queue entries: {numberOfQueueEntries}");
+                    waitTime = 1000;
+
+                    if (enqueuedMessage == server.MaxQueueSize)
+                        Assert.AreEqual(server.MaxQueueSize, numberOfQueueEntries);
+                    else
+                        Assert.AreEqual(enqueuedMessage, numberOfQueueEntries);
+
+                    maxLoop++;
+                }
+
+                if (loopCount == maxLoop)
+                    break;
+
+                loopCount++;
+            }
+
+            if (server.IsRunning())
+            {
+                Console.WriteLine("Stop server");
+                server.Stop();
+            }
+            else
+            {
+                Console.WriteLine("Server stopped");
+            }
+        }
+
     }
 }
 
