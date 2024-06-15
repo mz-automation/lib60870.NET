@@ -512,7 +512,6 @@ namespace lib60870.CS104
                         {
                             oldestSentASDU = 0;
                             newestSentASDU = 0;
-
                         }
                         else
                         {
@@ -1011,21 +1010,19 @@ namespace lib60870.CS104
                     return false;
                 }
             }
-
 			// Check for TESTFR_ACT message
 			else if ((buffer[2] & 0x43) == 0x43)
             {
-
                 DebugLog("Send TESTFR_CON");
 
                 socketStream.Write(TESTFR_CON_MSG, 0, TESTFR_CON_MSG.Length);
             } 
-
 			// Check for STARTDT_ACT message
 			else if ((buffer[2] & 0x07) == 0x07)
             {
-
                 DebugLog("Send STARTDT_CON");
+
+                socketStream.Write(STARTDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
 
                 if (this.isActive == false)
                 {
@@ -1033,14 +1030,13 @@ namespace lib60870.CS104
 
                     this.server.Activated(this);
                 }
-
-                socketStream.Write(STARTDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
+                else {
+                    DebugLog("STARTDT-ACT received while connection is already active");
+                }
             }
-
 			// Check for STOPDT_ACT message
 			else if ((buffer[2] & 0x13) == 0x13)
             {
-				
                 DebugLog("Send STOPDT_CON");
 
                 if (this.isActive == true)
@@ -1052,7 +1048,6 @@ namespace lib60870.CS104
 
                 socketStream.Write(STOPDT_CON_MSG, 0, TESTFR_CON_MSG.Length);
             } 
-
 			// Check for TESTFR_CON message
 			else if ((buffer[2] & 0x83) == 0x83)
             {
@@ -1062,7 +1057,6 @@ namespace lib60870.CS104
 
                 ResetT3Timeout(currentTime);
             }
-
 			// S-message
 			else if (buffer[2] == 0x01)
             {
@@ -1080,7 +1074,6 @@ namespace lib60870.CS104
 
                 if (CheckSequenceNumber(seqNo) == false)
                     return false;
-					
             }
             else
             {
@@ -1129,7 +1122,6 @@ namespace lib60870.CS104
 
             if (unconfirmedReceivedIMessages > 0)
             {
-
                 if ((currentTime - lastConfirmationTime) >= (UInt64)(apciParameters.T2 * 1000))
                 {
 
@@ -1147,7 +1139,6 @@ namespace lib60870.CS104
                 {
                     if (((long)currentTime - sentASDUs[oldestSentASDU].sentTime) >= (apciParameters.T1 * 1000))
                     {
-
                         PrintSendBuffer();
                         DebugLog("I message timeout for " + oldestSentASDU + " seqNo: " + sentASDUs[oldestSentASDU].seqNo);
                         return false;
@@ -1162,7 +1153,6 @@ namespace lib60870.CS104
         {
             if (array1.Length == array2.Length)
             {
-
                 for (int i = 0; i < array1.Length; i++)
                 {
                     if (array1[i] != array2[i])
@@ -1284,7 +1274,6 @@ namespace lib60870.CS104
 
                     while (running)
                     {
-
                         try
                         {
                             // Receive the response from the remote device.
@@ -1292,7 +1281,6 @@ namespace lib60870.CS104
 
                             if (bytesRec > 0)
                             {
-							
                                 DebugLog("RCVD: " +	BitConverter.ToString(bytes, 0, bytesRec));
 
                                 if (HandleMessage(bytes, bytesRec) == false)
