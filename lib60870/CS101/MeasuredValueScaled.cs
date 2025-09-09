@@ -1,7 +1,7 @@
 /*
  *  MeasuredValueScaled.cs
  *
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -20,8 +20,6 @@
  *
  *  See COPYING file for the complete license text.
  */
-
-using System;
 
 namespace lib60870.CS101
 {
@@ -54,7 +52,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.scaledValue;
+                return scaledValue;
             }
         }
 
@@ -64,7 +62,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.quality;
+                return quality;
             }
         }
 
@@ -77,7 +75,7 @@ namespace lib60870.CS101
         public MeasuredValueScaled(int objectAddress, int value, QualityDescriptor quality)
             : base(objectAddress)
         {
-            this.scaledValue = new ScaledValue(value);
+            scaledValue = new ScaledValue(value);
             this.quality = quality;
         }
 
@@ -100,8 +98,8 @@ namespace lib60870.CS101
         public MeasuredValueScaled(MeasuredValueScaled original)
             : base(original.ObjectAddress)
         {
-            this.scaledValue = new ScaledValue(original.ScaledValue);
-            this.quality = new QualityDescriptor(original.quality);
+            scaledValue = new ScaledValue(original.ScaledValue);
+            quality = new QualityDescriptor(original.quality);
         }
 
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
@@ -144,7 +142,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -157,7 +155,7 @@ namespace lib60870.CS101
         public MeasuredValueScaledWithCP24Time2a(MeasuredValueScaledWithCP24Time2a original)
             : base(original)
         {
-            this.timestamp = new CP24Time2a(timestamp);
+            timestamp = new CP24Time2a(timestamp);
         }
 
         internal MeasuredValueScaledWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -213,7 +211,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -226,7 +224,7 @@ namespace lib60870.CS101
         public MeasuredValueScaledWithCP56Time2a(MeasuredValueScaledWithCP56Time2a original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal MeasuredValueScaledWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -252,6 +250,6 @@ namespace lib60870.CS101
         }
 
     }
-        
+
 }
 

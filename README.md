@@ -1,4 +1,4 @@
-# README lib60870.NET v2
+# README lib60870.NET v2.3.0
 
 lib60870.NET library for IEC 60870-5 based protocols in C#
 

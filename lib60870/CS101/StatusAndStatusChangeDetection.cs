@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -58,7 +58,7 @@ namespace lib60870.CS101
         public bool ST(int i)
         {
             if ((i >= 0) && (i < 16))
-                return ((int)(STn & (1 << i)) != 0);
+                return ((STn & (1 << i)) != 0);
             else
                 return false;
         }
@@ -77,7 +77,7 @@ namespace lib60870.CS101
         public bool CD(int i)
         {
             if ((i >= 0) && (i < 16))
-                return ((int)(CDn & (1 << i)) != 0);
+                return ((CDn & (1 << i)) != 0);
             else
                 return false;
         }
@@ -99,8 +99,8 @@ namespace lib60870.CS101
 
         public StatusAndStatusChangeDetection(StatusAndStatusChangeDetection original)
         {
-            this.STn = original.STn;
-            this.CDn = original.CDn;
+            STn = original.STn;
+            CDn = original.CDn;
         }
 
         public StatusAndStatusChangeDetection(byte[] msg, int startIndex)

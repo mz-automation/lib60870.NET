@@ -8,185 +8,185 @@ using lib60870.linklayer;
 
 namespace cs101_master_unbalanced
 {
-	class MainClass
-	{
-		private static bool asduReceivedHandler(object parameter, int slaveAddress, ASDU asdu)
-		{
-			Console.WriteLine ("Slave: {0} - {1}", slaveAddress, asdu.ToString ());
+    class MainClass
+    {
+        private static bool asduReceivedHandler(object parameter, int slaveAddress, ASDU asdu)
+        {
+            Console.WriteLine ("Slave: {0} - {1}", slaveAddress, asdu.ToString ());
 
-			if (asdu.TypeId == TypeID.M_SP_NA_1) {
+            if (asdu.TypeId == TypeID.M_SP_NA_1) {
 
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
+                for (int i = 0; i < asdu.NumberOfElements; i++) {
 
-					var val = (SinglePointInformation)asdu.GetElement (i);
+                    var val = (SinglePointInformation)asdu.GetElement (i);
 
-					Console.WriteLine ("  IOA: " + val.ObjectAddress + " SP value: " + val.Value);
-					Console.WriteLine ("   " + val.Quality.ToString ());
-				}
-			} 
-			else if (asdu.TypeId == TypeID.M_ME_TE_1) {
+                    Console.WriteLine ("  IOA: " + val.ObjectAddress + " SP value: " + val.Value);
+                    Console.WriteLine ("   " + val.Quality.ToString ());
+                }
+            } 
+            else if (asdu.TypeId == TypeID.M_ME_TE_1) {
 
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
+                for (int i = 0; i < asdu.NumberOfElements; i++) {
 
-					var msv = (MeasuredValueScaledWithCP56Time2a)asdu.GetElement (i);
+                    var msv = (MeasuredValueScaledWithCP56Time2a)asdu.GetElement (i);
 
-					Console.WriteLine ("  IOA: " + msv.ObjectAddress + " scaled value: " + msv.ScaledValue);
-					Console.WriteLine ("   " + msv.Quality.ToString ());
-					Console.WriteLine ("   " + msv.Timestamp.ToString ());
-				}
+                    Console.WriteLine ("  IOA: " + msv.ObjectAddress + " scaled value: " + msv.ScaledValue);
+                    Console.WriteLine ("   " + msv.Quality.ToString ());
+                    Console.WriteLine ("   " + msv.Timestamp.ToString ());
+                }
 
-			} else if (asdu.TypeId == TypeID.M_ME_TF_1) {
+            } else if (asdu.TypeId == TypeID.M_ME_TF_1) {
 
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-					var mfv = (MeasuredValueShortWithCP56Time2a)asdu.GetElement (i);
+                for (int i = 0; i < asdu.NumberOfElements; i++) {
+                    var mfv = (MeasuredValueShortWithCP56Time2a)asdu.GetElement (i);
 
-					Console.WriteLine ("  IOA: " + mfv.ObjectAddress + " float value: " + mfv.Value);
-					Console.WriteLine ("   " + mfv.Quality.ToString ());
-					Console.WriteLine ("   " + mfv.Timestamp.ToString ());
-					Console.WriteLine ("   " + mfv.Timestamp.GetDateTime ().ToString ());
-				}
-			} else if (asdu.TypeId == TypeID.M_SP_TB_1) {
+                    Console.WriteLine ("  IOA: " + mfv.ObjectAddress + " float value: " + mfv.Value);
+                    Console.WriteLine ("   " + mfv.Quality.ToString ());
+                    Console.WriteLine ("   " + mfv.Timestamp.ToString ());
+                    Console.WriteLine ("   " + mfv.Timestamp.GetDateTime ().ToString ());
+                }
+            } else if (asdu.TypeId == TypeID.M_SP_TB_1) {
 
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
+                for (int i = 0; i < asdu.NumberOfElements; i++) {
 
-					var val = (SinglePointWithCP56Time2a)asdu.GetElement (i);
+                    var val = (SinglePointWithCP56Time2a)asdu.GetElement (i);
 
-					Console.WriteLine ("  IOA: " + val.ObjectAddress + " SP value: " + val.Value);
-					Console.WriteLine ("   " + val.Quality.ToString ());
-					Console.WriteLine ("   " + val.Timestamp.ToString ());
-				}
-			} else if (asdu.TypeId == TypeID.M_ME_NC_1) {
+                    Console.WriteLine ("  IOA: " + val.ObjectAddress + " SP value: " + val.Value);
+                    Console.WriteLine ("   " + val.Quality.ToString ());
+                    Console.WriteLine ("   " + val.Timestamp.ToString ());
+                }
+            } else if (asdu.TypeId == TypeID.M_ME_NC_1) {
 
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
-					var mfv = (MeasuredValueShort)asdu.GetElement (i);
+                for (int i = 0; i < asdu.NumberOfElements; i++) {
+                    var mfv = (MeasuredValueShort)asdu.GetElement (i);
 
-					Console.WriteLine ("  IOA: " + mfv.ObjectAddress + " float value: " + mfv.Value);
-					Console.WriteLine ("   " + mfv.Quality.ToString ());
-				}
-			} else if (asdu.TypeId == TypeID.M_ME_NB_1) {
+                    Console.WriteLine ("  IOA: " + mfv.ObjectAddress + " float value: " + mfv.Value);
+                    Console.WriteLine ("   " + mfv.Quality.ToString ());
+                }
+            } else if (asdu.TypeId == TypeID.M_ME_NB_1) {
 
-				for (int i = 0; i < asdu.NumberOfElements; i++) {
+                for (int i = 0; i < asdu.NumberOfElements; i++) {
 
-					var msv = (MeasuredValueScaled)asdu.GetElement (i);
+                    var msv = (MeasuredValueScaled)asdu.GetElement (i);
 
-					Console.WriteLine ("  IOA: " + msv.ObjectAddress + " scaled value: " + msv.ScaledValue);
-					Console.WriteLine ("   " + msv.Quality.ToString ());
-				}
+                    Console.WriteLine ("  IOA: " + msv.ObjectAddress + " scaled value: " + msv.ScaledValue);
+                    Console.WriteLine ("   " + msv.Quality.ToString ());
+                }
 
-			}
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		private static void linkLayerStateChanged (object parameter, int address, lib60870.linklayer.LinkLayerState newState)
-		{
-			Console.WriteLine ("LL state event {0} for slave {1}", newState.ToString (), address);
-		}
+        private static void linkLayerStateChanged (object parameter, int address, lib60870.linklayer.LinkLayerState newState)
+        {
+            Console.WriteLine ("LL state event {0} for slave {1}", newState.ToString (), address);
+        }
 
-		public class Receiver : IFileReceiver 
-		{
-			public void Finished(FileErrorCode result)
-			{ 
-				Console.WriteLine ("File download finished - code: " + result.ToString ());
-			}
-				
-			public void SegmentReceived(byte sectionName, int offset, int size, byte[] data)
-			{
-				Console.WriteLine ("File segment - sectionName: {0} offset: {1} size: {2}", sectionName, offset, size);
-			}
-		}
+        public class Receiver : IFileReceiver 
+        {
+            public void Finished(FileErrorCode result)
+            { 
+                Console.WriteLine ("File download finished - code: " + result.ToString ());
+            }
+                
+            public void SegmentReceived(byte sectionName, int offset, int size, byte[] data)
+            {
+                Console.WriteLine ("File segment - sectionName: {0} offset: {1} size: {2}", sectionName, offset, size);
+            }
+        }
 
-		public static void Main (string[] args)
-		{
-			bool running = true;
+        public static void Main (string[] args)
+        {
+            bool running = true;
 
-			// use Ctrl-C to stop the programm
-			Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
-				e.Cancel = true;
-				running = false;
-			};
+            // use Ctrl-C to stop the programm
+            Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                running = false;
+            };
 
-			string portName = "/dev/ttyUSB0";
+            string portName = "COM1";
 
-			if (args.Length > 0)
-				portName = args [0];
+            if (args.Length > 0)
+                portName = args [0];
 
-			SerialPort port = new SerialPort ();
+            SerialPort port = new SerialPort ();
 
-			port.PortName = portName;
-			port.BaudRate = 9600;
-			port.Parity = Parity.Even;
-			port.Handshake = Handshake.None;
-			port.Open ();
-			port.DiscardInBuffer ();
+            port.PortName = portName;
+            port.BaudRate = 9600;
+            port.Parity = Parity.Even;
+            port.Handshake = Handshake.None;
+            port.Open ();
+            port.DiscardInBuffer ();
 
-			/* set link layer address length */
-			LinkLayerParameters llParameters = new LinkLayerParameters ();
-			llParameters.AddressLength = 1;
+            /* set link layer address length */
+            LinkLayerParameters llParameters = new LinkLayerParameters ();
+            llParameters.AddressLength = 1;
 
-			/* unbalanced mode allows multiple slaves on a single serial line */
-			CS101Master master = new CS101Master(port, LinkLayerMode.UNBALANCED, llParameters);
-			master.DebugOutput = false;
-			master.SetASDUReceivedHandler (asduReceivedHandler, null);
+            /* unbalanced mode allows multiple slaves on a single serial line */
+            CS101Master master = new CS101Master(port, LinkLayerMode.UNBALANCED, llParameters);
+            master.DebugOutput = false;
+            master.SetASDUReceivedHandler (asduReceivedHandler, null);
 
-			master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
+            master.SetLinkLayerStateChangedHandler (linkLayerStateChanged, null);
 
-			master.AddSlave (1);
-			master.AddSlave (2);
-			master.AddSlave (3);
+            master.AddSlave (1);
+            master.AddSlave (2);
+            master.AddSlave (3);
 
-			long lastTimestamp = SystemUtils.currentTimeMillis ();
+            long lastTimestamp = SystemUtils.currentTimeMillis ();
 
-			master.SlaveAddress = 1;
-			//master.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
+            master.SlaveAddress = 1;
+            //master.GetFile (1, 30000, NameOfFile.TRANSPARENT_FILE, new Receiver ());
 
 
-			while (running) {
+            while (running) {
 
-				master.PollSingleSlave(1);
+                master.PollSingleSlave(1);
 
-				master.Run ();
+                master.Run ();
 
-				master.PollSingleSlave(2);
+                master.PollSingleSlave(2);
 
-				master.Run ();
+                master.Run ();
 
-				master.PollSingleSlave(3);
+                master.PollSingleSlave(3);
 
-				master.Run ();
+                master.Run ();
 
-				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 20000) {
+                if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 20000) {
 
-					lastTimestamp = SystemUtils.currentTimeMillis ();
+                    lastTimestamp = SystemUtils.currentTimeMillis ();
 
-					try {
-						master.SlaveAddress = 1;
-						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
-					}
-					catch (LinkLayerBusyException) {
-						Console.WriteLine ("Slave 1: Link layer busy or not ready");
-					}
+                    try {
+                        master.SlaveAddress = 1;
+                        master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 1, 20);
+                    }
+                    catch (LinkLayerBusyException) {
+                        Console.WriteLine ("Slave 1: Link layer busy or not ready");
+                    }
 
-					try {
-						master.SlaveAddress = 2;
-						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 2, 20);
-					}
-					catch (LinkLayerBusyException) {
-						Console.WriteLine ("Slave 2: Link layer busy or not ready");
-					}
-						
-					try {
-						master.SlaveAddress = 3;
-						master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 3, 20);
-					}
-					catch (LinkLayerBusyException) {
-						Console.WriteLine ("Slave 2: Link layer busy or not ready");
-					}
-				}
-					
-			}
+                    try {
+                        master.SlaveAddress = 2;
+                        master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 2, 20);
+                    }
+                    catch (LinkLayerBusyException) {
+                        Console.WriteLine ("Slave 2: Link layer busy or not ready");
+                    }
+                        
+                    try {
+                        master.SlaveAddress = 3;
+                        master.SendInterrogationCommand (CauseOfTransmission.ACTIVATION, 3, 20);
+                    }
+                    catch (LinkLayerBusyException) {
+                        Console.WriteLine ("Slave 2: Link layer busy or not ready");
+                    }
+                }
+                    
+            }
 
-			port.Close ();
-		}
-	}
+            port.Close ();
+        }
+    }
 }

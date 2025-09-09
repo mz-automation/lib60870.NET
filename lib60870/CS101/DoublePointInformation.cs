@@ -1,7 +1,7 @@
 /*
  *  DoublePointInformation.cs
  *
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -20,8 +20,6 @@
  *
  *  See COPYING file for the complete license text.
  */
-
-using System;
 
 namespace lib60870.CS101
 {
@@ -68,7 +66,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.value;
+                return value;
             }
         }
 
@@ -78,7 +76,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.quality;
+                return quality;
             }
         }
 
@@ -92,8 +90,8 @@ namespace lib60870.CS101
         public DoublePointInformation(DoublePointInformation original)
             : base(original.ObjectAddress)
         {
-            this.value = original.value;
-            this.quality = new QualityDescriptor(original.quality);
+            value = original.value;
+            quality = new QualityDescriptor(original.quality);
         }
 
         internal DoublePointInformation(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -157,7 +155,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -170,7 +168,7 @@ namespace lib60870.CS101
         public DoublePointWithCP24Time2a(DoublePointWithCP24Time2a original)
             : base(original)
         {
-            this.timestamp = new CP24Time2a(original.timestamp);
+            timestamp = new CP24Time2a(original.timestamp);
         }
 
         internal DoublePointWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -228,7 +226,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -241,7 +239,7 @@ namespace lib60870.CS101
         public DoublePointWithCP56Time2a(DoublePointWithCP56Time2a original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal DoublePointWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

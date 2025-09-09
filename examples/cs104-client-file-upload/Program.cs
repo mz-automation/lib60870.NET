@@ -39,7 +39,7 @@ namespace cs104_client_file_upload
             int fileIoa = 30001;
 
             if (args.Length == 0) {
-                Console.WriteLine ("upload <hostname> <filename> [CA] [IOA]");
+                Console.WriteLine ("upload "+ hostname + " <filename> ["+ fileCa.ToString() + "] ["+ fileIoa.ToString()+ "]");
             } else {
                 for (int i = 0; i < args.Length; i++) {
                     if (i == 0)
@@ -73,7 +73,7 @@ namespace cs104_client_file_upload
                 file.AddSection (fileData);
             }
 
-            con.SendFile (fileCa, fileIoa, (NameOfFile) 12, file);
+            con.SendFile (fileCa, fileIoa, NameOfFile.TRANSPARENT_FILE, file);
 
             file.WaitUntilTransferIsComplete ();
 

@@ -1,7 +1,7 @@
 ﻿/*
  *  LinkLayer.cs
  *
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -22,7 +22,6 @@
  */
 
 using System;
-using System.IO.Ports;
 
 namespace lib60870.linklayer
 {
@@ -30,7 +29,7 @@ namespace lib60870.linklayer
     /// Will be called by the stack when the state of a link layer connection changes
     /// </summary>
     /// <param name="address">Address of the slave (only used for unbalanced master mode)</param>
-	public delegate void LinkLayerStateChanged(object parameter,int address,LinkLayerState newState);
+    public delegate void LinkLayerStateChanged(object parameter, int address, LinkLayerState newState);
 
     public enum LinkLayerState
     {
@@ -104,7 +103,7 @@ namespace lib60870.linklayer
         {
             get
             {
-                return this.addressLength;
+                return addressLength;
             }
             set
             {
@@ -120,7 +119,7 @@ namespace lib60870.linklayer
         {
             get
             {
-                return this.timeoutForACK;
+                return timeoutForACK;
             }
             set
             {
@@ -136,7 +135,7 @@ namespace lib60870.linklayer
         {
             get
             {
-                return this.timeoutRepeat;
+                return timeoutRepeat;
             }
             set
             {
@@ -152,11 +151,11 @@ namespace lib60870.linklayer
         {
             get
             {
-                return this.useSingleCharACK;
+                return useSingleCharACK;
             }
             set
             {
-                this.useSingleCharACK = value;
+                useSingleCharACK = value;
             }
         }
 
@@ -168,11 +167,11 @@ namespace lib60870.linklayer
         {
             get
             {
-                return this.timeoutLinkState;
+                return timeoutLinkState;
             }
             set
             {
-                this.timeoutLinkState = value;
+                timeoutLinkState = value;
             }
         }
     }
@@ -192,7 +191,7 @@ namespace lib60870.linklayer
     internal class LinkLayer
     {
         protected Action<string> DebugLog;
-	
+
         protected byte[] buffer;
         /* byte buffer to receice and send frames */
 
@@ -217,9 +216,9 @@ namespace lib60870.linklayer
         public LinkLayer(byte[] buffer, LinkLayerParameters parameters, SerialTransceiverFT12 transceiver, Action<string> debugLog)
         {
             this.buffer = buffer;
-            this.linkLayerParameters = parameters;
+            linkLayerParameters = parameters;
             this.transceiver = transceiver;
-            this.DebugLog = debugLog;
+            DebugLog = debugLog;
         }
 
         public void SetReceivedRawMessageHandler(RawMessageHandler handler, object parameter)
@@ -276,7 +275,7 @@ namespace lib60870.linklayer
         {
             get
             {
-                return this.dir;
+                return dir;
             }
             set
             {
@@ -308,7 +307,7 @@ namespace lib60870.linklayer
         {
             get
             {
-                return this.linkLayerMode;
+                return linkLayerMode;
             }
             set
             {
@@ -361,14 +360,14 @@ namespace lib60870.linklayer
             if (dfc)
                 c += 0x10;
 
-            buffer[bufPos++] = (byte)c;
+            buffer[bufPos++] = c;
 
             if (linkLayerParameters.AddressLength > 0)
             {
                 buffer[bufPos++] = (byte)(address % 0x100);
 
                 if (linkLayerParameters.AddressLength > 1)
-                    buffer[bufPos++] = (byte)((address / 0x100) % 0x100);			
+                    buffer[bufPos++] = (byte)((address / 0x100) % 0x100);
             }
 
             byte checksum = 0;
@@ -414,7 +413,7 @@ namespace lib60870.linklayer
                 buffer[bufPos++] = (byte)(address % 0x100);
 
                 if (linkLayerParameters.AddressLength > 1)
-                    buffer[bufPos++] = (byte)((address / 0x100) % 0x100);			
+                    buffer[bufPos++] = (byte)((address / 0x100) % 0x100);
             }
 
             byte[] userData = frame.GetBuffer();
@@ -474,7 +473,7 @@ namespace lib60870.linklayer
                 buffer[bufPos++] = (byte)(address % 0x100);
 
                 if (linkLayerParameters.AddressLength > 1)
-                    buffer[bufPos++] = (byte)((address / 0x100) % 0x100);			
+                    buffer[bufPos++] = (byte)((address / 0x100) % 0x100);
             }
 
             byte[] userData = frame.GetBuffer();
@@ -508,7 +507,7 @@ namespace lib60870.linklayer
 
 
         private void ParseHeaderSecondaryUnbalanced(byte[] msg, int msgSize)
-        {			
+        {
             int userDataLength = 0;
             int userDataStart = 0;
             byte c;
@@ -525,7 +524,7 @@ namespace lib60870.linklayer
                     return;
                 }
 
-                userDataLength = (int)msg[1] - linkLayerParameters.AddressLength - 1;
+                userDataLength = msg[1] - linkLayerParameters.AddressLength - 1;
                 userDataStart = 5 + linkLayerParameters.AddressLength;
 
                 csStart = 4;
@@ -621,7 +620,7 @@ namespace lib60870.linklayer
                 DebugLog("ERROR: Received secondary message in unbalanced slave mode!");
                 return;
             }
-				
+
             bool fcb = ((c & 0x20) == 0x20);
             bool fcv = ((c & 0x10) == 0x10);
 
@@ -657,7 +656,7 @@ namespace lib60870.linklayer
                     return;
                 }
 
-                userDataLength = (int)msg[1] - linkLayerParameters.AddressLength - 1;
+                userDataLength = msg[1] - linkLayerParameters.AddressLength - 1;
                 userDataStart = 5 + linkLayerParameters.AddressLength;
 
                 csStart = 4;
@@ -740,7 +739,7 @@ namespace lib60870.linklayer
 
                 }
                 else
-                { /* we are primary link layer */ 
+                { /* we are primary link layer */
                     bool dir = ((c & 0x80) == 0x80); /* DIR - direction for balanced transmission */
                     bool dfc = ((c & 0x10) == 0x10); /* DFC - Data flow control */
                     bool acd = ((c & 0x20) == 0x20); /* ACD - access demand for class 1 data - for unbalanced transmission */
@@ -762,7 +761,7 @@ namespace lib60870.linklayer
                         DebugLog("No primary link layer available!");
 
                 }
-			
+
             }
             else
             { /* Single byte ACK */
@@ -821,15 +820,15 @@ namespace lib60870.linklayer
                 if (primaryLinkLayer != null)
                     primaryLinkLayer.RunStateMachine();
                 else if (secondaryLinkLayer != null)
-                    secondaryLinkLayer.RunStateMachine();				
+                    secondaryLinkLayer.RunStateMachine();
             }
 
         }
 
-       public void AddPortDeniedHandler (EventHandler eventHandler)
-       {
+        public void AddPortDeniedHandler(EventHandler eventHandler)
+        {
             transceiver.AddPortDeniedHandler(eventHandler);
-       }
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 /*
  *  Connection.cs
  *
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -21,18 +21,15 @@
  *  See COPYING file for the complete license text.
  */
 
+using lib60870.CS101;
 using System;
-
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
+using System.Net;
 using System.Net.Security;
-
-using lib60870.CS101;
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 
 namespace lib60870.CS104
 {
@@ -60,11 +57,20 @@ namespace lib60870.CS104
         /// Conformation of STOP DT command received (server will no longer send or accept application layer messages)
         /// </summary>
         STOPDT_CON_RECEIVED = 3,
-        
+
         /// <summary>
         /// The connect attempt has failed
         /// </summary>
         CONNECT_FAILED = 4
+    }
+
+    public enum CS104_ConState
+    {
+        STATE_IDLE = 0,
+        STATE_INACTIVE = 1,
+        STATE_ACTIVE = 2,
+        STATE_WAITING_FOR_STARTDT_CON = 3,
+        STATE_WAITING_FOR_STOPDT_CON = 4
     }
 
     /// <summary>
@@ -94,11 +100,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.sentMsgCounter;
+                return sentMsgCounter;
             }
             internal set
             {
-                this.sentMsgCounter = value;
+                sentMsgCounter = value;
             }
         }
 
@@ -110,11 +116,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.rcvdMsgCounter;
+                return rcvdMsgCounter;
             }
             internal set
             {
-                this.rcvdMsgCounter = value;
+                rcvdMsgCounter = value;
             }
         }
 
@@ -126,11 +132,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.rcvdTestFrActCounter;
+                return rcvdTestFrActCounter;
             }
             internal set
             {
-                this.rcvdTestFrActCounter = value;
+                rcvdTestFrActCounter = value;
             }
         }
 
@@ -142,11 +148,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.rcvdTestFrConCounter;
+                return rcvdTestFrConCounter;
             }
             internal set
             {
-                this.rcvdTestFrConCounter = value;
+                rcvdTestFrConCounter = value;
             }
         }
     }
@@ -154,12 +160,12 @@ namespace lib60870.CS104
     /// <summary>
     /// ASDU received handler.
     /// </summary>
-    public delegate bool ASDUReceivedHandler(object parameter,ASDU asdu);
+    public delegate bool ASDUReceivedHandler(object parameter, ASDU asdu);
 
     /// <summary>
     /// Callback handler for connection events
     /// </summary>
-    public delegate void ConnectionHandler(object parameter,ConnectionEvent connectionEvent);
+    public delegate void ConnectionHandler(object parameter, ConnectionEvent connectionEvent);
 
     /// <summary>
     /// A single connection to a CS 104 (IEC 60870-5-104) server. Implements the \ref Master interface.
@@ -202,6 +208,8 @@ namespace lib60870.CS104
         /* the k-buffer */
 
         /**********************************************/
+
+        CS104_ConState conState;
 
         private bool checkSequenceNumbers = true;
 
@@ -278,7 +286,7 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.useSendMessageQueue;
+                return useSendMessageQueue;
             }
             set
             {
@@ -295,11 +303,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.sendSequenceNumber;
+                return sendSequenceNumber;
             }
             set
             {
-                this.sendSequenceNumber = value;
+                sendSequenceNumber = value;
             }
         }
 
@@ -324,11 +332,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.receiveSequenceNumber;
+                return receiveSequenceNumber;
             }
             set
             {
-                this.receiveSequenceNumber = value;
+                receiveSequenceNumber = value;
             }
         }
 
@@ -341,11 +349,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.autostart;
+                return autostart;
             }
             set
             {
-                this.autostart = value;
+                autostart = value;
             }
         }
 
@@ -357,6 +365,11 @@ namespace lib60870.CS104
 
         private ConnectionStatistics statistics = new ConnectionStatistics();
 
+        /// <summary>
+        /// Resets the connection state by clearing sequence numbers, message counters, 
+        /// and connection-specific flags. This method is used to initialize or reset 
+        /// the connection before establishing a new session or after a connection is lost.
+        /// </summary>
         private void ResetConnection()
         {
             sendSequenceNumber = 0;
@@ -379,6 +392,8 @@ namespace lib60870.CS104
             if (useSendMessageQueue)
                 waitingToBeSent = new Queue<ASDU>();
 
+            conState = CS104_ConState.STATE_IDLE;
+
             statistics.Reset();
         }
 
@@ -389,7 +404,7 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.alParameters;
+                return alParameters;
             }
         }
 
@@ -405,7 +420,11 @@ namespace lib60870.CS104
         private RawMessageHandler sentMessageHandler = null;
         private object sentMessageHandlerParameter = null;
 
-        private void SendSMessage()
+        /// <summary>
+        /// Sends an S-Message to the remote device. 
+        /// This message contains a sequence number and is used for communication control.
+        /// </summary>
+        public void SendSMessage()
         {
             byte[] msg = new byte[6];
 
@@ -426,6 +445,13 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Checks the validity of a received sequence number.
+        /// </summary>
+        /// <param name="seqNo">The sequence number to be validated.</param>
+        /// <returns>
+        /// Returns true if the sequence number is valid, false otherwise.
+        /// </returns>
         private bool CheckSequenceNumber(int seqNo)
         {
             if (checkSequenceNumbers)
@@ -527,6 +553,13 @@ namespace lib60870.CS104
             return true;
         }
 
+        /// <summary>
+        /// Checks if the send buffer is full, i.e., if there are no more available spaces 
+        /// to add new sent messages in the circular buffer.
+        /// </summary>
+        /// <returns>
+        /// Returns true if the send buffer is full, otherwise false.
+        /// </returns>
         private bool IsSentBufferFull()
         {
             if (oldestSentASDU == -1)
@@ -540,6 +573,13 @@ namespace lib60870.CS104
                 return false;
         }
 
+        /// <summary>
+        /// Sends an I-Message (Information message) to the remote device.
+        /// </summary>
+        /// <param name="asdu">The ASDU (Application Service Data Unit) to be sent.</param>
+        /// <returns>
+        /// Returns the sequence number used for the I-Message after it has been sent.
+        /// </returns>
         private int SendIMessage(ASDU asdu)
         {
             BufferFrame frame = new BufferFrame(new byte[260], 6); /* reserve space for ACPI */
@@ -586,6 +626,9 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Prints the contents of the k-buffer, showing the sequence numbers and sent times of the messages.
+        /// </summary>
         private void PrintSendBuffer()
         {
             if (oldestSentASDU != -1)
@@ -612,6 +655,10 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Sends an I-Message and updates the k-buffer with the new ASDU (Application Service Data Unit).
+        /// </summary>
+        /// <param name="asdu">The ASDU to be sent.</param>
         private void SendIMessageAndUpdateSentASDUs(ASDU asdu)
         {
             lock (sentASDUs)
@@ -637,6 +684,12 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Sends the next ASDU in the waiting queue if the k-buffer is not full.
+        /// </summary>
+        /// <returns>
+        /// Returns `true` if an ASDU was sent, otherwise `false` if no ASDU was sent.
+        /// </returns>
         private bool SendNextWaitingASDU()
         {
             bool sentAsdu = false;
@@ -677,6 +730,10 @@ namespace lib60870.CS104
             return sentAsdu;
         }
 
+        /// <summary>
+        /// Sends an ASDU either immediately or by queuing it for later sending.
+        /// </summary>
+        /// <param name="asdu">The ASDU to be sent.</param>
         private void SendASDUInternal(ASDU asdu)
         {
             lock (socket)
@@ -704,13 +761,20 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Sets up the connection parameters for the communication session.
+        /// </summary>
+        /// <param name="hostname">The hostname or IP address of the remote server.</param>
+        /// <param name="apciParameters">The APCI (Application Protocol Control Information) parameters for the connection.</param>
+        /// <param name="alParameters">The application layer parameters for the connection.</param>
+        /// <param name="tcpPort">The TCP port number for the connection.</param>
         private void Setup(string hostname, APCIParameters apciParameters, ApplicationLayerParameters alParameters, int tcpPort)
         {
             this.hostname = hostname;
             this.alParameters = alParameters;
             this.apciParameters = apciParameters;
             this.tcpPort = tcpPort;
-            this.connectTimeoutInMs = apciParameters.T0 * 1000;
+            connectTimeoutInMs = apciParameters.T0 * 1000;
 
             connectionCounter++;
             connectionID = connectionCounter;
@@ -790,7 +854,7 @@ namespace lib60870.CS104
         /// <returns>The connection statistics.</returns>
         public ConnectionStatistics GetStatistics()
         {
-            return this.statistics;
+            return statistics;
         }
 
         /// <summary>
@@ -799,7 +863,7 @@ namespace lib60870.CS104
         /// <param name="millies">timeout value in milliseconds (ms)</param>
         public void SetConnectTimeout(int millies)
         {
-            this.connectTimeoutInMs = millies;
+            connectTimeoutInMs = millies;
         }
 
         /// <summary>
@@ -809,11 +873,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.connectTimeoutInMs;
+                return connectTimeoutInMs;
             }
             set
             {
-                this.connectTimeoutInMs = value;
+                connectTimeoutInMs = value;
             }
         }
 
@@ -824,11 +888,11 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.receiveTimeoutInMs;
+                return receiveTimeoutInMs;
             }
             set
             {
-                this.receiveTimeoutInMs = value;
+                receiveTimeoutInMs = value;
             }
         }
 
@@ -1016,6 +1080,7 @@ namespace lib60870.CS104
             {
                 try
                 {
+                    conState = CS104_ConState.STATE_WAITING_FOR_STARTDT_CON;
                     netStream.Write(STARTDT_ACT_MSG, 0, STARTDT_ACT_MSG.Length);
                 }
                 catch (Exception ex)
@@ -1061,12 +1126,14 @@ namespace lib60870.CS104
                     }
 
                     netStream.Write(STOPDT_ACT_MSG, 0, STOPDT_ACT_MSG.Length);
+
+                    conState = CS104_ConState.STATE_WAITING_FOR_STOPDT_CON;
                 }
                 catch (Exception ex)
                 {
                     throw new ConnectionException("Failed to write to socket", ex);
                 }
-           
+
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -1097,7 +1164,7 @@ namespace lib60870.CS104
                 {
                     throw new ConnectionException("Failed to write to socket", ex);
                 }
-                
+
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -1113,6 +1180,9 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Sends a STOPDT_CON message to the remote server if the connection is active.
+        /// </summary>
         protected void SendStopDT_CON()
         {
             if (running)
@@ -1141,6 +1211,9 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Sends a TESTFR_ACT message to the remote server if the connection is active.
+        /// </summary>
         protected void SendTestFR_ACT()
         {
             if (running)
@@ -1153,7 +1226,7 @@ namespace lib60870.CS104
                 {
                     throw new ConnectionException("Failed to write to socket", ex);
                 }
-                
+
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -1169,6 +1242,9 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Sends a TESTFR_CON message to the remote server if the connection is active.
+        /// </summary>
         protected void SendTestFR_CON()
         {
             if (running)
@@ -1181,7 +1257,7 @@ namespace lib60870.CS104
                 {
                     throw new ConnectionException("Failed to write to socket", ex);
                 }
-                
+
                 statistics.SentMsgCounter++;
                 if (sentMessageHandler != null)
                 {
@@ -1216,6 +1292,9 @@ namespace lib60870.CS104
                 throw new ConnectionException(lastException.Message, lastException);
         }
 
+        /// <summary>
+        /// Resets the T3 timeout based on the current system time and the T3 parameter from the APCI configuration.
+        /// </summary>
         private void ResetT3Timeout()
         {
             nextT3Timeout = (UInt64)SystemUtils.currentTimeMillis() + (UInt64)(apciParameters.T3 * 1000);
@@ -1254,6 +1333,15 @@ namespace lib60870.CS104
         private int remainingReadLength = 0;
         private long currentReadTimeout = 0;
 
+        /// <summary>
+        /// Receives a message from the network stream and processes it byte by byte.
+        /// </summary>
+        /// <param name="buffer">The byte array to store the received data.</param>
+        /// <returns>
+        /// Returns the total number of bytes read if a message is successfully received.
+        /// Returns -1 if there is a timeout or invalid data (e.g., missing SOF or incorrect length).
+        /// Returns 0 if the message is incomplete and the method needs to be called again.
+        /// </returns>
         private int receiveMessage(byte[] buffer)
         {
             /* check receive timeout */
@@ -1271,7 +1359,7 @@ namespace lib60870.CS104
 
                 if (readState == 0)
                 {
-                    // wait for start byte
+                    /* wait for start byte */
                     if (netStream.Read(buffer, 0, 1) != 1)
                         return -1;
 
@@ -1287,7 +1375,7 @@ namespace lib60870.CS104
 
                 if (readState == 1)
                 {
-                    // read length byte
+                    /* read length byte */
                     if (netStream.Read(buffer, 1, 1) != 1)
                         return 0;
 
@@ -1317,13 +1405,20 @@ namespace lib60870.CS104
 
                 if (currentReadTimeout == 0)
                 {
-                    currentReadTimeout = SystemUtils.currentTimeMillis() + this.receiveTimeoutInMs;
+                    currentReadTimeout = SystemUtils.currentTimeMillis() + receiveTimeoutInMs;
                 }
             }
 
             return 0;
         }
 
+        /// <summary>
+        /// Checks if the confirmation timeout (T2) has elapsed since the last confirmation time.
+        /// </summary>
+        /// <param name="currentTime">The current time in milliseconds.</param>
+        /// <returns>
+        /// Returns `true` if the confirmation timeout (T2) has elapsed, otherwise returns `false`.
+        /// </returns>
         private bool checkConfirmTimeout(long currentTime)
         {
             if ((currentTime - lastConfirmationTime) >= (apciParameters.T2 * 1000))
@@ -1332,6 +1427,15 @@ namespace lib60870.CS104
                 return false;
         }
 
+        /// <summary>
+        /// Processes an incoming message, checks its validity, and handles different types of frames.
+        /// </summary>
+        /// <param name="buffer">The byte array containing the received message.</param>
+        /// <param name="msgSize">The size of the received message in bytes.</param>
+        /// <returns>
+        /// Returns `true` if the message is valid and successfully processed.
+        /// Returns `false` if the message is invalid or an error occurs during processing.
+        /// </returns>
         private bool checkMessage(byte[] buffer, int msgSize)
         {
             long currentTime = SystemUtils.currentTimeMillis();
@@ -1408,7 +1512,8 @@ namespace lib60870.CS104
                 uMessageTimeout = 0;
 
                 if (buffer[2] == 0x43)
-                { // Check for TESTFR_ACT message
+                { 
+                    /* Check for TESTFR_ACT message */
                     statistics.RcvdTestFrActCounter++;
                     DebugLog("RCVD TESTFR_ACT");
                     DebugLog("SEND TESTFR_CON");
@@ -1439,6 +1544,8 @@ namespace lib60870.CS104
                     {
                         sentMessageHandler(sentMessageHandlerParameter, STARTDT_CON_MSG, 6);
                     }
+
+                    conState = CS104_ConState.STATE_ACTIVE;
                 }
                 else if (buffer[2] == 0x0b)
                 { /* STARTDT_CON */
@@ -1447,6 +1554,8 @@ namespace lib60870.CS104
                     if (connectionHandler != null)
                         connectionHandler(connectionHandlerParameter, ConnectionEvent.STARTDT_CON_RECEIVED);
 
+                    conState = CS104_ConState.STATE_ACTIVE;
+
                 }
                 else if (buffer[2] == 0x23)
                 { /* STOPDT_CON */
@@ -1454,6 +1563,8 @@ namespace lib60870.CS104
 
                     if (connectionHandler != null)
                         connectionHandler(connectionHandlerParameter, ConnectionEvent.STOPDT_CON_RECEIVED);
+
+                    conState = CS104_ConState.STATE_INACTIVE;
                 }
 
             }
@@ -1468,6 +1579,13 @@ namespace lib60870.CS104
             return true;
         }
 
+        /// <summary>
+        /// Checks the connection status by attempting to send a dummy byte to the socket.
+        /// </summary>
+        /// <returns>
+        /// Returns `true` if the connection is active (i.e., the socket is still connected).
+        /// Returns `false` if the socket is disconnected or an error occurs.
+        /// </returns>
         private bool isConnected()
         {
             try
@@ -1493,6 +1611,10 @@ namespace lib60870.CS104
             }
         }
 
+        /// <summary>
+        /// Establishes a socket connection to the specified remote endpoint with a timeout. 
+        /// If the connection cannot be established within the specified timeout, it throws a timeout exception.
+        /// </summary>
         private void ConnectSocketWithTimeout()
         {
             IPAddress ipAddress;
@@ -1505,12 +1627,16 @@ namespace lib60870.CS104
             }
             catch (Exception)
             {
-                throw new SocketException(87); // wrong argument
+                throw new SocketException(87); /* wrong argument */
             }
 
-            // Create a TCP/IP  socket.
+            /* Create a TCP/IP  socket. */
             socket = new Socket(AddressFamily.InterNetwork,
                 SocketType.Stream, ProtocolType.Tcp);
+
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            LingerOption lingerOption = new LingerOption(true, 0);
+            socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Linger, lingerOption);
 
             if (LocalIpAddress != null)
             {
@@ -1518,9 +1644,10 @@ namespace lib60870.CS104
                 {
                     socket.Bind(new IPEndPoint(IPAddress.Parse(localIpAddress), localTcpPort));
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    throw new SocketException(87); // wrong argument
+                    Console.WriteLine(ex.Message);
+                    throw new SocketException(87); /* wrong argument */
                 }
             }
 
@@ -1542,18 +1669,41 @@ namespace lib60870.CS104
 
                     DebugLog("ObjectDisposedException -> Connect canceled");
 
-                    throw new SocketException(995); // WSA_OPERATION_ABORTED
+                    throw new SocketException(995); /* WSA_OPERATION_ABORTED */
                 }
             }
             else
             {
-                socket.Close();
+                if (socket.Connected)
+                {
+                    try
+                    {
+                        socket.Shutdown(SocketShutdown.Receive);
+                    }
+                    catch (SocketException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    socket.Disconnect(true);
+                }
+
+
+                socket.Close(0);
                 socket = null;
 
-                throw new SocketException(10060); // Connection timed out (WSAETiMEDOUT)
+                throw new SocketException(10060); /* Connection timed out (WSAETiMEDOUT) */
             }
         }
 
+        /// <summary>
+        /// Handles various timeouts associated with the communication protocol, including T3, T1, and confirmation timeouts.
+        /// The method checks for expired timeouts and takes appropriate actions, such as resending messages or throwing exceptions.
+        /// </summary>
+        /// <returns>
+        /// - **true** if no timeouts or issues are detected, allowing normal processing to continue.
+        /// - **false** if a timeout (such as T3) has occurred, indicating the need for further action (like message retransmission).
+        /// </returns>
         private bool handleTimeouts()
         {
             UInt64 currentTime = (UInt64)SystemUtils.currentTimeMillis();
@@ -1565,7 +1715,6 @@ namespace lib60870.CS104
                 {
                     DebugLog("Timeout for TESTFR_CON message");
 
-                    // close connection
                     return false;
                 }
                 else
@@ -1574,7 +1723,7 @@ namespace lib60870.CS104
 
                     statistics.SentMsgCounter++;
                     DebugLog("U message T3 timeout");
-                    uMessageTimeout = (UInt64)currentTime + (UInt64)(apciParameters.T1 * 1000);
+                    uMessageTimeout = currentTime + (UInt64)(apciParameters.T1 * 1000);
                     outStandingTestFRConMessages++;
                     ResetT3Timeout();
                     if (sentMessageHandler != null)
@@ -1622,6 +1771,15 @@ namespace lib60870.CS104
             return true;
         }
 
+        /// <summary>
+        /// Compares two byte arrays to check if they are equal.
+        /// </summary>
+        /// <param name="array1">The first byte array to compare.</param>
+        /// <param name="array2">The second byte array to compare.</param>
+        /// <returns>
+        /// - **true** if both byte arrays have the same length and the same content.
+        /// - **false** if the byte arrays have different lengths or any byte at a corresponding index is different.
+        /// </returns>
         private bool AreByteArraysEqual(byte[] array1, byte[] array2)
         {
             if (array1.Length == array2.Length)
@@ -1639,7 +1797,19 @@ namespace lib60870.CS104
                 return false;
         }
 
-        private bool CertificateValidationCallback (Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        /// <summary>
+        /// Callback function for validating a server certificate in an SSL/TLS connection.
+        /// </summary>
+        /// <param name="sender">The source of the certificate validation request (typically the sender of the SSL/TLS connection).</param>
+        /// <param name="certificate">The server's certificate to validate.</param>
+        /// <param name="chain">The certificate chain containing the server's certificate and any intermediary certificates.</param>
+        /// <param name="sslPolicyErrors">Any SSL policy errors encountered during the validation process.</param>
+        /// <returns>
+        /// - **true** if the certificate is valid according to the validation rules.
+        /// - **false** if the certificate is invalid or fails validation based on specified rules.
+        /// </returns>
+        /// <remarks>
+        private bool CertificateValidationCallback(Object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
         {
             if (certificate != null)
             {
@@ -1683,11 +1853,27 @@ namespace lib60870.CS104
                 return false;
         }
 
+        /// <summary>
+        /// Callback function for selecting a local certificate during an SSL/TLS handshake.
+        /// </summary>
+        /// <param name="sender">The source of the certificate selection request (typically the client in an SSL/TLS connection).</param>
+        /// <param name="targetHost">The name of the server being connected to (host name or IP address).</param>
+        /// <param name="localCertificates">The collection of local certificates available for selection.</param>
+        /// <param name="remoteCertificate">The remote server's certificate being validated (not used in this implementation).</param>
+        /// <param name="acceptableIssuers">A list of acceptable issuers for the certificate (not used in this implementation).</param>
+        /// <returns>
+        /// The local certificate to be used for the SSL/TLS connection. In this case, the first certificate in the collection.
+        /// </returns>
         public X509Certificate LocalCertificateSelectionCallback(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
         {
             return localCertificates[0];
         }
 
+        /// <summary>
+        /// Establishes and maintains the connection to a remote device, handling socket connection, 
+        /// TLS handshake, message reception, and timeouts. It processes incoming data, manages connection state,
+        /// and ensures proper handling of message timeouts and unconfirmed messages.
+        /// </summary>
         private void HandleConnection()
         {
             byte[] bytes = new byte[300];
@@ -1700,7 +1886,7 @@ namespace lib60870.CS104
 
                     try
                     {
-                        // Connect to a remote device.
+                        /* Connect to a remote device. */
                         ConnectSocketWithTimeout();
 
                         DebugLog("Socket connected to " + socket.RemoteEndPoint.ToString());
@@ -1708,6 +1894,8 @@ namespace lib60870.CS104
                         if (tlsSecInfo != null)
                         {
                             DebugLog("Setup TLS");
+
+                            System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | (SecurityProtocolType)12288 /* TLS 1.3 */;
 
                             RemoteCertificateValidationCallback validationCallback = CertificateValidationCallback;
 
@@ -1800,6 +1988,7 @@ namespace lib60870.CS104
 
                     if (running)
                     {
+                        conState = CS104_ConState.STATE_INACTIVE;
 
                         bool loopRunning = running;
 
@@ -1810,7 +1999,7 @@ namespace lib60870.CS104
 
                             try
                             {
-                                // Receive a message from from the remote device.
+                                /* Receive a message  from the remote device. */
                                 int bytesRec = receiveMessage(bytes);
 
                                 if (bytesRec > 0)
@@ -1821,6 +2010,8 @@ namespace lib60870.CS104
                                     statistics.RcvdMsgCounter++;
 
                                     bool handleMessage = true;
+
+                                    CS104_ConState oldState = conState;
 
                                     if (recvRawMessageHandler != null)
                                         handleMessage = recvRawMessageHandler(recvRawMessageHandlerParameter, bytes, bytesRec);
@@ -1834,7 +2025,17 @@ namespace lib60870.CS104
                                         }
                                     }
 
-                                    if (unconfirmedReceivedIMessages >= apciParameters.W)
+                                    CS104_ConState newState = conState;
+
+                                    if ((newState != oldState) && connectionHandler != null)
+                                    {
+                                        if (newState == CS104_ConState.STATE_ACTIVE)
+                                            connectionHandler(connectionHandlerParameter, ConnectionEvent.STARTDT_CON_RECEIVED);
+                                        else if (newState == CS104_ConState.STATE_INACTIVE)
+                                            connectionHandler(connectionHandlerParameter, ConnectionEvent.STOPDT_CON_RECEIVED);
+                                    }
+
+                                    if (unconfirmedReceivedIMessages >= apciParameters.W || conState == CS104_ConState.STATE_WAITING_FOR_STOPDT_CON)
                                     {
                                         lastConfirmationTime = SystemUtils.currentTimeMillis();
 
@@ -1854,7 +2055,7 @@ namespace lib60870.CS104
                                     loopRunning = false;
 
                                 if (fileClient != null)
-                                    fileClient.HandleFileService ();
+                                    fileClient.HandleFileService();
 
                                 if (isConnected() == false)
                                     loopRunning = false;
@@ -1889,19 +2090,39 @@ namespace lib60870.CS104
 
                         DebugLog("CLOSE CONNECTION!");
 
-                        // Release the socket.
-                        try
+
+                        if (unconfirmedReceivedIMessages > 0)
                         {
-                            socket.Shutdown(SocketShutdown.Both);
+                            /* confirm all unconfirmed messages before stopping the connection */
+
+                            lastConfirmationTime = SystemUtils.currentTimeMillis();
+
+                            unconfirmedReceivedIMessages = 0;
+                            timeoutT2Triggered = false;
+
+                            SendSMessage();
                         }
-                        catch (SocketException)
-                        {
-                        }
+
 
                         running = false;
                         socketError = true;
 
-                        socket.Close();
+                        if (socket.Connected)
+                        {
+                            try
+                            {
+                                socket.Shutdown(SocketShutdown.Receive);
+                            }
+                            catch (SocketException ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
+
+                            socket.Disconnect(true);
+                        }
+
+
+                        socket.Close(0);
 
                         netStream.Dispose();
 
@@ -1938,6 +2159,8 @@ namespace lib60870.CS104
                 DebugLog(e.ToString());
             }
 
+            conState = CS104_ConState.STATE_IDLE;
+
             running = false;
             connecting = false;
         }
@@ -1950,14 +2173,33 @@ namespace lib60870.CS104
         {
             get
             {
-                return this.running;
+                return running;
             }
         }
 
         public void Cancel()
         {
             if (socket != null)
-                socket.Close();
+            {
+                if (socket.Connected)
+                {
+                    try
+                    {
+                        socket.Shutdown(SocketShutdown.Receive);
+                    }
+                    catch (SocketException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+
+                    socket.Disconnect(true);
+
+                }
+
+
+                socket.Close(0);
+            }
+
         }
 
         public void Close()
@@ -2026,6 +2268,13 @@ namespace lib60870.CS104
                 return IsSentBufferFull();
         }
 
+        /// <summary>
+        /// Initiates a request to retrieve a file from the remote system.
+        /// </summary>
+        /// <param name="ca">The communication address of the remote system.</param>
+        /// <param name="ioa">The information object address for the file.</param>
+        /// <param name="nof">The name of the file to be retrieved.</param>
+        /// <param name="receiver">The receiver implementation to handle the file data.</param>
         public override void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver)
         {
             if (fileClient == null)
@@ -2034,15 +2283,43 @@ namespace lib60870.CS104
             fileClient.RequestFile(ca, ioa, nof, receiver);
         }
 
-
-        public override void SendFile (int ca, int ioa, NameOfFile nof, IFileProvider fileProvider)
+        /// <summary>
+        /// Initiates a request to retrieve a file from the remote system with a specified timeout.
+        /// </summary>
+        /// <param name="ca">The communication address of the remote system.</param>
+        /// <param name="ioa">The information object address for the file.</param>
+        /// <param name="nof">The name of the file to be retrieved.</param>
+        /// <param name="receiver">The receiver implementation to handle the file data.</param>
+        /// <param name="timeout">The timeout duration in milliseconds for the file request.</param>
+        public void GetFile(int ca, int ioa, NameOfFile nof, IFileReceiver receiver, int timeout)
         {
             if (fileClient == null)
-                fileClient = new FileClient (this, DebugLog);
+                fileClient = new FileClient(this, DebugLog);
 
-            fileClient.SendFile (ca, ioa, nof, fileProvider);
+            fileClient.Timeout = timeout;
+
+            fileClient.RequestFile(ca, ioa, nof, receiver);
         }
 
+        /// <summary>
+        /// Initiates a request to send a file to the remote system.
+        /// </summary>
+        /// <param name="ca">The communication address of the remote system.</param>
+        /// <param name="ioa">The information object address for the file.</param>
+        /// <param name="nof">The name of the file to be sent.</param>
+        /// <param name="fileProvider">The file provider interface that supplies the file data to be sent.</param>
+        public override void SendFile(int ca, int ioa, NameOfFile nof, IFileProvider fileProvider)
+        {
+            if (fileClient == null)
+                fileClient = new FileClient(this, DebugLog);
+
+            fileClient.SendFile(ca, ioa, nof, fileProvider);
+        }
+
+        /// <summary>
+        /// Requests the directory listing from the remote system.
+        /// </summary>
+        /// <param name="ca">The communication address of the remote system.</param>
         public void GetDirectory(int ca)
         {
             ASDU getDirectoryAsdu = new ASDU(GetApplicationLayerParameters(), CauseOfTransmission.REQUEST, false, false, 0, ca, false);

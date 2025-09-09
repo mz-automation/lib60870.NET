@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -18,8 +18,6 @@
  *
  *  See COPYING file for the complete license text.
  */
-
-using System;
 
 namespace lib60870.CS101
 {
@@ -52,7 +50,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.value;
+                return value;
             }
             set
             {
@@ -66,7 +64,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.quality;
+                return quality;
             }
         }
 
@@ -98,8 +96,8 @@ namespace lib60870.CS101
         public SinglePointInformation(SinglePointInformation original)
             : base(original.ObjectAddress)
         {
-            this.value = original.Value;
-            this.quality = original.Quality;
+            value = original.Value;
+            quality = original.Quality;
         }
 
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
@@ -145,7 +143,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -157,7 +155,7 @@ namespace lib60870.CS101
 
             if ((msg.Length - startIndex) < GetEncodedSize())
                 throw new ASDUParsingException("Message too small");
-		
+
             startIndex += 1; /* skip SIQ */
 
             /* parse CP24Time2a (time stamp) */
@@ -173,7 +171,7 @@ namespace lib60870.CS101
         public SinglePointWithCP24Time2a(SinglePointWithCP24Time2a original)
             : base(original)
         {
-            this.timestamp = new CP24Time2a(original.Timestamp);
+            timestamp = new CP24Time2a(original.Timestamp);
         }
 
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
@@ -216,7 +214,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -244,7 +242,7 @@ namespace lib60870.CS101
         public SinglePointWithCP56Time2a(SinglePointWithCP56Time2a original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)
@@ -286,7 +284,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.scd;
+                return scd;
             }
             set
             {
@@ -298,7 +296,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.qds;
+                return qds;
             }
             set
             {
@@ -325,14 +323,14 @@ namespace lib60870.CS101
             : base(objectAddress)
         {
             this.scd = scd;
-            this.qds = quality;
+            qds = quality;
         }
 
         public PackedSinglePointWithSCD(PackedSinglePointWithSCD original)
             : base(original.ObjectAddress)
         {
-            this.scd = new StatusAndStatusChangeDetection(original.SCD);
-            this.qds = new QualityDescriptor(original.QDS);
+            scd = new StatusAndStatusChangeDetection(original.SCD);
+            qds = new QualityDescriptor(original.QDS);
         }
 
         public override void Encode(Frame frame, ApplicationLayerParameters parameters, bool isSequence)

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -19,8 +19,6 @@
  *  See COPYING file for the complete license text.
  */
 
-using System;
-
 namespace lib60870.CS101
 {
 
@@ -34,7 +32,7 @@ namespace lib60870.CS101
 
         public QualityDescriptorP()
         {
-            this.encodedValue = 0;
+            encodedValue = 0;
         }
 
         public QualityDescriptorP(byte encodedValue)
@@ -44,7 +42,7 @@ namespace lib60870.CS101
 
         public QualityDescriptorP(QualityDescriptorP original)
         {
-            this.encodedValue = original.encodedValue;
+            encodedValue = original.encodedValue;
         }
 
         public override bool Equals(object obj)
@@ -55,12 +53,12 @@ namespace lib60870.CS101
             if (!(obj is QualityDescriptorP))
                 return false;
 
-            return (this.encodedValue == ((QualityDescriptorP)obj).encodedValue);
+            return (encodedValue == ((QualityDescriptorP)obj).encodedValue);
         }
 
         public override int GetHashCode()
         {
-            return this.encodedValue.GetHashCode();
+            return encodedValue.GetHashCode();
         }
 
         public bool Reserved
@@ -175,7 +173,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.encodedValue;
+                return encodedValue;
             }
             set
             {

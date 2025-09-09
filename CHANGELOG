@@ -5,6 +5,27 @@ Changes to version 2.3.0
 - changed examples target frameworks to .NET 6
 - Added copy constructors for messages types in monitoring direction
 - CS104 client: Allow setting of local IP address and TCP port (to allow redundancy setups)
+- Allow user to set TLS version
+- Updated TLS client/server examples
+- Extend test cases
+- CS101 slave: updated behavior in unbalanced mode when FCB bit did not change (L870NET-21)
+- CS104 server: implement pending unconfirmed stop state (L870NET-22)
+- CS104 server: connection is closed by server when receiving S message in inactive state (L870NET-23)
+- CS101 balanced link layer: Send request-status-of-link before calling reset-of-remote-link (L870NET-25)
+- CS101 unbalanced master: Send request-status-of-link before calling reset-of-remote-link, added delay before repeating request-status-of-link. (L870NET-26)
+- CS104 slave: check IOA of received commands where IOA is fixed to 0 (L870NET-28)
+- CS 104 slave: only send S message after receiving STOPDT-ACT when there are unconfirmed outstanding I messages to be compliant with test case IEC 60870-5-604:2016-5.3.2.70 (L870NET-29)
+- Disable support for C_TS_NA_1 and C_CD_NA_1 for CS104 by default (L870NET-30)
+- TLS: support for TLS 1.3 (L870NET-31)
+- Implementing Master connection state (Stopped, Started, and Unconfirmed Stopped) (L870NET-32)
+- Divide the queue into low and high priority (L870NET-33)
+- Implementing CS104 Client Connection State (L870NET-34)
+- Fixed: Problem in normalized value handling and add scaled value test case
+- Check COT = FileTranfer on fileHandler for every case and return UNKNOWN_CAUSE_OF_TRANSMISSION asdu when different
+- Fixed: Confirm all unconfirmed messages before stopping the connection; -> Fix - send unconfirmed messages before closing the socket
+- Only send last ASDU if lastSendASDU!= null -> on linkLayer.SendVariableLengthFramePrimary
+- Separate the ASDUQueue in another .cs file -> Manage high and low priorities queues -> Fix bug on sending ASDU in HighPriorityQueue
+
 
 Changes to version 2.2.0
 ------------------------

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -18,8 +18,6 @@
  *
  *  See COPYING file for the complete license text.
  */
-
-using System;
 
 namespace lib60870.CS101
 {
@@ -41,14 +39,14 @@ namespace lib60870.CS101
 
         public SingleEvent()
         {
-            this.eventState = EventState.INDETERMINATE_0;
-            this.qdp = new QualityDescriptorP();
+            eventState = EventState.INDETERMINATE_0;
+            qdp = new QualityDescriptorP();
         }
 
         public SingleEvent(SingleEvent orignal)
         {
-            this.eventState = orignal.eventState;
-            this.qdp = new QualityDescriptorP(orignal.qdp);
+            eventState = orignal.eventState;
+            qdp = new QualityDescriptorP(orignal.qdp);
         }
 
         public override bool Equals(object obj)
@@ -59,19 +57,19 @@ namespace lib60870.CS101
             if (!(obj is SingleEvent))
                 return false;
 
-            return (this.EncodedValue == ((SingleEvent)obj).EncodedValue);
+            return (EncodedValue == ((SingleEvent)obj).EncodedValue);
         }
 
         public override int GetHashCode()
         {
-            return this.EncodedValue.GetHashCode();
+            return EncodedValue.GetHashCode();
         }
 
         public SingleEvent(byte encodedValue)
         {
-            this.eventState = (EventState)(encodedValue & 0x03);
+            eventState = (EventState)(encodedValue & 0x03);
 
-            this.qdp = new QualityDescriptorP(encodedValue);
+            qdp = new QualityDescriptorP(encodedValue);
         }
 
         public EventState State

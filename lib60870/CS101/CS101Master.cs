@@ -1,5 +1,5 @@
 ﻿/*
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -19,13 +19,12 @@
  *  See COPYING file for the complete license text.
  */
 
-using System;
-using System.IO.Ports;
-using System.Collections.Generic;
-
 using lib60870.linklayer;
-using System.Threading;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Ports;
+using System.Threading;
 
 namespace lib60870.CS101
 {
@@ -76,14 +75,14 @@ namespace lib60870.CS101
         /// </summary>
         public void Run()
         {
-            if(fatalError == false)
+            if (fatalError == false)
             {
                 linkLayer.Run();
 
                 if (fileClient != null)
                     fileClient.HandleFileService();
             }
-                        
+
         }
 
         private void fatalErrorHandler(object sender, EventArgs eventArgs)
@@ -102,7 +101,7 @@ namespace lib60870.CS101
         public void Start()
         {
             linkLayer.AddPortDeniedHandler(fatalErrorHandler);
-            
+
             if (port != null)
             {
                 if (port.IsOpen == false)
@@ -194,17 +193,17 @@ namespace lib60870.CS101
         public CS101Master(SerialPort port, LinkLayerMode mode, LinkLayerParameters llParams = null, ApplicationLayerParameters alParams = null)
         {
             if (llParams == null)
-                this.linkLayerParameters = new LinkLayerParameters();
+                linkLayerParameters = new LinkLayerParameters();
             else
-                this.linkLayerParameters = llParams;
+                linkLayerParameters = llParams;
 
             if (alParams == null)
-                this.appLayerParameters = new ApplicationLayerParameters();
+                appLayerParameters = new ApplicationLayerParameters();
             else
-                this.appLayerParameters = alParams;
+                appLayerParameters = alParams;
 
 
-            this.transceiver = new SerialTransceiverFT12(port, linkLayerParameters, DebugLog);
+            transceiver = new SerialTransceiverFT12(port, linkLayerParameters, DebugLog);
 
             linkLayer = new LinkLayer(buffer, linkLayerParameters, transceiver, DebugLog);
             linkLayer.LinkLayerMode = mode;
@@ -216,7 +215,7 @@ namespace lib60870.CS101
                 primaryLinkLayer = new PrimaryLinkLayerBalanced(linkLayer, GetUserData, DebugLog);
 
                 linkLayer.SetPrimaryLinkLayer(primaryLinkLayer);
-                secondaryLinkLayer = new SecondaryLinkLayerBalanced (linkLayer, 0, HandleApplicationLayer, DebugLog);
+                secondaryLinkLayer = new SecondaryLinkLayerBalanced(linkLayer, 0, HandleApplicationLayer, DebugLog);
                 linkLayer.SetSecondaryLinkLayer(secondaryLinkLayer);
 
                 userDataQueue = new Queue<BufferFrame>();
@@ -229,23 +228,23 @@ namespace lib60870.CS101
 
             this.port = port;
 
-            this.fileClient = null;
+            fileClient = null;
         }
 
         public CS101Master(Stream serialStream, LinkLayerMode mode, LinkLayerParameters llParams = null, ApplicationLayerParameters alParams = null)
         {
             if (llParams == null)
-                this.linkLayerParameters = new LinkLayerParameters();
+                linkLayerParameters = new LinkLayerParameters();
             else
-                this.linkLayerParameters = llParams;
+                linkLayerParameters = llParams;
 
             if (alParams == null)
-                this.appLayerParameters = new ApplicationLayerParameters();
+                appLayerParameters = new ApplicationLayerParameters();
             else
-                this.appLayerParameters = alParams;
+                appLayerParameters = alParams;
 
 
-            this.transceiver = new SerialTransceiverFT12(serialStream, linkLayerParameters, DebugLog);
+            transceiver = new SerialTransceiverFT12(serialStream, linkLayerParameters, DebugLog);
 
             linkLayer = new LinkLayer(buffer, linkLayerParameters, transceiver, DebugLog);
             linkLayer.LinkLayerMode = mode;
@@ -267,7 +266,7 @@ namespace lib60870.CS101
                 linkLayer.SetPrimaryLinkLayer(linkLayerUnbalanced);
             }
 
-            this.fileClient = null;
+            fileClient = null;
         }
 
         /// <summary>
@@ -277,7 +276,7 @@ namespace lib60870.CS101
         /// <param name="characterTimeout">Timeout to wait for next characters in a message</param>
         public void SetTimeouts(int messageTimeout, int characterTimeout)
         {
-            this.transceiver.SetTimeouts(messageTimeout, characterTimeout);
+            transceiver.SetTimeouts(messageTimeout, characterTimeout);
         }
 
         public void SetASDUReceivedHandler(ASDUReceivedHandler handler, object parameter)
@@ -288,7 +287,7 @@ namespace lib60870.CS101
 
         public void AddSlave(int slaveAddress)
         {
-            if(linkLayerUnbalanced != null)
+            if (linkLayerUnbalanced != null)
                 linkLayerUnbalanced.AddSlaveConnection(slaveAddress);
         }
 
@@ -325,7 +324,7 @@ namespace lib60870.CS101
             get
             {
                 if (primaryLinkLayer == null)
-                    return this.slaveAddress;
+                    return slaveAddress;
                 else
                     return primaryLinkLayer.LinkLayerAddressOtherStation;
             }
@@ -401,7 +400,7 @@ namespace lib60870.CS101
             try
             {
                 if (linkLayerUnbalanced != null)
-                     linkLayerUnbalanced.RequestClass1Data(address);
+                    linkLayerUnbalanced.RequestClass1Data(address);
             }
             catch (LinkLayerBusyException)
             {
@@ -608,12 +607,12 @@ namespace lib60870.CS101
             fileClient.RequestFile(ca, ioa, nof, receiver);
         }
 
-        public override void SendFile (int ca, int ioa, NameOfFile nof, IFileProvider fileProvider)
+        public override void SendFile(int ca, int ioa, NameOfFile nof, IFileProvider fileProvider)
         {
             if (fileClient == null)
-                fileClient = new FileClient (this, DebugLog);
+                fileClient = new FileClient(this, DebugLog);
 
-            fileClient.SendFile (ca, ioa, nof, fileProvider);
+            fileClient.SendFile(ca, ioa, nof, fileProvider);
         }
     }
 

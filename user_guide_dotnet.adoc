@@ -1,4 +1,6 @@
-= lib60870.NET 2.3 User Guide
+= lib60870.NET 2.3.0 User Guide
+
+*Copyright 2025 MZ Automation GmbH*
 
 == Introduction
 

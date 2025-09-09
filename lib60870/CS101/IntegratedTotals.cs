@@ -1,7 +1,7 @@
 /*
  *  IntegratedTotals.cs
  *
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -70,7 +70,7 @@ namespace lib60870.CS101
         public IntegratedTotals(IntegratedTotals original)
             : base(original.ObjectAddress)
         {
-            this.bcr = new BinaryCounterReading(original.bcr);
+            bcr = new BinaryCounterReading(original.bcr);
         }
 
         internal IntegratedTotals(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSquence)
@@ -125,7 +125,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -136,15 +136,15 @@ namespace lib60870.CS101
         }
 
         public IntegratedTotalsWithCP24Time2a(IntegratedTotalsWithCP24Time2a original)
-            : base (original)
+            : base(original)
         {
-            this.timestamp = new CP24Time2a(timestamp);
+            timestamp = new CP24Time2a(timestamp);
         }
 
         public IntegratedTotalsWithCP24Time2a(IntegratedTotals original)
             : base(original)
         {
-            this.timestamp = new CP24Time2a();
+            timestamp = new CP24Time2a();
         }
 
         internal IntegratedTotalsWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -201,7 +201,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -212,15 +212,15 @@ namespace lib60870.CS101
         }
 
         public IntegratedTotalsWithCP56Time2a(IntegratedTotalsWithCP56Time2a original)
-            : base (original)
+            : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         public IntegratedTotalsWithCP56Time2a(IntegratedTotals original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(DateTime.Now);
+            timestamp = new CP56Time2a(DateTime.Now);
         }
 
         public IntegratedTotalsWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)

@@ -1,7 +1,7 @@
 /*
  *  InformationObject.cs
  *
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -21,7 +21,6 @@
  *  See COPYING file for the complete license text.
  */
 
-using System;
 using System.Collections.Generic;
 
 namespace lib60870.CS101
@@ -38,7 +37,7 @@ namespace lib60870.CS101
 
             ret += " Type: " + Type.ToString();
 
-            
+
             return ret;
         }
 
@@ -79,7 +78,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.objectAddress;
+                return objectAddress;
             }
             internal set
             {
@@ -118,7 +117,7 @@ namespace lib60870.CS101
                     frame.SetNextByte((byte)((objectAddress / 0x10000) & 0xff));
             }
         }
-			
+
     }
 
     public interface IPrivateIOFactory
@@ -149,18 +148,18 @@ namespace lib60870.CS101
 
         public void AddPrivateInformationObjectType(TypeID typeId, IPrivateIOFactory iot)
         {
-            privateTypes.Add(typeId, iot); 
+            privateTypes.Add(typeId, iot);
         }
 
         internal IPrivateIOFactory GetFactory(TypeID typeId)
         {
             IPrivateIOFactory factory = null;
 
-            privateTypes.TryGetValue(typeId, out factory); 
+            privateTypes.TryGetValue(typeId, out factory);
 
             return factory;
         }
     }
-		
+
 }
 

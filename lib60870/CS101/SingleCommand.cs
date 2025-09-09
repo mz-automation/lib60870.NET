@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -18,8 +18,6 @@
  *
  *  See COPYING file for the complete license text.
  */
-
-using System;
 
 namespace lib60870.CS101
 {
@@ -76,7 +74,7 @@ namespace lib60870.CS101
         public SingleCommand(SingleCommand original)
             : base(original.ObjectAddress)
         {
-            this.sco = original.sco;
+            sco = original.sco;
         }
 
         internal SingleCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
@@ -152,7 +150,7 @@ namespace lib60870.CS101
         {
             return string.Format("[SingleCommand: QU={0}, State={1}, Select={2}]", QU, State, Select);
         }
-		
+
     }
 
     public class SingleCommandWithCP56Time2a : SingleCommand
@@ -192,7 +190,7 @@ namespace lib60870.CS101
         public SingleCommandWithCP56Time2a(SingleCommandWithCP56Time2a original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal SingleCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
@@ -257,7 +255,7 @@ namespace lib60870.CS101
         public DoubleCommand(DoubleCommand original)
             : base(original.ObjectAddress)
         {
-            this.dcq = original.dcq;
+            dcq = original.dcq;
         }
 
         internal DoubleCommand(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
@@ -340,7 +338,7 @@ namespace lib60870.CS101
         public DoubleCommandWithCP56Time2a(DoubleCommandWithCP56Time2a original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal DoubleCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
@@ -362,7 +360,7 @@ namespace lib60870.CS101
 
             frame.AppendBytes(timestamp.GetEncodedValue());
         }
-	
+
     }
 
     public class StepCommand : DoubleCommand
@@ -444,7 +442,7 @@ namespace lib60870.CS101
         public StepCommandWithCP56Time2a(StepCommandWithCP56Time2a original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal StepCommandWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex)
@@ -466,7 +464,7 @@ namespace lib60870.CS101
 
             frame.AppendBytes(timestamp.GetEncodedValue());
         }
-			
+
     }
 
 

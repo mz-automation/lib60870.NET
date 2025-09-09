@@ -8,139 +8,139 @@ using System.Threading;
 
 namespace cs101_slave_tcp
 {
-	public class CS101TestSlave 
-	{
+    public class CS101TestSlave 
+    {
 
-		private static bool myInterrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
-		{
-			Console.WriteLine("Interrogation for group " + qoi);
+        private static bool myInterrogationHandler(object parameter, IMasterConnection connection, ASDU asdu, byte qoi)
+        {
+            Console.WriteLine("Interrogation for group " + qoi);
 
-			connection.SendACT_CON (asdu, false);
+            connection.SendACT_CON (asdu, false);
 
-			// send information objects
-			ASDU newAsdu = new ASDU(connection.GetApplicationLayerParameters(), CauseOfTransmission.INTERROGATED_BY_STATION, 
-				false, false, 2, 1, false);
+            // send information objects
+            ASDU newAsdu = new ASDU(connection.GetApplicationLayerParameters(), CauseOfTransmission.INTERROGATED_BY_STATION, 
+                false, false, 2, 1, false);
 
-			newAsdu.AddInformationObject (new MeasuredValueScaled (100, -1, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new MeasuredValueScaled (100, -1, new QualityDescriptor ()));
 
-			newAsdu.AddInformationObject (new MeasuredValueScaled (101, 23, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new MeasuredValueScaled (101, 23, new QualityDescriptor ()));
 
-			newAsdu.AddInformationObject (new MeasuredValueScaled (102, 2300, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new MeasuredValueScaled (102, 2300, new QualityDescriptor ()));
 
-			connection.SendASDU (newAsdu);
+            connection.SendASDU (newAsdu);
 
-			// send sequence of information objects
-			newAsdu = new ASDU (connection.GetApplicationLayerParameters(), CauseOfTransmission.INTERROGATED_BY_STATION, 
-				false, false, 2, 1, true);
+            // send sequence of information objects
+            newAsdu = new ASDU (connection.GetApplicationLayerParameters(), CauseOfTransmission.INTERROGATED_BY_STATION, 
+                false, false, 2, 1, true);
 
-			newAsdu.AddInformationObject (new SinglePointInformation (200, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (201, false, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (202, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (203, false, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (204, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (205, false, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (206, true, new QualityDescriptor ()));
-			newAsdu.AddInformationObject (new SinglePointInformation (207, false, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (200, true, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (201, false, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (202, true, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (203, false, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (204, true, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (205, false, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (206, true, new QualityDescriptor ()));
+            newAsdu.AddInformationObject (new SinglePointInformation (207, false, new QualityDescriptor ()));
 
-			connection.SendASDU (newAsdu);
+            connection.SendASDU (newAsdu);
 
-			connection.SendACT_TERM (asdu);
+            connection.SendACT_TERM (asdu);
 
-			return true;
-		}
+            return true;
+        }
 
-		public static void Main (string[] args)
-		{
-			bool running = true;
+        public static void Main (string[] args)
+        {
+            bool running = true;
 
-			// use Ctrl-C to stop the programm
-			Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
-				e.Cancel = true;
-				running = false;
-			};
-				
-			LinkLayerParameters llParameters = new LinkLayerParameters ();
-			llParameters.AddressLength = 1;
-			llParameters.TimeoutForACK = 500;
-			llParameters.UseSingleCharACK = true;
+            // use Ctrl-C to stop the programm
+            Console.CancelKeyPress += delegate(object? sender, ConsoleCancelEventArgs e) {
+                e.Cancel = true;
+                running = false;
+            };
+                
+            LinkLayerParameters llParameters = new LinkLayerParameters ();
+            llParameters.AddressLength = 1;
+            llParameters.TimeoutForACK = 500;
+            llParameters.UseSingleCharACK = true;
 
-			TcpServerVirtualSerialPort port = new TcpServerVirtualSerialPort ();
-			//TcpClientVirtualSerialPort port = new TcpClientVirtualSerialPort("192.168.2.9", 2404);
+            TcpServerVirtualSerialPort port = new TcpServerVirtualSerialPort ();
+            //TcpClientVirtualSerialPort port = new TcpClientVirtualSerialPort("192.168.2.9", 2404);
 
-			port.DebugOutput = true;
-			port.Start ();
+            port.DebugOutput = true;
+            port.Start ();
 
-			CS101Slave slave = new CS101Slave (port, llParameters);
-			slave.DebugOutput = true;
-			slave.LinkLayerAddress = 3;
-			slave.LinkLayerAddressOtherStation = 1;
+            CS101Slave slave = new CS101Slave (port, llParameters);
+            slave.DebugOutput = true;
+            slave.LinkLayerAddress = 3;
+            slave.LinkLayerAddressOtherStation = 1;
 
-			slave.LinkLayerMode = lib60870.linklayer.LinkLayerMode.BALANCED;
+            slave.LinkLayerMode = lib60870.linklayer.LinkLayerMode.BALANCED;
 
-			slave.SetInterrogationHandler (myInterrogationHandler, null);
+            slave.SetInterrogationHandler (myInterrogationHandler, null);
 
-			slave.SetUserDataQueueSizes (50, 20);
+            slave.SetUserDataQueueSizes (50, 20);
 
-			ASDU asdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
-			asdu.AddInformationObject (new StepPositionInformation (301, 1, false, new QualityDescriptor()));
-			slave.EnqueueUserDataClass1 (asdu);
+            ASDU asdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
+            asdu.AddInformationObject (new StepPositionInformation (301, 1, false, new QualityDescriptor()));
+            slave.EnqueueUserDataClass1 (asdu);
 
-			long lastTimestamp = SystemUtils.currentTimeMillis ();
-			Int16 measuredValue = 0;
+            long lastTimestamp = SystemUtils.currentTimeMillis ();
+            Int16 measuredValue = 0;
 
-			TransparentFile file = new TransparentFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
+            TransparentFile file = new TransparentFile (1, 30000, NameOfFile.TRANSPARENT_FILE);
 
-			byte[] fileData = new byte[1025];
+            byte[] fileData = new byte[1025];
 
-			for (int i = 0; i < 1025; i++)
-				fileData [i] = (byte)(i + 1);
+            for (int i = 0; i < 1025; i++)
+                fileData [i] = (byte)(i + 1);
 
-			file.AddSection (fileData);
+            file.AddSection (fileData);
 
-			slave.GetAvailableFiles().AddFile (file);
+            slave.GetAvailableFiles().AddFile (file);
 
-			while (running) {
+            while (running) {
 
-				slave.Run (); // call the protocol stack
+                slave.Run (); // call the protocol stack
 
-				if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
+                if ((SystemUtils.currentTimeMillis() - lastTimestamp) >= 5000) {
 
-					lastTimestamp = SystemUtils.currentTimeMillis ();
+                    lastTimestamp = SystemUtils.currentTimeMillis ();
 
-					ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
-					newAsdu.AddInformationObject (new MeasuredValueScaled (110, measuredValue, new QualityDescriptor ()));
-					slave.EnqueueUserDataClass2 (newAsdu);
+                    ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.PERIODIC, false, false, 0, 1, false);
+                    newAsdu.AddInformationObject (new MeasuredValueScaled (110, measuredValue, new QualityDescriptor ()));
+                    slave.EnqueueUserDataClass2 (newAsdu);
 
-					measuredValue++;
-				}
+                    measuredValue++;
+                }
 
-				if (Console.KeyAvailable) {
+                if (Console.KeyAvailable) {
 
-					ConsoleKeyInfo keyInfo = Console.ReadKey ();
+                    ConsoleKeyInfo keyInfo = Console.ReadKey ();
 
-					if (keyInfo.KeyChar == 't') {
-						slave.SendLinkLayerTestFunction ();
-					} 
-					else {
-						Console.WriteLine ("Send spontaneous message");
+                    if (keyInfo.KeyChar == 't') {
+                        slave.SendLinkLayerTestFunction ();
+                    } 
+                    else {
+                        Console.WriteLine ("Send spontaneous message");
 
-						bool value = false;
+                        bool value = false;
 
-						if (keyInfo.KeyChar == 's') {
-							value = true;
-						}
+                        if (keyInfo.KeyChar == 's') {
+                            value = true;
+                        }
 
-						ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
-						newAsdu.AddInformationObject (new SinglePointInformation (100, value, new QualityDescriptor ()));
+                        ASDU newAsdu = new ASDU (slave.Parameters, CauseOfTransmission.SPONTANEOUS, false, false, 0, 1, false);
+                        newAsdu.AddInformationObject (new SinglePointInformation (100, value, new QualityDescriptor ()));
 
-						slave.EnqueueUserDataClass1 (newAsdu);
-					}
-				}
+                        slave.EnqueueUserDataClass1 (newAsdu);
+                    }
+                }
 
                 Thread.Sleep(1);
-			}
+            }
 
-			port.Stop ();
-		}
-	}
+            port.Stop ();
+        }
+    }
 }

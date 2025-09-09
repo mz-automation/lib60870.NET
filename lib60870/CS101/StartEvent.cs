@@ -1,5 +1,5 @@
 /*
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -19,8 +19,6 @@
  *  See COPYING file for the complete license text.
  */
 
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace lib60870.CS101
@@ -35,7 +33,7 @@ namespace lib60870.CS101
 
         public StartEvent()
         {
-            this.encodedValue = 0;
+            encodedValue = 0;
         }
 
         public StartEvent(byte encodedValue)
@@ -45,7 +43,7 @@ namespace lib60870.CS101
 
         public StartEvent(StartEvent orignal)
         {
-            this.encodedValue = orignal.encodedValue;
+            encodedValue = orignal.encodedValue;
         }
 
         public override bool Equals(object obj)
@@ -56,12 +54,12 @@ namespace lib60870.CS101
             if (!(obj is StartEvent))
                 return false;
 
-            return (this.EncodedValue == ((StartEvent)obj).EncodedValue);
+            return (EncodedValue == ((StartEvent)obj).EncodedValue);
         }
 
         public override int GetHashCode()
         {
-            return this.EncodedValue.GetHashCode();
+            return EncodedValue.GetHashCode();
         }
 
         /// <summary>
@@ -244,7 +242,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.encodedValue;
+                return encodedValue;
             }
             set
             {
@@ -276,5 +274,5 @@ namespace lib60870.CS101
             return sb.ToString();
         }
     }
-	
+
 }

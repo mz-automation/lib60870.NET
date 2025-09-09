@@ -32,7 +32,7 @@ namespace cs101_master_balanced
                 running = false;
             };
 
-            string portName = "/dev/ttyUSB1";
+            string portName = "COM1";
 
             if (args.Length > 0)
                 portName = args [0];

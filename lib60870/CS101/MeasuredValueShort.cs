@@ -1,7 +1,7 @@
 /*
  *  MeasuredValueShortFloat.cs
  *
- *  Copyright 2016-2022 Michael Zillgith
+ *  Copyright 2016-2025 Michael Zillgith
  *
  *  This file is part of lib60870.NET
  *
@@ -54,7 +54,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.value;
+                return value;
             }
             set
             {
@@ -68,7 +68,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.quality;
+                return quality;
             }
         }
 
@@ -82,8 +82,8 @@ namespace lib60870.CS101
         public MeasuredValueShort(MeasuredValueShort original)
             : base(original.ObjectAddress)
         {
-            this.value = original.value;
-            this.quality = new QualityDescriptor(original.Quality);
+            value = original.value;
+            quality = new QualityDescriptor(original.Quality);
         }
 
         internal MeasuredValueShort(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -147,7 +147,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -160,7 +160,7 @@ namespace lib60870.CS101
         public MeasuredValueShortWithCP24Time2a(MeasuredValueShortWithCP24Time2a original)
             : base(original)
         {
-            this.timestamp = new CP24Time2a(original.timestamp);
+            timestamp = new CP24Time2a(original.timestamp);
         }
 
         internal MeasuredValueShortWithCP24Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
@@ -216,7 +216,7 @@ namespace lib60870.CS101
         {
             get
             {
-                return this.timestamp;
+                return timestamp;
             }
         }
 
@@ -229,7 +229,7 @@ namespace lib60870.CS101
         public MeasuredValueShortWithCP56Time2a(MeasuredValueShortWithCP56Time2a original)
             : base(original)
         {
-            this.timestamp = new CP56Time2a(original.timestamp);
+            timestamp = new CP56Time2a(original.timestamp);
         }
 
         internal MeasuredValueShortWithCP56Time2a(ApplicationLayerParameters parameters, byte[] msg, int startIndex, bool isSequence)
